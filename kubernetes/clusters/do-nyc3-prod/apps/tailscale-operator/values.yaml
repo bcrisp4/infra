@@ -3,7 +3,6 @@
 
 externalSecret:
   enabled: true
-  vault: "Infra"
   itemName: "do-nyc3-prod-tailscale-operator"
 
 tailscale-operator:

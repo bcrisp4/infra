@@ -158,12 +158,12 @@ Key learnings from deploying ESO with 1Password:
 
 2. **1Password SDK Provider**: The `onepasswordSDK` provider requires ESO 1.x. Older 0.x versions use different provider config.
 
-3. **Secret Reference Format**: The onepasswordSDK provider requires full `op://` path format:
+3. **Secret Reference Format**: The onepasswordSDK provider uses `<item>/<field>` format (vault is in ClusterSecretStore):
    ```yaml
    remoteRef:
-     key: "op://<vault>/<item>/<field>"
+     key: "<item>/<field>"
    ```
-   Example: `op://Infra/my-app-credentials/password`
+   Example: `my-app-credentials/password`
 
 4. **Memory Limits**: Default chart memory limits (128Mi) are too low and cause OOMKilled. Use at least 256Mi:
    ```yaml
