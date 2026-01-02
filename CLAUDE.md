@@ -200,6 +200,20 @@ Key learnings from deploying ESO with 1Password:
 - If ingresses fail with "requested tags invalid or not permitted", check ACL tag ownership
 - Scopes needed: `devices`, `auth_keys`, `routes`, `dns`
 
+### Tailscale MagicDNS Naming
+
+MagicDNS uses **flat naming only** - no nested subdomains are supported:
+- Valid: `argocd-do-nyc3-prod.marlin-tet.ts.net`
+- Invalid: `argocd.do-nyc3-prod.marlin-tet.ts.net` (dots create DNS hierarchy)
+
+Naming pattern: `{hostname}.{tailnet}.ts.net`
+
+Use dashes to create logical groupings: `{app}-{cluster}.{tailnet}.ts.net`
+
+For custom subdomain structures, alternatives require additional infrastructure:
+- Own domain + split DNS (e.g., `argocd.do-nyc3-prod.internal.example.com`)
+- Gateway API + ExternalDNS + cert-manager
+
 ### ArgoCD ApplicationSets
 
 - Go template syntax (`{{ .path.basename }}`) should NOT use Helm escaping backticks when the YAML is applied directly (not via Helm)
