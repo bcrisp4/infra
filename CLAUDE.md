@@ -158,13 +158,28 @@ Key learnings from deploying ESO with 1Password:
 
 2. **1Password SDK Provider**: The `onepasswordSDK` provider requires ESO 1.x. Older 0.x versions use different provider config.
 
-3. **CRD Upgrades**: When upgrading ESO from 0.x to 1.x, you may need to delete old CRDs due to conversion webhook conflicts:
+3. **Secret Reference Format**: The onepasswordSDK provider requires full `op://` path format:
+   ```yaml
+   remoteRef:
+     key: "op://<vault>/<item>/<field>"
+   ```
+   Example: `op://Infra/my-app-credentials/password`
+
+4. **Memory Limits**: Default chart memory limits (128Mi) are too low and cause OOMKilled. Use at least 256Mi:
+   ```yaml
+   external-secrets:
+     resources:
+       limits:
+         memory: 256Mi
+   ```
+
+5. **CRD Upgrades**: When upgrading ESO from 0.x to 1.x, you may need to delete old CRDs due to conversion webhook conflicts:
    ```bash
    kubectl get crd -o name | grep external-secrets.io | xargs kubectl delete
    ```
    ArgoCD will recreate them with the new version.
 
-4. **1Password Service Account**: Create via CLI, store token in K8s secret before deploying:
+6. **1Password Service Account**: Create via CLI, store token in K8s secret before deploying:
    ```bash
    kubectl create namespace external-secrets
    kubectl create secret generic onepassword-token \
