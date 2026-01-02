@@ -51,6 +51,47 @@ resource "onepassword_item" "spaces_credentials" {
   }
 }
 
+# Store kubeconfig in 1Password for secure access
+resource "onepassword_item" "kubeconfig" {
+  vault    = var.onepassword_vault
+  title    = "${var.cluster_name}-kubeconfig"
+  category = "secure_note"
+
+  section {
+    label = "Cluster Info"
+
+    field {
+      label = "cluster_name"
+      type  = "STRING"
+      value = digitalocean_kubernetes_cluster.main.name
+    }
+
+    field {
+      label = "endpoint"
+      type  = "STRING"
+      value = digitalocean_kubernetes_cluster.main.endpoint
+    }
+
+    field {
+      label = "region"
+      type  = "STRING"
+      value = "nyc3"
+    }
+  }
+
+  section {
+    label = "Kubeconfig"
+
+    field {
+      label = "kubeconfig"
+      type  = "STRING"
+      value = digitalocean_kubernetes_cluster.main.kube_config[0].raw_config
+    }
+  }
+
+  tags = ["kubernetes", "kubeconfig", var.cluster_name]
+}
+
 # Output the 1Password item references for documentation
 output "onepassword_items" {
   description = "1Password item references for external-secrets"
@@ -60,5 +101,14 @@ output "onepassword_items" {
       item  = v.title
       uuid  = v.uuid
     }
+  }
+}
+
+output "onepassword_kubeconfig" {
+  description = "1Password item reference for kubeconfig"
+  value = {
+    vault = var.onepassword_vault
+    item  = onepassword_item.kubeconfig.title
+    uuid  = onepassword_item.kubeconfig.uuid
   }
 }

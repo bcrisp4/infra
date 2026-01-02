@@ -4,15 +4,7 @@ variable "cluster_name" {
   default     = "do-nyc3-prod"
 }
 
-variable "kubernetes_version" {
-  description = "Kubernetes version to deploy"
-  type        = string
-  default     = null
-}
-
 variable "onepassword_vault" {
   description = "1Password vault ID for storing secrets"
   type        = string
 }
-
-# Add provider-specific variables below

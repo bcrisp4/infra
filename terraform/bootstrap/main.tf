@@ -48,6 +48,11 @@ variable "workspaces" {
       description       = "Cross-cluster resources (Tailscale)"
       auto_apply        = false
     }
+    "do-nyc3-prod" = {
+      working_directory = "terraform/clusters/do-nyc3-prod"
+      description       = "DigitalOcean NYC3 production cluster"
+      auto_apply        = false
+    }
   }
 }
 
