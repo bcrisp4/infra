@@ -2,6 +2,25 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## CRITICAL: NEVER COMMIT SECRETS OR STATE FILES
+
+**NEVER commit the following to version control under ANY circumstances:**
+
+- `*.tfstate` / `*.tfstate.backup` - Terraform state files (contain sensitive data)
+- `*.tfvars` - Variable files (may contain secrets) - use `.tfvars.example` instead
+- `.terraform/` - Provider plugins and local state
+- API keys, tokens, passwords, or any credentials
+- `kubeconfig` / `talosconfig` files
+- Private keys (`*.pem`, `*.key`)
+- `.env` files with real values
+
+**Before EVERY commit, verify:**
+1. Run `git diff --cached --name-only` to review staged files
+2. Check for state files: `git diff --cached --name-only | grep -E '\.(tfstate|tfvars)$'`
+3. Grep for secrets: `git diff --cached -S"SECRET" -S"TOKEN" -S"PASSWORD" -S"API_KEY"`
+
+**If secrets are accidentally committed, the repository history must be rewritten immediately.**
+
 ## Commands
 
 ```bash
