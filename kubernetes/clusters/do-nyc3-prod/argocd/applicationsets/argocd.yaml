@@ -1,0 +1,31 @@
+# ArgoCD self-management Application
+#
+# After initial bootstrap, ArgoCD manages itself through this Application.
+# Changes to the bootstrap chart or values will be automatically synced.
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/bcrisp4/infra.git
+    targetRevision: HEAD
+    path: kubernetes/clusters/do-nyc3-prod/argocd/bootstrap
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

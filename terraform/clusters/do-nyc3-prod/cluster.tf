@@ -12,8 +12,9 @@ resource "digitalocean_kubernetes_cluster" "main" {
 
   # VPC-native networking with Cilium eBPF
   # These subnets must not overlap with the VPC CIDR or each other
-  cluster_subnet = "10.244.0.0/16"
-  service_subnet = "10.245.0.0/16"
+  # Note: 10.244.0.0/16 is reserved by DigitalOcean internally
+  cluster_subnet = "10.200.0.0/16"
+  service_subnet = "10.201.0.0/16"
 
   # Default node pool
   node_pool {

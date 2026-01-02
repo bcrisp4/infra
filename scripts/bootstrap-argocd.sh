@@ -78,10 +78,24 @@ echo ""
 echo "Waiting for ArgoCD to be ready..."
 kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
 
+# Wait for CRDs to be established
+echo ""
+echo "Waiting for ArgoCD CRDs to be ready..."
+kubectl wait --for=condition=Established crd/applications.argoproj.io --timeout=60s
+kubectl wait --for=condition=Established crd/applicationsets.argoproj.io --timeout=60s
+kubectl wait --for=condition=Established crd/appprojects.argoproj.io --timeout=60s
+
 # Apply ApplicationSet
 echo ""
 echo "Applying root ApplicationSet..."
 kubectl apply -f "$APPSET_DIR/apps.yaml"
+
+# Apply ArgoCD self-management Application
+if [[ -f "$APPSET_DIR/argocd.yaml" ]]; then
+    echo ""
+    echo "Applying ArgoCD self-management Application..."
+    kubectl apply -f "$APPSET_DIR/argocd.yaml"
+fi
 
 echo ""
 echo "ArgoCD bootstrap complete!"
