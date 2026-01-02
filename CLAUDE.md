@@ -128,3 +128,24 @@ Use pessimistic constraints (`~> X.Y`) pinned to minor version for stability whi
 - Keep configurations minimal - avoid over-engineering
 - Prefer explicit configuration over clever automation
 - Templates use `_template` naming and are copied when creating new clusters/apps
+
+### Deploying New Apps
+
+When creating a new app umbrella chart, always check for the latest chart versions:
+
+```bash
+# Add repo if needed
+helm repo add <name> <url>
+helm repo update
+
+# Check latest version
+helm search repo <chart> --versions | head -5
+```
+
+Use pessimistic constraints (`~X.Y`) pinned to latest minor version. Example:
+```yaml
+dependencies:
+  - name: external-secrets
+    version: "~1.2"  # Latest as of 2026-01
+    repository: "https://charts.external-secrets.io"
+```
