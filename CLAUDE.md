@@ -193,6 +193,13 @@ Key learnings from deploying ESO with 1Password:
 - Store OAuth credentials with `category = "login"` and use `username`/`password` fields
 - The provider uses `OP_SERVICE_ACCOUNT_TOKEN` env var for authentication
 
+### Tailscale Kubernetes Operator
+
+- OAuth client tags must own `tag:k8s` for ingresses to work (operator uses `tag:k8s` by default)
+- ACL example: `"tag:k8s" = ["tag:k8s-operator", "tag:k8s-operator-do-nyc3-prod"]`
+- If ingresses fail with "requested tags invalid or not permitted", check ACL tag ownership
+- Scopes needed: `devices`, `auth_keys`, `routes`, `dns`
+
 ### ArgoCD ApplicationSets
 
 - Go template syntax (`{{ .path.basename }}`) should NOT use Helm escaping backticks when the YAML is applied directly (not via Helm)
