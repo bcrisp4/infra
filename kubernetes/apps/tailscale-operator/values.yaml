@@ -1,0 +1,17 @@
+# Base values for tailscale-operator
+# Cluster-specific overrides go in kubernetes/clusters/{cluster}/apps/tailscale-operator/values.yaml
+
+# ExternalSecret configuration for 1Password
+externalSecret:
+  enabled: false
+  itemName: ""  # Set in cluster values (e.g., "do-nyc3-prod-tailscale-operator")
+
+tailscale-operator:
+  # OAuth credentials are synced from 1Password via ExternalSecret
+  # The operator expects a secret named "operator-oauth" with client_id and client_secret keys
+  # Don't set oauth.clientId/clientSecret - the chart will use the pre-existing secret
+  oauth: {}
+
+  operatorConfig:
+    defaultTags:
+      - "tag:k8s-operator"

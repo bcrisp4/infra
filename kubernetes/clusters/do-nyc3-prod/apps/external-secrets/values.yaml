@@ -1,0 +1,6 @@
+# External Secrets for do-nyc3-prod
+# Enable 1Password ClusterSecretStore
+
+onepassword:
+  enabled: true
+  vault: "Infra"  # 1Password vault name

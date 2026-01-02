@@ -1,0 +1,37 @@
+# Base values for external-secrets
+# Cluster-specific overrides go in kubernetes/clusters/{cluster}/apps/external-secrets/values.yaml
+
+# 1Password ClusterSecretStore configuration
+# Enable and configure in cluster-specific values
+onepassword:
+  enabled: false
+  vault: ""  # Set in cluster values
+  secretName: onepassword-token
+  secretNamespace: external-secrets
+  secretKey: token
+
+external-secrets:
+  installCRDs: true
+
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 128Mi
+
+  webhook:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 128Mi
+
+  certController:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 128Mi

@@ -5,3 +5,8 @@ variable "clusters" {
   }))
   default = {}
 }
+
+variable "onepassword_vault" {
+  description = "1Password vault ID for storing secrets"
+  type        = string
+}

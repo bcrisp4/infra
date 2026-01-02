@@ -46,7 +46,7 @@ resource "tailscale_acl" "this" {
   })
 }
 
-# Generate auth keys for each cluster (for the Tailscale operator)
+# Generate auth keys for each cluster (legacy - kept for compatibility)
 resource "tailscale_tailnet_key" "cluster" {
   for_each   = var.clusters
   depends_on = [tailscale_acl.this]
@@ -55,4 +55,18 @@ resource "tailscale_tailnet_key" "cluster" {
   preauthorized = true
   tags          = ["tag:k8s-operator-${each.key}"]
   description   = "k8s-operator ${each.key}"
+}
+
+# OAuth clients for Tailscale Kubernetes operator
+# These are the preferred auth method for the operator
+resource "tailscale_oauth_client" "k8s_operator" {
+  for_each   = var.clusters
+  depends_on = [tailscale_acl.this]
+
+  tags        = ["tag:k8s-operator-${each.key}"]
+  description = "Kubernetes operator for ${each.key}"
+
+  # Scopes needed for k8s operator
+  # See: https://tailscale.com/kb/1236/kubernetes-operator#prerequisites
+  scopes = ["devices", "auth_keys", "routes", "dns"]
 }

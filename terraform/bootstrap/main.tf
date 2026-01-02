@@ -234,6 +234,12 @@ resource "tfe_variable" "onepassword_vault" {
   }
 }
 
+# Attach 1Password variable set to global workspace
+resource "tfe_workspace_variable_set" "global_onepassword" {
+  variable_set_id = tfe_variable_set.onepassword.id
+  workspace_id    = tfe_workspace.this["global"].id
+}
+
 # Attach 1Password variable set to do-nyc3-prod workspace
 resource "tfe_workspace_variable_set" "do_nyc3_prod_onepassword" {
   count           = contains(keys(var.workspaces), "do-nyc3-prod") ? 1 : 0

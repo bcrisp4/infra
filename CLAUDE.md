@@ -50,11 +50,31 @@ This is an infrastructure monorepo for multi-cluster Kubernetes deployments usin
 ### Terraform Layer
 
 - **terraform/bootstrap/** - Provisions Terraform Cloud workspaces and variable sets (uses local state)
-- **terraform/global/** - Cross-cluster resources (Tailscale ACLs, auth keys). Clusters consume auth keys via `terraform_remote_state`
+- **terraform/global/** - Cross-cluster resources (Tailscale ACLs, OAuth clients, 1Password items)
 - **terraform/clusters/{cluster}/** - Per-cluster infrastructure (compute, storage, networking)
 - **terraform/modules/k8s-cluster/{provider}/** - Reusable provider-specific cluster modules
 
 TFC organization: `bc4`. One workspace per root module.
+
+### Terraform Cloud Configuration
+
+All TFC configuration is managed via `terraform/bootstrap/main.tf`:
+- Workspaces and their settings
+- Variable sets and their attachments to workspaces
+- Workspace variables
+
+To attach a variable set to a workspace, add a `tfe_workspace_variable_set` resource in bootstrap:
+```hcl
+resource "tfe_workspace_variable_set" "global_onepassword" {
+  variable_set_id = tfe_variable_set.onepassword.id
+  workspace_id    = tfe_workspace.this["global"].id
+}
+```
+
+Variable sets:
+- `tailscale-credentials` - TAILSCALE_API_KEY, TAILSCALE_TAILNET (attached to: global)
+- `digitalocean-credentials` - DIGITALOCEAN_TOKEN, SPACES_* (attached to: do-nyc3-prod)
+- `onepassword-credentials` - OP_SERVICE_ACCOUNT_TOKEN, onepassword_vault (attached to: global, do-nyc3-prod)
 
 ### Kubernetes Layer
 

@@ -1,0 +1,12 @@
+# Tailscale operator for do-nyc3-prod
+# OAuth credentials synced from 1Password via ExternalSecret
+
+externalSecret:
+  enabled: true
+  itemName: "do-nyc3-prod-tailscale-operator"
+
+tailscale-operator:
+  operatorConfig:
+    hostname: do-nyc3-prod-ts-operator
+    defaultTags:
+      - "tag:k8s-operator-do-nyc3-prod"

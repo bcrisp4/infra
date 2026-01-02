@@ -1,0 +1,10 @@
+apiVersion: v2
+name: external-secrets
+description: External Secrets Operator with 1Password integration
+type: application
+version: 1.0.0
+
+dependencies:
+  - name: external-secrets
+    version: "~0.12"
+    repository: "https://charts.external-secrets.io"
