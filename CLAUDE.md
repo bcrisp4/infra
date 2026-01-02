@@ -149,3 +149,36 @@ dependencies:
     version: "~1.2"  # Latest as of 2026-01
     repository: "https://charts.external-secrets.io"
 ```
+
+### External Secrets Operator
+
+Key learnings from deploying ESO with 1Password:
+
+1. **API Versions**: ESO 1.x uses `external-secrets.io/v1` API (not v1beta1). Always check docs for correct API version.
+
+2. **1Password SDK Provider**: The `onepasswordSDK` provider requires ESO 1.x. Older 0.x versions use different provider config.
+
+3. **CRD Upgrades**: When upgrading ESO from 0.x to 1.x, you may need to delete old CRDs due to conversion webhook conflicts:
+   ```bash
+   kubectl get crd -o name | grep external-secrets.io | xargs kubectl delete
+   ```
+   ArgoCD will recreate them with the new version.
+
+4. **1Password Service Account**: Create via CLI, store token in K8s secret before deploying:
+   ```bash
+   kubectl create namespace external-secrets
+   kubectl create secret generic onepassword-token \
+     --namespace external-secrets \
+     --from-literal=token="$(op service-account create 'name' --vault 'Vault' --permissions read_items --format json | jq -r '.token')"
+   ```
+
+### 1Password Terraform Provider
+
+- Use v3.0+ which uses pure SDK (no CLI required) - works in TFC without installing `op`
+- Store OAuth credentials with `category = "login"` and use `username`/`password` fields
+- The provider uses `OP_SERVICE_ACCOUNT_TOKEN` env var for authentication
+
+### ArgoCD ApplicationSets
+
+- Go template syntax (`{{ .path.basename }}`) should NOT use Helm escaping backticks when the YAML is applied directly (not via Helm)
+- If you see "duplicate name" errors with literal `{{ ... }}`, check if backtick escaping was incorrectly added
