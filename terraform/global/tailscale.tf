@@ -3,9 +3,10 @@ resource "tailscale_acl" "this" {
   acl = jsonencode({
     tagOwners = merge(
       # Global k8s operator tags (shared across all clusters)
+      # Each per-cluster operator tag also owns tag:k8s for default ingress behavior
       {
         "tag:k8s-operator" = []
-        "tag:k8s"          = ["tag:k8s-operator"]
+        "tag:k8s"          = concat(["tag:k8s-operator"], [for name, _ in var.clusters : "tag:k8s-operator-${name}"])
       },
       # Legacy cluster tags (nbg1-prod1)
       {
