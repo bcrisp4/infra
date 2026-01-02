@@ -1,0 +1,47 @@
+# Root ApplicationSet for automatic app discovery
+
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: cluster-apps
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions:
+    - missingkey=error
+  generators:
+    - git:
+        repoURL: https://github.com/bcrisp4/infra.git
+        revision: HEAD
+        directories:
+          - path: "kubernetes/clusters/do-nyc3-prod/apps/*"
+  template:
+    metadata:
+      name: "{{ `{{ .path.basename | normalize }}` }}"
+      labels:
+        app.kubernetes.io/managed-by: argocd
+        app.kubernetes.io/part-of: infra
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/bcrisp4/infra.git
+        targetRevision: HEAD
+        path: "kubernetes/apps/{{ `{{ .path.basename }}` }}"
+        helm:
+          valueFiles:
+            - values.yaml
+            - "../../clusters/do-nyc3-prod/apps/{{ `{{ .path.basename }}` }}/values.yaml"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "{{ `{{ .path.basename | normalize }}` }}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+          - ServerSideApply=true
+        managedNamespaceMetadata:
+          labels:
+            app.kubernetes.io/managed-by: argocd
+            app.kubernetes.io/part-of: infra

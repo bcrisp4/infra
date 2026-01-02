@@ -1,0 +1,105 @@
+# ArgoCD configuration for {{cluster_name}}
+# Update cluster.name and ingress hostname before deploying
+
+cluster:
+  name: "{{cluster_name}}"
+
+argo-cd:
+  # Global settings
+  global:
+    domain: argocd.{{cluster_name}}.example.com
+
+  # ConfigMap settings
+  configs:
+    cm:
+      admin.enabled: "true"
+      # User accounts (uncomment and customize)
+      # accounts.ben: apiKey,login
+      resource.customizations.ignoreDifferences.all: |
+        managedFieldsManagers:
+          - kube-controller-manager
+      # Ignore noisy resources
+      resource.exclusions: |
+        - apiGroups:
+            - ""
+          kinds:
+            - Endpoints
+        - apiGroups:
+            - cilium.io
+          kinds:
+            - CiliumEndpoint
+            - CiliumIdentity
+        - apiGroups:
+            - apps
+          kinds:
+            - ControllerRevision
+
+  # Controller
+  controller:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
+
+  # Server
+  server:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        memory: 256Mi
+    # Tailscale ingress (adjust for your setup)
+    ingress:
+      enabled: true
+      ingressClassName: tailscale
+      hostname: argocd-{{cluster_name}}
+      tls: true
+
+  # Repo Server
+  repoServer:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        memory: 512Mi
+
+  # ApplicationSet Controller
+  applicationSet:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 25m
+        memory: 32Mi
+      limits:
+        memory: 128Mi
+
+  # Redis
+  redis:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 128Mi
+
+  # Notifications Controller
+  notifications:
+    enabled: true
+    replicas: 1
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 128Mi
+
+  # Dex (disable if using external auth)
+  dex:
+    enabled: false

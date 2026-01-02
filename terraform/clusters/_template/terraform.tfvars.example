@@ -1,0 +1,7 @@
+# Cluster configuration
+# Copy this file to terraform.tfvars and customize
+
+cluster_name       = "htz-fsn1-prod"  # Must match global Terraform cluster config
+kubernetes_version = "1.31.0"
+
+# Add provider-specific variables below

@@ -1,0 +1,25 @@
+# Umbrella chart for {{app_name}}
+# Copy this template to create a new app:
+#   cp -r _template ../{{app_name}}
+#   cd ../{{app_name}}
+#   # Update this file with actual chart dependency
+#   # Update values.yaml with base configuration
+
+apiVersion: v2
+name: "{{app_name}}"
+description: "{{app_name}} deployment"
+type: application
+version: 1.0.0
+
+# Add upstream chart as dependency
+# Example for Grafana:
+# dependencies:
+#   - name: grafana
+#     version: "8.x.x"
+#     repository: "https://grafana.github.io/helm-charts"
+#
+# Example for cert-manager:
+# dependencies:
+#   - name: cert-manager
+#     version: "1.x.x"
+#     repository: "https://charts.jetstack.io"

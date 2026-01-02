@@ -1,0 +1,19 @@
+# Common Helm values applied across all applications
+# Reference this file in ArgoCD ApplicationSet valueFiles
+
+# Standard labels for all resources
+commonLabels:
+  app.kubernetes.io/managed-by: argocd
+  app.kubernetes.io/part-of: infra
+
+# Default pod security context (adjust as needed)
+# podSecurityContext:
+#   runAsNonRoot: true
+#   seccompProfile:
+#     type: RuntimeDefault
+
+# Default resource requests (can be overridden per-app)
+# resources:
+#   requests:
+#     cpu: 10m
+#     memory: 32Mi

@@ -1,0 +1,17 @@
+# Base values for {{app_name}}
+# These values apply to all clusters
+# Cluster-specific overrides go in kubernetes/clusters/{{cluster}}/apps/{{app_name}}/values.yaml
+
+# Values are namespaced under the dependency chart name
+# Example for a chart with dependency named "grafana":
+#
+# grafana:
+#   replicas: 1
+#   persistence:
+#     enabled: true
+#   resources:
+#     requests:
+#       cpu: 50m
+#       memory: 128Mi
+#     limits:
+#       memory: 256Mi
