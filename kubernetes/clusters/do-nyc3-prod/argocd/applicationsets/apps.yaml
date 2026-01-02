@@ -17,7 +17,7 @@ spec:
           - path: "kubernetes/clusters/do-nyc3-prod/apps/*"
   template:
     metadata:
-      name: "{{ `{{ .path.basename | normalize }}` }}"
+      name: "{{ .path.basename | normalize }}"
       labels:
         app.kubernetes.io/managed-by: argocd
         app.kubernetes.io/part-of: infra
@@ -26,14 +26,14 @@ spec:
       source:
         repoURL: https://github.com/bcrisp4/infra.git
         targetRevision: HEAD
-        path: "kubernetes/apps/{{ `{{ .path.basename }}` }}"
+        path: "kubernetes/apps/{{ .path.basename }}"
         helm:
           valueFiles:
             - values.yaml
-            - "../../clusters/do-nyc3-prod/apps/{{ `{{ .path.basename }}` }}/values.yaml"
+            - "../../clusters/do-nyc3-prod/apps/{{ .path.basename }}/values.yaml"
       destination:
         server: https://kubernetes.default.svc
-        namespace: "{{ `{{ .path.basename | normalize }}` }}"
+        namespace: "{{ .path.basename | normalize }}"
       syncPolicy:
         automated:
           prune: true
