@@ -1,0 +1,2 @@
+# Cluster-specific values for do-nyc3-prod
+# Base values from kubernetes/apps/cert-manager are inherited
