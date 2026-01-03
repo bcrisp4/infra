@@ -13,8 +13,8 @@ argo-cd:
   configs:
     cm:
       admin.enabled: "true"
-      # User accounts (uncomment and customize)
-      # accounts.ben: apiKey,login
+      # User accounts
+      accounts.ben: apiKey,login
       resource.customizations.ignoreDifferences.all: |
         managedFieldsManagers:
           - kube-controller-manager
@@ -33,6 +33,28 @@ argo-cd:
             - apps
           kinds:
             - ControllerRevision
+
+    # RBAC policies
+    rbac:
+      policy.csv: |
+        # Power user role - full access except sensitive admin operations
+        p, role:power-user, applications, *, */*, allow
+        p, role:power-user, applicationsets, *, */*, allow
+        p, role:power-user, logs, get, */*, allow
+        p, role:power-user, exec, create, */*, allow
+        p, role:power-user, projects, *, *, allow
+        p, role:power-user, repositories, *, *, allow
+        p, role:power-user, certificates, *, *, allow
+        # Deny sensitive operations (clusters, accounts, gpgkeys)
+        # Assign ben to power-user role
+        g, ben, role:power-user
+
+    # Secrets
+    # Generate hashes with: htpasswd -nbBC 10 "" 'PASSWORD' | tr -d ':\n' | sed 's/$2y/$2a/'
+    secret:
+      argocdServerAdminPassword: "$2a$10$poXi66TGj6uv1CCq/L0yZe1C28lByBxypBJEDyRrsOoVRsdx87cDe"
+      extra:
+        accounts.ben.password: "$2a$10$mSTkP.eFiPf8w1Anw6xpGuliYaBqjfN/Rbnn6rks.omekJs0FAZra"
 
   # Controller
   controller:
