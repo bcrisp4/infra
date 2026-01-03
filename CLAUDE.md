@@ -179,7 +179,16 @@ Key learnings from deploying ESO with 1Password:
    ```
    ArgoCD will recreate them with the new version.
 
-6. **1Password Service Account**: Create via CLI, store token in K8s secret before deploying:
+6. **ExternalSecret Default Values**: The ESO webhook injects default values that cause ArgoCD diff. Always specify explicitly:
+   ```yaml
+   remoteRef:
+     key: "item/field"
+     conversionStrategy: Default
+     decodingStrategy: None
+     metadataPolicy: None
+   ```
+
+7. **1Password Service Account**: Create via CLI, store token in K8s secret before deploying:
    ```bash
    kubectl create namespace external-secrets
    kubectl create secret generic onepassword-token \
