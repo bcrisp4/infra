@@ -7,7 +7,7 @@ cluster:
 argo-cd:
   # Global settings
   global:
-    domain: argocd.do-nyc3-prod.example.com
+    domain: argocd-do-nyc3-prod.marlin-tet.ts.net
 
   # ConfigMap settings
   configs:
