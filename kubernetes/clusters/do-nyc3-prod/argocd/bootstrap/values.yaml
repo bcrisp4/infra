@@ -133,6 +133,11 @@ argo-cd:
       limits:
         memory: 128Mi
 
+  # Redis secret init job - disable Linkerd injection to allow job completion
+  redisSecretInit:
+    podAnnotations:
+      linkerd.io/inject: disabled
+
   # Notifications Controller
   notifications:
     enabled: true
