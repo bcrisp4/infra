@@ -18,6 +18,15 @@ argo-cd:
       resource.customizations.ignoreDifferences.all: |
         managedFieldsManagers:
           - kube-controller-manager
+      # Ignore Istio webhook caBundle and failurePolicy (injected by istiod at runtime)
+      resource.customizations.ignoreDifferences.admissionregistration.k8s.io_MutatingWebhookConfiguration: |
+        jqPathExpressions:
+          - .webhooks[]?.clientConfig.caBundle
+          - .webhooks[]?.failurePolicy
+      resource.customizations.ignoreDifferences.admissionregistration.k8s.io_ValidatingWebhookConfiguration: |
+        jqPathExpressions:
+          - .webhooks[]?.clientConfig.caBundle
+          - .webhooks[]?.failurePolicy
       # Ignore noisy resources
       resource.exclusions: |
         - apiGroups:
