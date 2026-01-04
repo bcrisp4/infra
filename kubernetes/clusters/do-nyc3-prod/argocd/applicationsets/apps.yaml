@@ -46,6 +46,6 @@ spec:
           labels:
             app.kubernetes.io/managed-by: argocd
             app.kubernetes.io/part-of: infra
-{{- range $key, $value := .namespaceLabels }}
+            {{- range $key, $value := .namespaceLabels }}
             {{ $key }}: "{{ $value }}"
-{{- end }}
+            {{- end }}
