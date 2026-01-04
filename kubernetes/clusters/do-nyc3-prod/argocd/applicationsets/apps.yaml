@@ -47,8 +47,13 @@ spec:
             app.kubernetes.io/managed-by: argocd
             app.kubernetes.io/part-of: infra
   templatePatch: |
-    {{- if .namespaceLabels }}
+    {{- if or .namespace .namespaceLabels }}
     spec:
+      {{- if .namespace }}
+      destination:
+        namespace: {{ .namespace | quote }}
+      {{- end }}
+      {{- if .namespaceLabels }}
       syncPolicy:
         managedNamespaceMetadata:
           labels:
@@ -57,4 +62,5 @@ spec:
             {{- range $key, $value := .namespaceLabels }}
             {{ $key }}: {{ $value | quote }}
             {{- end }}
+      {{- end }}
     {{- end }}

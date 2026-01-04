@@ -154,6 +154,7 @@ dependencies:
 ```yaml
 # config.yaml - Required for app discovery
 name: my-app
+namespace: my-app-system  # Optional: override namespace (defaults to name)
 namespaceLabels: {}  # Optional: add labels like istio.io/dataplane-mode: ambient
 ```
 
