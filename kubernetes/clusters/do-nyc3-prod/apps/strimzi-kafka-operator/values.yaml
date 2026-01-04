@@ -1,0 +1,11 @@
+# Strimzi Kafka Operator for do-nyc3-prod
+
+strimzi-kafka-operator:
+  replicas: 1
+  watchAnyNamespace: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi

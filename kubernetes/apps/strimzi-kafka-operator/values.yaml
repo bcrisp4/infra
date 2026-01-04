@@ -1,0 +1,12 @@
+# Default values for strimzi-kafka-operator
+# Cluster-specific overrides go in kubernetes/clusters/{cluster}/apps/strimzi-kafka-operator/values.yaml
+
+strimzi-kafka-operator:
+  replicas: 1
+  watchAnyNamespace: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
