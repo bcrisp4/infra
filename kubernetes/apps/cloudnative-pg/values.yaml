@@ -1,0 +1,5 @@
+# CloudNativePG Operator defaults
+
+cloudnative-pg:
+  crds:
+    create: true

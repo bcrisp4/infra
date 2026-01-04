@@ -1,0 +1,4 @@
+name: cloudnative-pg
+namespace: cnpg-system
+namespaceAnnotations:
+  linkerd.io/inject: enabled

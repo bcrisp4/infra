@@ -1,0 +1,9 @@
+# CloudNativePG for do-nyc3-prod
+
+cloudnative-pg:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 100Mi
+    limits:
+      memory: 256Mi
