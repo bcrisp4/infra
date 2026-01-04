@@ -1,0 +1,18 @@
+# ProxyClass with resources sufficient for Linkerd sidecar injection
+apiVersion: tailscale.com/v1alpha1
+kind: ProxyClass
+metadata:
+  name: linkerd-mesh
+spec:
+  statefulSet:
+    pod:
+      annotations:
+        linkerd.io/inject: enabled
+      tailscaleContainer:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 256Mi
