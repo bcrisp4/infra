@@ -155,7 +155,8 @@ dependencies:
 # config.yaml - Required for app discovery
 name: my-app
 namespace: my-app-system  # Optional: override namespace (defaults to name)
-namespaceLabels: {}  # Optional: add labels like istio.io/dataplane-mode: ambient
+namespaceLabels: {}       # Optional: add labels to namespace
+namespaceAnnotations: {}  # Optional: add annotations like linkerd.io/inject: enabled
 ```
 
 ```yaml
@@ -239,25 +240,49 @@ For custom subdomain structures, alternatives require additional infrastructure:
 - Own domain + split DNS (e.g., `argocd.do-nyc3-prod.internal.example.com`)
 - Gateway API + ExternalDNS + cert-manager
 
-### Istio Ambient Mesh
+### Linkerd Service Mesh
 
-To enroll an app namespace in Istio ambient mesh, add the label to the app's `config.yaml`:
+Linkerd provides automatic mTLS between meshed workloads using a sidecar proxy model.
+
+**Architecture:**
+- Linkerd control plane runs in `linkerd` namespace
+- Certificates managed by cert-manager with a self-signed CA
+- Trust bundles distributed via trust-manager to all namespaces
+- Sidecar injection controlled via namespace annotations
+
+**Adding a namespace to the mesh:**
+
+Add the annotation to the app's `config.yaml`:
 
 ```yaml
 # kubernetes/clusters/{cluster}/apps/{app}/config.yaml
 name: my-app
-namespaceLabels:
-  istio.io/dataplane-mode: ambient
+namespaceAnnotations:
+  linkerd.io/inject: enabled
 ```
 
-This label tells Istio's ztunnel to capture traffic for pods in that namespace. The label is applied to the namespace via ArgoCD's `managedNamespaceMetadata`.
+ArgoCD applies this annotation via `managedNamespaceMetadata`. New pods in the namespace will automatically get Linkerd sidecar proxies injected.
 
 **What happens:**
-1. ArgoCD creates/updates the namespace with the label
-2. Istio's ztunnel (running as a DaemonSet) intercepts pod traffic in labeled namespaces
-3. mTLS is automatically enabled between pods in the mesh
+1. ArgoCD creates/updates the namespace with the annotation
+2. Linkerd's proxy-injector webhook intercepts pod creation
+3. A `linkerd-proxy` sidecar container is added to each pod
+4. mTLS is automatically enabled between meshed pods
 
-**To remove from mesh:** Set `namespaceLabels: {}` or remove the `istio.io/dataplane-mode` key.
+**Verify injection is working:**
+```bash
+# Check pods have 2/2 containers (app + linkerd-proxy)
+kubectl get pods -n <namespace>
+
+# Check mTLS stats
+linkerd viz stat deploy -n <namespace>
+```
+
+**To remove from mesh:** Remove the `namespaceAnnotations` section or set it to `{}`.
+
+**Known issues:**
+- cert-manager namespace cannot have Linkerd injection (circular dependency - Linkerd excludes it automatically)
+- Tailscale operator proxies require Tailscale 1.94.0+ for Linkerd compatibility (see `docs/tasks/tailscale-operator-1.94-linkerd.md`)
 
 ### ArgoCD ApplicationSets
 
@@ -275,17 +300,19 @@ kubectl apply --dry-run=client -f kubernetes/clusters/*/argocd/applicationsets/*
 - Control structures (`{{- range }}`, `{{- if }}`) break YAML parsing when used directly in templates
 - Use `templatePatch` for conditional configuration (supports full Go templating)
 
-**Per-app namespace labels:**
+**Per-app namespace labels and annotations:**
 
 Apps use `config.yaml` files that the ApplicationSet reads via Git files generator:
 ```yaml
 # kubernetes/clusters/{cluster}/apps/{app}/config.yaml
 name: my-app
 namespaceLabels:
-  istio.io/dataplane-mode: ambient  # Optional: adds labels to app namespace
+  example.com/team: platform  # Optional: adds labels to app namespace
+namespaceAnnotations:
+  linkerd.io/inject: enabled  # Optional: adds annotations to app namespace
 ```
 
-The `templatePatch` conditionally applies these labels to `managedNamespaceMetadata`. This works because `templatePatch` is a string field that gets Go template processing before being applied as a patch.
+The `templatePatch` conditionally applies these to `managedNamespaceMetadata`. This works because `templatePatch` is a string field that gets Go template processing before being applied as a patch.
 
 **Common errors:**
 - `yaml: line X: could not find expected ':'` - Template control structures at wrong indentation or outside templatePatch
