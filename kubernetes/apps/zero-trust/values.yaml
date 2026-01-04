@@ -1,22 +1,17 @@
 # Zero-trust network policies configuration
-# Values control which policies are enabled
 
-# Phase 1: Allow rules - DISABLED until tailscale egress is allowed
-allowDns:
-  enabled: false
-
-allowIstioAmbient:
-  enabled: false
-
+# Block cloud metadata endpoint (SSRF protection)
 blockMetadata:
-  enabled: false
+  enabled: true
+  excludeNamespaces:
+    - kube-system  # DO CSI plugin needs metadata access
 
-# Phase 2: mTLS enforcement (requires mesh enrollment)
+# Istio mTLS enforcement
 peerAuthentication:
   enabled: false
   mode: STRICT
 
-# Phase 3: Default deny (deploy after verifying traffic)
+# Default deny (not recommended cluster-wide - see docs)
 defaultDeny:
   enabled: false
   excludeNamespaces:

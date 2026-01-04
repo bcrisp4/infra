@@ -5,7 +5,14 @@ metadata:
   name: block-metadata
 spec:
   description: "Block access to cloud metadata endpoint (169.254.169.254)"
-  endpointSelector: {}
+  endpointSelector:
+    matchExpressions:
+      - key: k8s:io.kubernetes.pod.namespace
+        operator: NotIn
+        values:
+          {{- range .Values.blockMetadata.excludeNamespaces }}
+          - {{ . | quote }}
+          {{- end }}
   egressDeny:
     - toCIDR:
         - 169.254.169.254/32
