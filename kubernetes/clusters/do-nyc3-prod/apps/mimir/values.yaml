@@ -132,13 +132,13 @@ mimir-distributed:
       limits:
         memory: 1Gi
 
-  # Distributor - scale out to reduce per-pod GC pressure
+  # Distributor - sized for current cluster capacity
   distributor:
-    replicas: 5
+    replicas: 3
     resources:
       requests:
-        cpu: 250m
-        memory: 1Gi
+        cpu: 200m
+        memory: 512Mi
       limits:
         memory: 1Gi
 
