@@ -1,22 +1,10 @@
 # Zero-trust network policies configuration
+#
+# Note: Cilium policies (including egressDeny) enable enforcement mode for
+# matched endpoints, blocking all non-explicitly-allowed traffic. We use
+# Istio for zero-trust instead.
 
-# Block cloud metadata endpoint (SSRF protection)
-blockMetadata:
-  enabled: true
-  excludeNamespaces:
-    - kube-system  # DO CSI plugin needs metadata access
-
-# Istio mTLS enforcement
+# Istio mesh-wide mTLS enforcement
 peerAuthentication:
   enabled: false
   mode: STRICT
-
-# Default deny (not recommended cluster-wide - see docs)
-defaultDeny:
-  enabled: false
-  excludeNamespaces:
-    - kube-system
-    - kube-public
-    - kube-node-lease
-    - istio-system
-    - argocd
