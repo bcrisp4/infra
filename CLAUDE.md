@@ -310,6 +310,60 @@ kubectl rollout restart statefulset -n <namespace>
 - cert-manager namespace cannot have Linkerd injection (circular dependency - Linkerd excludes it automatically)
 - Tailscale operator proxies require Tailscale 1.94.0+ for Linkerd compatibility (see `docs/tasks/tailscale-operator-1.94-linkerd.md`)
 
+### Linkerd Edge Releases
+
+We use Linkerd Edge releases (not stable) because:
+- Open-source stable releases stopped after 2.14 (February 2024)
+- Edge releases include native sidecar support (fixes Jobs never completing)
+- Edge releases get all bugfixes and security patches
+
+**Version format:** `edge-YY.MM.N` (e.g., `edge-25.12.3`)
+
+**Native sidecars:** Enabled via `proxy.nativeSidecar: true` in values.yaml. Requires Kubernetes 1.29+. This fixes the issue where Jobs with Linkerd sidecars never complete because the proxy keeps running after the main container exits.
+
+**Upgrading Linkerd Edge:**
+
+1. Check for new releases and any "not recommended" warnings:
+```bash
+# List available versions
+helm search repo linkerd-edge/linkerd-control-plane --versions | head -10
+
+# Check release notes for issues
+# https://github.com/linkerd/linkerd2/releases
+# https://linkerd.io/blog/ (monthly roundups)
+```
+
+2. Look for breaking changes in release notes - edge releases are NOT semantically versioned
+
+3. Update Chart.yaml versions:
+```yaml
+# kubernetes/apps/linkerd/Chart.yaml
+dependencies:
+  - name: linkerd-crds
+    version: "~2025.12"  # Update to new month
+    repository: https://helm.linkerd.io/edge
+  - name: linkerd-control-plane
+    version: "~2025.12"  # Update to new month
+    repository: https://helm.linkerd.io/edge
+```
+
+4. Update dependencies and push:
+```bash
+cd kubernetes/apps/linkerd && helm dependency update
+cd kubernetes/apps/linkerd-viz && helm dependency update
+```
+
+**Key resources:**
+- Release notes: https://github.com/linkerd/linkerd2/releases
+- Monthly roundups: https://linkerd.io/blog/ (search "Edge Release Roundup")
+- Upgrade guide: https://linkerd.io/2-edge/tasks/upgrade/
+
+**Risk mitigation:**
+- Check GitHub releases for "not recommended" labels before upgrading
+- Read the monthly roundup blog posts for known issues
+- Test in non-production first if possible
+- Edge releases marked "not recommended" should be skipped
+
 ### ArgoCD Manifests
 
 The `argocd/manifests/` directory contains:

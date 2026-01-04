@@ -36,6 +36,9 @@ linkerd-control-plane:
   proxyInjectorResources: *controller_resources
 
   proxy:
+    # Enable native sidecars (KEP-753) - requires K8s >= 1.29
+    # Fixes Jobs never completing due to sidecar staying alive
+    nativeSidecar: true
     resources:
       cpu:
         request: 10m

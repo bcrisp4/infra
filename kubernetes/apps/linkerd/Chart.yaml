@@ -2,12 +2,12 @@ apiVersion: v2
 name: linkerd
 description: Linkerd service mesh with cert-manager integration
 type: application
-version: 0.1.0
+version: 0.2.0
 
 dependencies:
   - name: linkerd-crds
-    version: "~1.8"
-    repository: https://helm.linkerd.io/stable
+    version: "~2025.12"
+    repository: https://helm.linkerd.io/edge
   - name: linkerd-control-plane
-    version: "~1.16"
-    repository: https://helm.linkerd.io/stable
+    version: "~2025.12"
+    repository: https://helm.linkerd.io/edge
