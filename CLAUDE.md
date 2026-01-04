@@ -269,13 +269,36 @@ ArgoCD applies this annotation via `managedNamespaceMetadata`. New pods in the n
 3. A `linkerd-proxy` sidecar container is added to each pod
 4. mTLS is automatically enabled between meshed pods
 
-**Verify injection is working:**
-```bash
-# Check pods have 2/2 containers (app + linkerd-proxy)
-kubectl get pods -n <namespace>
+**Verify pods are in the mesh:**
 
-# Check mTLS stats
+1. Check namespace has the annotation:
+```bash
+kubectl get ns <namespace> -o jsonpath='{.metadata.annotations.linkerd\.io/inject}'
+# Should output: enabled
+```
+
+2. Check pods have 2/2 containers (app + linkerd-proxy):
+```bash
+kubectl get pods -n <namespace>
+# READY column should show 2/2 (or 3/3 for pods with multiple containers)
+```
+
+3. Verify mTLS is working with linkerd viz:
+```bash
 linkerd viz stat deploy -n <namespace>
+# Should show MESHED=1/1 and SUCCESS rate
+```
+
+4. Check a specific pod has the proxy:
+```bash
+kubectl get pod -n <namespace> <pod-name> -o jsonpath='{.spec.containers[*].name}'
+# Should include "linkerd-proxy"
+```
+
+**After adding annotation, restart pods:**
+```bash
+kubectl rollout restart deployment -n <namespace>
+kubectl rollout restart statefulset -n <namespace>
 ```
 
 **To remove from mesh:** Remove the `namespaceAnnotations` section or set it to `{}`.
