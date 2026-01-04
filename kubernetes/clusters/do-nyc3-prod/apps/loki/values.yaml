@@ -9,11 +9,11 @@ loki:
   loki:
     storage:
       bucketNames:
-        chunks: bc4-do-nyc3-prod-loki
-        ruler: bc4-do-nyc3-prod-loki
-        admin: bc4-do-nyc3-prod-loki
+        chunks: ${S3_BUCKET}
+        ruler: ${S3_BUCKET}
+        admin: ${S3_BUCKET}
       s3:
-        endpoint: nyc3.digitaloceanspaces.com
+        endpoint: ${S3_ENDPOINT}
         accessKeyId: ${AWS_ACCESS_KEY_ID}
         secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
 
