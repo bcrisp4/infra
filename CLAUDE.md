@@ -360,6 +360,8 @@ GitHub webhooks enable instant sync on push instead of 3-minute polling. The web
 2. GitHub sends push events to this endpoint
 3. ArgoCD immediately refreshes affected applications
 
+**Note:** Apps sync automatically on push, so manual syncing should not be necessary under normal circumstances.
+
 **Files involved:**
 - `kubernetes/clusters/{cluster}/argocd/bootstrap/templates/webhook-funnel-ingress.yaml` - Funnel ingress
 - `kubernetes/clusters/{cluster}/argocd/bootstrap/values.yaml` - Webhook secret in `configs.secret.extra`
