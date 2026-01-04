@@ -52,20 +52,28 @@ spec:
             app.kubernetes.io/managed-by: argocd
             app.kubernetes.io/part-of: infra
   templatePatch: |
-    {{- if or (index . "namespace") (index . "namespaceLabels") }}
+    {{- if or (index . "namespace") (index . "namespaceLabels") (index . "namespaceAnnotations") }}
     spec:
       {{- if index . "namespace" }}
       destination:
         namespace: {{ .namespace | quote }}
       {{- end }}
-      {{- if index . "namespaceLabels" }}
+      {{- if or (index . "namespaceLabels") (index . "namespaceAnnotations") }}
       syncPolicy:
         managedNamespaceMetadata:
+          {{- if index . "namespaceLabels" }}
           labels:
             app.kubernetes.io/managed-by: argocd
             app.kubernetes.io/part-of: infra
             {{- range $key, $value := .namespaceLabels }}
             {{ $key }}: {{ $value | quote }}
             {{- end }}
+          {{- end }}
+          {{- if index . "namespaceAnnotations" }}
+          annotations:
+            {{- range $key, $value := .namespaceAnnotations }}
+            {{ $key }}: {{ $value | quote }}
+            {{- end }}
+          {{- end }}
       {{- end }}
     {{- end }}
