@@ -32,7 +32,13 @@ resource "onepassword_item" "spaces_credentials" {
     field {
       label = "endpoint"
       type  = "STRING"
-      value = "https://${local.spaces_region}.digitaloceanspaces.com"
+      value = "${local.spaces_region}.digitaloceanspaces.com"
+    }
+
+    field {
+      label = "scheme"
+      type  = "STRING"
+      value = "https"
     }
 
     field {

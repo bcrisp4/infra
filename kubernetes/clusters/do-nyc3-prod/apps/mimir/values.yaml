@@ -30,8 +30,8 @@ mimir-distributed:
         storage:
           backend: s3
           s3:
-            bucket_name: bc4-do-nyc3-prod-mimir
-            endpoint: nyc3.digitaloceanspaces.com
+            bucket_name: ${S3_BUCKET}
+            endpoint: ${S3_ENDPOINT}
             access_key_id: ${AWS_ACCESS_KEY_ID}
             secret_access_key: ${AWS_SECRET_ACCESS_KEY}
             http:
@@ -45,8 +45,8 @@ mimir-distributed:
         backend: s3
         storage_prefix: blocks
         s3:
-          bucket_name: bc4-do-nyc3-prod-mimir
-          endpoint: nyc3.digitaloceanspaces.com
+          bucket_name: ${S3_BUCKET}
+          endpoint: ${S3_ENDPOINT}
           access_key_id: ${AWS_ACCESS_KEY_ID}
           secret_access_key: ${AWS_SECRET_ACCESS_KEY}
           http:
@@ -60,8 +60,8 @@ mimir-distributed:
         backend: s3
         storage_prefix: alertmanager
         s3:
-          bucket_name: bc4-do-nyc3-prod-mimir
-          endpoint: nyc3.digitaloceanspaces.com
+          bucket_name: ${S3_BUCKET}
+          endpoint: ${S3_ENDPOINT}
           access_key_id: ${AWS_ACCESS_KEY_ID}
           secret_access_key: ${AWS_SECRET_ACCESS_KEY}
           http:
@@ -75,8 +75,8 @@ mimir-distributed:
         backend: s3
         storage_prefix: ruler
         s3:
-          bucket_name: bc4-do-nyc3-prod-mimir
-          endpoint: nyc3.digitaloceanspaces.com
+          bucket_name: ${S3_BUCKET}
+          endpoint: ${S3_ENDPOINT}
           access_key_id: ${AWS_ACCESS_KEY_ID}
           secret_access_key: ${AWS_SECRET_ACCESS_KEY}
           http:
