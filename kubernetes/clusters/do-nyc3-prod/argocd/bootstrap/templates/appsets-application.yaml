@@ -10,7 +10,7 @@ spec:
   source:
     repoURL: https://github.com/bcrisp4/infra.git
     targetRevision: HEAD
-    path: kubernetes/clusters/{{ .Values.cluster.name }}/argocd/applicationsets
+    path: kubernetes/clusters/{{ .Values.cluster.name }}/argocd/manifests
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd

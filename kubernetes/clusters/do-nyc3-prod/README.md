@@ -14,8 +14,9 @@ do-nyc3-prod/
 │   │   └── templates/
 │   │       └── projects/
 │   │           └── default.yaml
-│   └── applicationsets/
-│       └── apps.yaml        # Root ApplicationSet for app discovery
+│   └── manifests/
+│       ├── argocd.yaml      # ArgoCD self-management Application
+│       └── apps.yaml        # ApplicationSet for cluster app discovery
 ├── apps/                    # Cluster-specific app value overrides
 │   └── .gitkeep
 ├── cluster.yaml             # Cluster metadata
@@ -42,9 +43,9 @@ Edit `argocd/bootstrap/values.yaml`:
 - Update Tailscale ingress hostname
 - Adjust resource limits as needed
 
-### 4. Update ApplicationSet
+### 4. Update Manifests
 
-Edit `argocd/applicationsets/apps.yaml`:
+Edit `argocd/manifests/apps.yaml`:
 - Replace `do-nyc3-prod` with actual cluster name in directory path
 
 ### 5. Download ArgoCD Chart

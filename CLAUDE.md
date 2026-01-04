@@ -82,7 +82,7 @@ Variable sets:
 - **kubernetes/clusters/{cluster}/apps/{app}/** - Per-app cluster config:
   - `config.yaml` - Required. App metadata for ApplicationSet (name, namespace labels)
   - `values.yaml` - Cluster-specific Helm value overrides
-- **kubernetes/clusters/{cluster}/argocd/** - ArgoCD bootstrap and ApplicationSets
+- **kubernetes/clusters/{cluster}/argocd/** - ArgoCD bootstrap and manifests (Applications, ApplicationSets)
 
 ArgoCD runs per-cluster and auto-discovers apps via Git files generator scanning `kubernetes/clusters/{cluster}/apps/*/config.yaml`.
 
@@ -284,15 +284,19 @@ linkerd viz stat deploy -n <namespace>
 - cert-manager namespace cannot have Linkerd injection (circular dependency - Linkerd excludes it automatically)
 - Tailscale operator proxies require Tailscale 1.94.0+ for Linkerd compatibility (see `docs/tasks/tailscale-operator-1.94-linkerd.md`)
 
-### ArgoCD ApplicationSets
+### ArgoCD Manifests
+
+The `argocd/manifests/` directory contains:
+- `argocd.yaml` - Application for ArgoCD self-management
+- `apps.yaml` - ApplicationSet for cluster app discovery
 
 **Testing locally before pushing:**
 ```bash
 # Validate YAML syntax (catches structural errors)
-yq eval '.' kubernetes/clusters/*/argocd/applicationsets/*.yaml > /dev/null
+yq eval '.' kubernetes/clusters/*/argocd/manifests/*.yaml > /dev/null
 
 # Dry-run with kubectl (validates K8s schema)
-kubectl apply --dry-run=client -f kubernetes/clusters/*/argocd/applicationsets/*.yaml
+kubectl apply --dry-run=client -f kubernetes/clusters/*/argocd/manifests/*.yaml
 ```
 
 **Key limitations:**

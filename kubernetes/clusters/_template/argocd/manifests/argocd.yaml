@@ -15,7 +15,7 @@ spec:
   source:
     repoURL: https://github.com/bcrisp4/infra.git
     targetRevision: HEAD
-    path: kubernetes/clusters/do-nyc3-prod/argocd/bootstrap
+    path: kubernetes/clusters/{{cluster_name}}/argocd/bootstrap
     helm:
       valueFiles:
         - values.yaml
@@ -26,6 +26,9 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    managedNamespaceMetadata:
+      annotations:
+        linkerd.io/inject: enabled
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
