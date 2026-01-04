@@ -1,0 +1,27 @@
+# Zero-trust network policies configuration
+# Values control which policies are enabled
+
+# Phase 1: Allow rules (safe to deploy first)
+allowDns:
+  enabled: true
+
+allowIstioAmbient:
+  enabled: true
+
+blockMetadata:
+  enabled: true
+
+# Phase 2: mTLS enforcement (requires mesh enrollment)
+peerAuthentication:
+  enabled: false
+  mode: STRICT
+
+# Phase 3: Default deny (deploy after verifying traffic)
+defaultDeny:
+  enabled: false
+  excludeNamespaces:
+    - kube-system
+    - kube-public
+    - kube-node-lease
+    - istio-system
+    - argocd
