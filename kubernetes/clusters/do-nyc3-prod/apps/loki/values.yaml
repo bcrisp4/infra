@@ -1,0 +1,155 @@
+# Loki for do-nyc3-prod
+# Uses DO Spaces for S3-compatible storage
+
+externalSecret:
+  enabled: true
+  itemName: do-nyc3-prod-loki-s3
+
+loki:
+  loki:
+    storage:
+      bucketNames:
+        chunks: bc4-do-nyc3-prod-loki
+        ruler: bc4-do-nyc3-prod-loki
+        admin: bc4-do-nyc3-prod-loki
+      s3:
+        endpoint: nyc3.digitaloceanspaces.com
+        accessKeyId: ${AWS_ACCESS_KEY_ID}
+        secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
+
+  # Component replicas for distributed mode
+  ingester:
+    replicas: 3
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        memory: 1Gi
+    zoneAwareReplication:
+      enabled: false
+
+  querier:
+    replicas: 2
+    maxUnavailable: 1
+    resources:
+      requests:
+        cpu: 200m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+
+  queryFrontend:
+    replicas: 2
+    maxUnavailable: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+
+  queryScheduler:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+
+  distributor:
+    replicas: 2
+    maxUnavailable: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+
+  compactor:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        memory: 2Gi
+
+  indexGateway:
+    replicas: 2
+    maxUnavailable: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+
+  lokiCanary:
+    kind: Deployment
+    replicas: 1
+    resources:
+      requests:
+        cpu: 25m
+        memory: 32Mi
+      limits:
+        memory: 64Mi
+
+  resultsCache:
+    replicas: 1
+    allocatedMemory: 250
+    resources:
+      requests:
+        cpu: 100m
+        memory: 300Mi
+      limits:
+        memory: 300Mi
+
+  chunksCache:
+    replicas: 1
+    allocatedMemory: 3000
+    resources:
+      requests:
+        cpu: 100m
+        memory: 3500Mi
+      limits:
+        memory: 3500Mi
+
+  gateway:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 50m
+        memory: 32Mi
+      limits:
+        memory: 128Mi
+
+  patternIngester:
+    replicas: 2
+    maxUnavailable: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
+
+  # Disable experimental bloom components
+  bloomPlanner:
+    replicas: 0
+  bloomBuilder:
+    replicas: 0
+  bloomGateway:
+    replicas: 0
+
+  # Disable components not used in distributed mode
+  backend:
+    replicas: 0
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+  singleBinary:
+    replicas: 0
