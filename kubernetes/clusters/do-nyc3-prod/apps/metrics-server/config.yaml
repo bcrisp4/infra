@@ -1,2 +1,3 @@
 name: metrics-server
-namespaceLabels: {}
+namespaceLabels:
+  istio.io/dataplane-mode: ambient
