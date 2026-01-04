@@ -1,15 +1,15 @@
 # Zero-trust network policies configuration
 # Values control which policies are enabled
 
-# Phase 1: Allow rules (safe to deploy first)
+# Phase 1: Allow rules - DISABLED until tailscale egress is allowed
 allowDns:
-  enabled: true
+  enabled: false
 
 allowIstioAmbient:
-  enabled: true
+  enabled: false
 
 blockMetadata:
-  enabled: true
+  enabled: false
 
 # Phase 2: mTLS enforcement (requires mesh enrollment)
 peerAuthentication:
