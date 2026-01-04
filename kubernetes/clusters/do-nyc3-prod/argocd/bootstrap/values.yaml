@@ -98,8 +98,6 @@ argo-cd:
       ingressClassName: tailscale
       hostname: argocd-do-nyc3-prod
       tls: true
-      annotations:
-        tailscale.com/proxy-class: mesh-enabled
 
   # Repo Server
   repoServer:
