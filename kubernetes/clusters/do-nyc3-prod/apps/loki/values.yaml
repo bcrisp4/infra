@@ -107,15 +107,17 @@ loki:
       limits:
         memory: 300Mi
 
+  # Chunks cache - reduced from 3Gi to fit cluster capacity
+  # More cache misses will result in S3 reads (acceptable tradeoff)
   chunksCache:
     replicas: 1
-    allocatedMemory: 3000
+    allocatedMemory: 768
     resources:
       requests:
         cpu: 100m
-        memory: 3500Mi
+        memory: 1024Mi
       limits:
-        memory: 3500Mi
+        memory: 1024Mi
 
   gateway:
     replicas: 2

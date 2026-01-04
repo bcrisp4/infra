@@ -199,14 +199,15 @@ mimir-distributed:
         memory: 128Mi
 
   # Store Gateway - HA with 3 replicas
+  # Reduced memory - primarily reads from object storage
   store_gateway:
     replicas: 3
     persistentVolume:
       size: 5Gi
     resources:
       requests:
-        cpu: 250m
-        memory: 1024Mi
+        cpu: 200m
+        memory: 512Mi
       limits:
         memory: 1024Mi
     zoneAwareReplication:
