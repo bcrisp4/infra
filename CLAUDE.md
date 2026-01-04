@@ -36,6 +36,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Terraform operations
 cd terraform/<dir> && terraform init && terraform plan && terraform apply
 
+# Save terraform plan to file (use .tfplan extension - gitignored)
+cd terraform/<dir> && terraform plan -out=plan.tfplan && terraform apply plan.tfplan
+
 # Update Helm dependencies for an app
 cd kubernetes/apps/<app> && helm dependency update
 
