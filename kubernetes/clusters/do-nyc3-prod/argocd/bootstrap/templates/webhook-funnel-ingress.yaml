@@ -1,0 +1,25 @@
+# Tailscale Funnel Ingress for GitHub webhooks
+# Exposes only /api/webhook publicly via Tailscale Funnel
+# See: docs/guides/argocd-webhook-tailscale-funnel.md
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-webhook-funnel
+  namespace: argocd
+  annotations:
+    tailscale.com/funnel: "true"
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - argocd-webhook-{{ .Values.cluster.name }}
+  rules:
+    - http:
+        paths:
+          - path: /api/webhook
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 80

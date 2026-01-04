@@ -72,6 +72,8 @@ argo-cd:
       argocdServerAdminPassword: "$2a$10$poXi66TGj6uv1CCq/L0yZe1C28lByBxypBJEDyRrsOoVRsdx87cDe"
       extra:
         accounts.ben.password: "$2a$10$mSTkP.eFiPf8w1Anw6xpGuliYaBqjfN/Rbnn6rks.omekJs0FAZra"
+        # GitHub webhook secret for instant sync notifications
+        webhook.github.secret: "6283ab8c6eb90f91670d2d9d7223130fc1c3486ca53f9b57884be5283607c308"
 
   # Controller
   controller:
