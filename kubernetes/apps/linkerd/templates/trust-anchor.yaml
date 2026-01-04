@@ -1,0 +1,34 @@
+# Self-signed issuer for creating the trust anchor
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: linkerd-trust-anchor-selfsigned
+  namespace: {{ .Values.certManager.namespace }}
+spec:
+  selfSigned: {}
+---
+# The trust anchor (root CA) - stored in cert-manager namespace
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: linkerd-trust-anchor
+  namespace: {{ .Values.certManager.namespace }}
+spec:
+  isCA: true
+  commonName: root.linkerd.cluster.local
+  secretName: linkerd-trust-anchor
+  duration: {{ .Values.certManager.trustAnchorDuration }}
+  renewBefore: {{ .Values.certManager.trustAnchorRenewBefore }}
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+    rotationPolicy: Always
+  issuerRef:
+    name: linkerd-trust-anchor-selfsigned
+    kind: Issuer
+    group: cert-manager.io
+  usages:
+    - cert sign
+    - crl sign
+    - server auth
+    - client auth

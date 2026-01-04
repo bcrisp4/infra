@@ -1,0 +1,10 @@
+apiVersion: v2
+name: trust-manager
+description: trust-manager for distributing trust bundles across namespaces
+type: application
+version: 0.1.0
+
+dependencies:
+  - name: trust-manager
+    version: "~0.20"
+    repository: https://charts.jetstack.io

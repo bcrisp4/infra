@@ -1,0 +1,44 @@
+# Linkerd configuration with cert-manager integration
+
+# cert-manager integration settings
+certManager:
+  # Namespace where cert-manager is installed
+  namespace: cert-manager
+  # Trust anchor certificate duration (10 years)
+  trustAnchorDuration: 87600h
+  trustAnchorRenewBefore: 8760h
+  # Identity issuer certificate duration (48 hours)
+  identityIssuerDuration: 48h
+  identityIssuerRenewBefore: 25h
+
+# Linkerd CRDs - no configuration needed
+linkerd-crds: {}
+
+# Linkerd control plane
+linkerd-control-plane:
+  # Use external CA (cert-manager)
+  identity:
+    externalCA: true
+    issuer:
+      scheme: kubernetes.io/tls
+
+  # Resource requests/limits for control plane components
+  controllerResources: &controller_resources
+    cpu:
+      request: 10m
+    memory:
+      limit: 128Mi
+      request: 32Mi
+
+  destinationResources: *controller_resources
+  heartbeatResources: *controller_resources
+  identityResources: *controller_resources
+  proxyInjectorResources: *controller_resources
+
+  proxy:
+    resources:
+      cpu:
+        request: 10m
+      memory:
+        limit: 128Mi
+        request: 32Mi

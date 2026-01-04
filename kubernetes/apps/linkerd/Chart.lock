@@ -1,0 +1,9 @@
+dependencies:
+- name: linkerd-crds
+  repository: https://helm.linkerd.io/stable
+  version: 1.8.0
+- name: linkerd-control-plane
+  repository: https://helm.linkerd.io/stable
+  version: 1.16.11
+digest: sha256:5258fe6bbe95b640e364b308e82507cd30806c7b5e32d10352a062059b1e2004
+generated: "2026-01-04T02:30:42.768667-05:00"
