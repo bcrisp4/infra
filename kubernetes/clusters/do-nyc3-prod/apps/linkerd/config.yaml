@@ -1,2 +1,4 @@
 name: linkerd
 namespace: linkerd
+namespaceLabels:
+  linkerd.io/is-control-plane: "true"
