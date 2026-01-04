@@ -27,6 +27,10 @@ argo-cd:
         jqPathExpressions:
           - .webhooks[]?.clientConfig.caBundle
           - .webhooks[]?.failurePolicy
+      # Ignore Kubernetes-injected resourceFieldRef.divisor default
+      resource.customizations.ignoreDifferences.apps_DaemonSet: |
+        jqPathExpressions:
+          - .spec.template.spec.containers[]?.env[]?.valueFrom.resourceFieldRef.divisor
       # Ignore noisy resources
       resource.exclusions: |
         - apiGroups:
