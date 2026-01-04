@@ -1,0 +1,28 @@
+# Linkerd Viz Extension - Default Values
+#
+# Provides observability features: dashboard, metrics API, tap
+
+linkerd-viz:
+  # Link to Linkerd control plane namespace
+  linkerdNamespace: linkerd
+
+  # Prometheus for metrics storage (6h retention)
+  # Disable this when using external metrics (Mimir)
+  prometheus:
+    enabled: true
+
+  # External Prometheus URL (use when prometheus.enabled: false)
+  # Example for Mimir: http://mimir-query-frontend.mimir:8080/prometheus
+  prometheusUrl: ""
+
+  # Dashboard configuration
+  dashboard:
+    replicas: 1
+
+  # Metrics API configuration
+  metricsAPI:
+    replicas: 1
+
+  # Tap configuration (live traffic inspection)
+  tap:
+    replicas: 1

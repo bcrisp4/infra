@@ -1,0 +1,12 @@
+# Linkerd Viz for do-nyc3-prod
+#
+# Currently using built-in Prometheus. See README for migration steps
+# when switching to Mimir.
+
+linkerd-viz:
+  # Use built-in Prometheus until Mimir is deployed
+  prometheus:
+    enabled: true
+    # 6h retention is sufficient for real-time dashboards
+    args:
+      storage.tsdb.retention.time: 6h
