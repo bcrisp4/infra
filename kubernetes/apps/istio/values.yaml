@@ -1,0 +1,11 @@
+global:
+  istioNamespace: istio
+
+istiod:
+  profile: ambient
+
+cni:
+  profile: ambient
+
+ztunnel:
+  logLevel: warn
