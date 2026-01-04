@@ -1,0 +1,23 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: grafana-db
+spec:
+  instances: {{ .Values.database.instances }}
+
+  storage:
+    size: {{ .Values.database.storage.size }}
+
+  resources:
+    {{- toYaml .Values.database.resources | nindent 4 }}
+
+  bootstrap:
+    initdb:
+      database: grafana
+      owner: grafana
+
+  postgresql:
+    parameters:
+      # Optimize for Grafana workload
+      shared_buffers: "128MB"
+      effective_cache_size: "256MB"

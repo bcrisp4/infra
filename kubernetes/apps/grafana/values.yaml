@@ -1,0 +1,56 @@
+# Grafana with PostgreSQL backend defaults
+
+# CloudNativePG database configuration
+database:
+  # Number of PostgreSQL instances (1 for single, 3 for HA)
+  instances: 1
+  storage:
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+# ExternalSecret for admin credentials (1Password)
+externalSecret:
+  enabled: false
+  itemName: ""
+
+grafana:
+  # Use admin credentials from external secret
+  admin:
+    existingSecret: grafana-admin
+    userKey: admin-user
+    passwordKey: admin-password
+
+  # Mount CNPG-generated secret for database password
+  extraSecretMounts:
+    - name: db-credentials
+      secretName: grafana-db-app
+      mountPath: /etc/secrets/db
+      readOnly: true
+
+  grafana.ini:
+    database:
+      type: postgres
+      host: grafana-db-rw:5432
+      name: grafana
+      user: grafana
+      # Password from mounted secret file (CNPG-generated)
+      password: $__file{/etc/secrets/db/password}
+      ssl_mode: require
+
+  # Resource defaults
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+  # Prometheus metrics
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3000"

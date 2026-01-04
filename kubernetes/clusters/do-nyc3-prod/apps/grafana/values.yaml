@@ -1,0 +1,45 @@
+# Grafana for do-nyc3-prod
+# Uses PostgreSQL via CloudNativePG instead of SQLite
+
+# ExternalSecret for admin credentials from 1Password
+externalSecret:
+  enabled: true
+  itemName: do-nyc3-prod-grafana-admin
+
+grafana:
+  # Deployment strategy - Recreate since we have a single PG connection
+  deploymentStrategy:
+    type: Recreate
+
+  grafana.ini:
+    server:
+      domain: grafana-do-nyc3-prod.marlin-tet.ts.net
+      root_url: "%(protocol)s://%(domain)s"
+    feature_toggles:
+      provisioning: true
+      kubernetesDashboards: true
+
+  # Tailscale ingress
+  ingress:
+    enabled: true
+    ingressClassName: tailscale
+    hosts:
+      - grafana-do-nyc3-prod
+    paths:
+      - /
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - grafana-do-nyc3-prod
+
+  # Disable chown init container (not needed with runAsNonRoot)
+  initChownData:
+    enabled: false
+
+  # Resources
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi

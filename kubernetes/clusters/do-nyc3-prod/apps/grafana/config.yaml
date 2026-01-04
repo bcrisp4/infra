@@ -1,0 +1,4 @@
+name: grafana
+namespace: grafana
+namespaceAnnotations:
+  linkerd.io/inject: enabled
