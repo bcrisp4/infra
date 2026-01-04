@@ -1,1 +1,3 @@
 name: tailscale-operator
+namespaceAnnotations:
+  linkerd.io/inject: enabled
