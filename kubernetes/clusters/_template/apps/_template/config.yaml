@@ -1,0 +1,8 @@
+# App configuration for ApplicationSet discovery
+# Replace {{app_name}} with actual app name
+
+name: {{app_name}}
+namespaceLabels: {}
+# Example: Add Istio ambient mode label
+# namespaceLabels:
+#   istio.io/dataplane-mode: ambient

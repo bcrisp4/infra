@@ -1,0 +1,6 @@
+# Cluster-specific value overrides
+# Values are namespaced under the chart dependency name
+# Replace {{app_name}} with actual app name
+
+# {{app_name}}:
+#   replicas: 2

@@ -79,17 +79,19 @@ Variable sets:
 ### Kubernetes Layer
 
 - **kubernetes/apps/{app}/** - Umbrella Helm charts wrapping upstream dependencies. Values namespaced under dependency name.
-- **kubernetes/clusters/{cluster}/apps/{app}/values.yaml** - Cluster-specific overrides
+- **kubernetes/clusters/{cluster}/apps/{app}/** - Per-app cluster config:
+  - `config.yaml` - Required. App metadata for ApplicationSet (name, namespace labels)
+  - `values.yaml` - Cluster-specific Helm value overrides
 - **kubernetes/clusters/{cluster}/argocd/** - ArgoCD bootstrap and ApplicationSets
 
-ArgoCD runs per-cluster and auto-discovers apps via Git generator scanning `kubernetes/clusters/{cluster}/apps/*`.
+ArgoCD runs per-cluster and auto-discovers apps via Git files generator scanning `kubernetes/clusters/{cluster}/apps/*/config.yaml`.
 
 ### Key Patterns
 
 - Cluster naming: `{provider}-{region}-{env}` (e.g., `do-nyc3-prod`, `htz-fsn1-prod`)
 - Provider abbreviations: `htz` (Hetzner), `do` (DigitalOcean), `aws`, `gcp`
 - Tailscale auth keys flow: global terraform creates keys -> cluster terraform consumes via remote state
-- Apps deploy by creating a values.yaml in `kubernetes/clusters/{cluster}/apps/{app}/`
+- Apps deploy by creating `config.yaml` + `values.yaml` in `kubernetes/clusters/{cluster}/apps/{app}/`
 
 ## Current State
 
@@ -131,24 +133,37 @@ Use pessimistic constraints (`~> X.Y`) pinned to minor version for stability whi
 
 ### Deploying New Apps
 
-When creating a new app umbrella chart, always check for the latest chart versions:
-
+**1. Create the umbrella chart** in `kubernetes/apps/{app}/`:
 ```bash
-# Add repo if needed
+# Check for latest chart versions
 helm repo add <name> <url>
 helm repo update
-
-# Check latest version
 helm search repo <chart> --versions | head -5
 ```
 
-Use pessimistic constraints (`~X.Y`) pinned to latest minor version. Example:
+Use pessimistic constraints (`~X.Y`) pinned to latest minor version:
 ```yaml
+# kubernetes/apps/{app}/Chart.yaml
 dependencies:
   - name: external-secrets
-    version: "~1.2"  # Latest as of 2026-01
+    version: "~1.2"
     repository: "https://charts.external-secrets.io"
 ```
+
+**2. Create cluster config** in `kubernetes/clusters/{cluster}/apps/{app}/`:
+```yaml
+# config.yaml - Required for app discovery
+name: my-app
+namespaceLabels: {}  # Optional: add labels like istio.io/dataplane-mode: ambient
+```
+
+```yaml
+# values.yaml - Cluster-specific overrides
+my-app:
+  replicas: 2
+```
+
+The app will be auto-discovered and deployed by ArgoCD within a few minutes.
 
 ### External Secrets Operator
 
@@ -222,6 +237,26 @@ Use dashes to create logical groupings: `{app}-{cluster}.{tailnet}.ts.net`
 For custom subdomain structures, alternatives require additional infrastructure:
 - Own domain + split DNS (e.g., `argocd.do-nyc3-prod.internal.example.com`)
 - Gateway API + ExternalDNS + cert-manager
+
+### Istio Ambient Mesh
+
+To enroll an app namespace in Istio ambient mesh, add the label to the app's `config.yaml`:
+
+```yaml
+# kubernetes/clusters/{cluster}/apps/{app}/config.yaml
+name: my-app
+namespaceLabels:
+  istio.io/dataplane-mode: ambient
+```
+
+This label tells Istio's ztunnel to capture traffic for pods in that namespace. The label is applied to the namespace via ArgoCD's `managedNamespaceMetadata`.
+
+**What happens:**
+1. ArgoCD creates/updates the namespace with the label
+2. Istio's ztunnel (running as a DaemonSet) intercepts pod traffic in labeled namespaces
+3. mTLS is automatically enabled between pods in the mesh
+
+**To remove from mesh:** Set `namespaceLabels: {}` or remove the `istio.io/dataplane-mode` key.
 
 ### ArgoCD ApplicationSets
 
