@@ -15,3 +15,8 @@ tailscale-operator:
   operatorConfig:
     defaultTags:
       - "tag:k8s-operator"
+
+  proxyConfig:
+    # Use ProxyClass with resources for Istio sidecar injection
+    # Enables proxies to participate in mesh with mTLS
+    defaultProxyClass: "mesh-enabled"
