@@ -1,3 +1,1 @@
 name: cert-manager
-namespaceAnnotations:
-  linkerd.io/inject: enabled
