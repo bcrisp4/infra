@@ -1,8 +1,8 @@
 apiVersion: v2
 name: istio
-description: Istio service mesh with ambient mode
+description: Istio service mesh with sidecar injection
 type: application
-version: 0.1.0
+version: 0.2.0
 
 dependencies:
   - name: base
@@ -12,8 +12,5 @@ dependencies:
     version: ~1.28
     repository: https://istio-release.storage.googleapis.com/charts
   - name: cni
-    version: ~1.28
-    repository: https://istio-release.storage.googleapis.com/charts
-  - name: ztunnel
     version: ~1.28
     repository: https://istio-release.storage.googleapis.com/charts
