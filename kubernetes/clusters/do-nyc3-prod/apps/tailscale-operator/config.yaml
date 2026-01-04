@@ -1,3 +1,5 @@
 name: tailscale-operator
-namespaceAnnotations:
-  linkerd.io/inject: enabled
+# TODO: Re-enable Linkerd injection after Tailscale operator 1.94.0 is released
+# See: https://github.com/tailscale/tailscale/issues/17000
+# namespaceAnnotations:
+#   linkerd.io/inject: enabled

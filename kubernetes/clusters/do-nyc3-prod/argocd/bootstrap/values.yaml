@@ -98,8 +98,9 @@ argo-cd:
       ingressClassName: tailscale
       hostname: argocd-do-nyc3-prod
       tls: true
-      annotations:
-        tailscale.com/proxy-class: linkerd-mesh
+      annotations: {}
+        # TODO: Re-enable after Tailscale operator 1.94.0 is released
+        # tailscale.com/proxy-class: linkerd-mesh
 
   # Repo Server
   repoServer:
