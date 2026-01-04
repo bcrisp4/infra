@@ -1,0 +1,282 @@
+# Mimir for do-nyc3-prod
+# Uses DO Spaces for S3-compatible storage and Strimzi Kafka for ingest storage
+
+externalSecret:
+  enabled: true
+  itemName: do-nyc3-prod-mimir-s3
+
+kafka:
+  enabled: true
+  replicas: 3
+  storageSize: 50Gi
+
+mimir-distributed:
+  global:
+    podAnnotations:
+      prometheus.io/label-cluster: "mimir-do-nyc3-prod"
+
+  mimir:
+    structuredConfig:
+      # Ingest storage configuration - use Strimzi Kafka
+      ingest_storage:
+        enabled: true
+        kafka:
+          address: mimir-kafka-kafka-bootstrap.mimir.svc.cluster.local:9092
+          topic: mimir-ingest
+          auto_create_topic_enabled: false
+
+      # Common S3 storage configuration
+      common:
+        storage:
+          backend: s3
+          s3:
+            bucket_name: bc4-do-nyc3-prod-mimir
+            endpoint: nyc3.digitaloceanspaces.com
+            access_key_id: ${AWS_ACCESS_KEY_ID}
+            secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+            http:
+              idle_conn_timeout: 2m
+              response_header_timeout: 5m
+              max_idle_connections: 100
+              max_idle_connections_per_host: 100
+
+      # Block storage (metrics data)
+      blocks_storage:
+        backend: s3
+        storage_prefix: blocks
+        s3:
+          bucket_name: bc4-do-nyc3-prod-mimir
+          endpoint: nyc3.digitaloceanspaces.com
+          access_key_id: ${AWS_ACCESS_KEY_ID}
+          secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+          http:
+            idle_conn_timeout: 2m
+            response_header_timeout: 5m
+            max_idle_connections: 100
+            max_idle_connections_per_host: 100
+
+      # Alertmanager storage
+      alertmanager_storage:
+        backend: s3
+        storage_prefix: alertmanager
+        s3:
+          bucket_name: bc4-do-nyc3-prod-mimir
+          endpoint: nyc3.digitaloceanspaces.com
+          access_key_id: ${AWS_ACCESS_KEY_ID}
+          secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+          http:
+            idle_conn_timeout: 2m
+            response_header_timeout: 5m
+            max_idle_connections: 100
+            max_idle_connections_per_host: 100
+
+      # Ruler storage
+      ruler_storage:
+        backend: s3
+        storage_prefix: ruler
+        s3:
+          bucket_name: bc4-do-nyc3-prod-mimir
+          endpoint: nyc3.digitaloceanspaces.com
+          access_key_id: ${AWS_ACCESS_KEY_ID}
+          secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+          http:
+            idle_conn_timeout: 2m
+            response_header_timeout: 5m
+            max_idle_connections: 100
+            max_idle_connections_per_host: 100
+
+  # Alertmanager - HA with 2 replicas
+  alertmanager:
+    enabled: true
+    replicas: 2
+    persistentVolume:
+      enabled: true
+      size: 1Gi
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+    statefulSet:
+      enabled: true
+
+  # Compactor
+  compactor:
+    replicas: 1
+    persistentVolume:
+      size: 50Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        memory: 1Gi
+
+  # Distributor
+  distributor:
+    replicas: 3
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        memory: 1Gi
+
+  # Ingester - HA with 3 replicas
+  ingester:
+    replicas: 3
+    persistentVolume:
+      size: 10Gi
+    resources:
+      requests:
+        cpu: 200m
+        memory: 1Gi
+      limits:
+        memory: 3Gi
+    zoneAwareReplication:
+      enabled: false
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/component
+                    operator: In
+                    values:
+                      - ingester
+              topologyKey: kubernetes.io/hostname
+
+  # Querier
+  querier:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+
+  # Query Frontend
+  query_frontend:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+
+  # Query Scheduler
+  query_scheduler:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+
+  # Store Gateway - HA with 3 replicas
+  store_gateway:
+    replicas: 3
+    persistentVolume:
+      size: 5Gi
+    resources:
+      requests:
+        cpu: 250m
+        memory: 1024Mi
+      limits:
+        memory: 1024Mi
+    zoneAwareReplication:
+      enabled: false
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/component
+                    operator: In
+                    values:
+                      - store-gateway
+              topologyKey: kubernetes.io/hostname
+
+  # Ruler
+  ruler:
+    enabled: true
+    replicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
+
+  # Overrides exporter
+  overrides_exporter:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+
+  # Gateway (nginx)
+  gateway:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+
+  # Caches
+  chunks-cache:
+    enabled: true
+    replicas: 2
+    allocatedMemory: 512
+    resources:
+      requests:
+        cpu: 50m
+        memory: 600Mi
+      limits:
+        memory: 600Mi
+
+  index-cache:
+    enabled: true
+    replicas: 2
+    allocatedMemory: 256
+    resources:
+      requests:
+        cpu: 50m
+        memory: 300Mi
+      limits:
+        memory: 300Mi
+
+  metadata-cache:
+    enabled: true
+    replicas: 2
+    allocatedMemory: 128
+    resources:
+      requests:
+        cpu: 50m
+        memory: 150Mi
+      limits:
+        memory: 150Mi
+
+  results-cache:
+    enabled: true
+    replicas: 2
+    allocatedMemory: 128
+    resources:
+      requests:
+        cpu: 50m
+        memory: 150Mi
+      limits:
+        memory: 150Mi

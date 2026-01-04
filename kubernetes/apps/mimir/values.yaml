@@ -1,0 +1,49 @@
+# Default values for mimir umbrella chart
+
+# ExternalSecret for S3 credentials from 1Password
+externalSecret:
+  enabled: false
+  itemName: ""
+
+# Kafka cluster configuration
+kafka:
+  enabled: false
+  replicas: 3
+  storageSize: 50Gi
+  bootstrapAddress: mimir-kafka-kafka-bootstrap.mimir.svc.cluster.local:9092
+
+# Mimir-distributed chart values
+mimir-distributed:
+  # Disable built-in Kafka - we use Strimzi
+  kafka:
+    enabled: false
+
+  # Disable MinIO - we use external S3
+  minio:
+    enabled: false
+
+  # Inject S3 credentials from external secret
+  global:
+    extraEnvFrom:
+      - secretRef:
+          name: s3-credentials
+    extraArgs:
+      - -config.expand-env=true
+
+  # Base mimir configuration
+  mimir:
+    structuredConfig:
+      # Query frontend logging
+      frontend:
+        log_queries_longer_than: -1s
+
+  # Runtime configuration with per-tenant overrides
+  runtimeConfig:
+    overrides:
+      prod:
+        max_label_names_per_series: 60
+        ingestion_rate: 100000
+        ingestion_burst_size: 200000
+        max_global_series_per_user: 1500000
+        ruler_max_rules_per_rule_group: 100
+        ruler_max_rule_groups_per_tenant: 100

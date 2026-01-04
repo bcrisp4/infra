@@ -1,0 +1,102 @@
+{{- if .Values.kafka.enabled }}
+---
+# Strimzi Kafka cluster for Mimir ingest storage (KRaft mode - no ZooKeeper)
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: mimir-kafka
+  annotations:
+    strimzi.io/kraft: enabled
+    strimzi.io/node-pools: enabled
+spec:
+  kafka:
+    version: 4.1.0
+    metadataVersion: 4.1-IV0
+    metricsConfig:
+      type: jmxPrometheusExporter
+      valueFrom:
+        configMapKeyRef:
+          name: kafka-metrics
+          key: kafka-metrics-config.yml
+    template:
+      pod:
+        metadata:
+          annotations:
+            prometheus.io/scrape: "true"
+            prometheus.io/port: "9404"
+            prometheus.io/path: "/metrics"
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+    config:
+      offsets.topic.replication.factor: 3
+      transaction.state.log.replication.factor: 3
+      transaction.state.log.min.isr: 2
+      default.replication.factor: 3
+      min.insync.replicas: 2
+      log.retention.hours: 6
+      log.retention.bytes: -1
+      log.segment.bytes: 134217728
+      log.cleanup.policy: delete
+      message.max.bytes: 16777216
+      replica.fetch.max.bytes: 16777216
+  entityOperator:
+    topicOperator:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          memory: 256Mi
+    userOperator:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          memory: 256Mi
+---
+# KafkaNodePool with combined controller and broker roles (KRaft mode)
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: combined
+  labels:
+    strimzi.io/cluster: mimir-kafka
+spec:
+  replicas: {{ .Values.kafka.replicas }}
+  roles:
+    - controller
+    - broker
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: {{ .Values.kafka.storageSize }}
+        deleteClaim: false
+        kraftMetadata: shared
+  resources:
+    requests:
+      cpu: 200m
+      memory: 1Gi
+    limits:
+      memory: 2Gi
+---
+# Kafka topic for Mimir ingest storage
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: mimir-ingest
+  labels:
+    strimzi.io/cluster: mimir-kafka
+spec:
+  partitions: 12
+  replicas: 3
+  config:
+    retention.ms: 21600000
+    min.insync.replicas: 2
+    max.message.bytes: 16777216
+{{- end }}
