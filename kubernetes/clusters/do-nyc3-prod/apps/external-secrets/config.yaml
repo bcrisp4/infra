@@ -1,3 +1,2 @@
 name: external-secrets
-namespaceLabels:
-  istio.io/dataplane-mode: ambient
+namespaceLabels: {}

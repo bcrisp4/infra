@@ -1,3 +1,2 @@
 name: cert-manager
-namespaceLabels:
-  istio.io/dataplane-mode: ambient
+namespaceLabels: {}
