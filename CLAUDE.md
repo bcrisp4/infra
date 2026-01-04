@@ -225,5 +225,33 @@ For custom subdomain structures, alternatives require additional infrastructure:
 
 ### ArgoCD ApplicationSets
 
+**Testing locally before pushing:**
+```bash
+# Validate YAML syntax (catches structural errors)
+yq eval '.' kubernetes/clusters/*/argocd/applicationsets/*.yaml > /dev/null
+
+# Dry-run with kubectl (validates K8s schema)
+kubectl apply --dry-run=client -f kubernetes/clusters/*/argocd/applicationsets/*.yaml
+```
+
+**Key limitations:**
+- Go templates only work on string fields, not object fields
+- Control structures (`{{- range }}`, `{{- if }}`) break YAML parsing when used directly in templates
+- Use `templatePatch` for conditional configuration (supports full Go templating)
+
+**Per-app namespace labels:**
+
+Apps use `config.yaml` files that the ApplicationSet reads via Git files generator:
+```yaml
+# kubernetes/clusters/{cluster}/apps/{app}/config.yaml
+name: my-app
+namespaceLabels:
+  istio.io/dataplane-mode: ambient  # Optional: adds labels to app namespace
+```
+
+The `templatePatch` conditionally applies these labels to `managedNamespaceMetadata`. This works because `templatePatch` is a string field that gets Go template processing before being applied as a patch.
+
+**Common errors:**
+- `yaml: line X: could not find expected ':'` - Template control structures at wrong indentation or outside templatePatch
 - Go template syntax (`{{ .path.basename }}`) should NOT use Helm escaping backticks when the YAML is applied directly (not via Helm)
 - If you see "duplicate name" errors with literal `{{ ... }}`, check if backtick escaping was incorrectly added
