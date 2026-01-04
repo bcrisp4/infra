@@ -345,3 +345,30 @@ The `templatePatch` conditionally applies these to `managedNamespaceMetadata`. T
 - `yaml: line X: could not find expected ':'` - Template control structures at wrong indentation or outside templatePatch
 - Go template syntax (`{{ .path.basename }}`) should NOT use Helm escaping backticks when the YAML is applied directly (not via Helm)
 - If you see "duplicate name" errors with literal `{{ ... }}`, check if backtick escaping was incorrectly added
+
+### ArgoCD GitHub Webhooks
+
+GitHub webhooks enable instant sync on push instead of 3-minute polling. The webhook endpoint is exposed publicly via Tailscale Funnel while keeping the ArgoCD UI private.
+
+**Current setup (do-nyc3-prod):**
+- Webhook URL: `https://argocd-webhook-do-nyc3-prod.marlin-tet.ts.net/api/webhook`
+- Configured in: GitHub repo Settings > Webhooks
+- Secret stored in: `argocd-secret` (key: `webhook.github.secret`)
+
+**How it works:**
+1. Tailscale Funnel exposes only `/api/webhook` publicly via `argocd-webhook-{cluster}` ingress
+2. GitHub sends push events to this endpoint
+3. ArgoCD immediately refreshes affected applications
+
+**Files involved:**
+- `kubernetes/clusters/{cluster}/argocd/bootstrap/templates/webhook-funnel-ingress.yaml` - Funnel ingress
+- `kubernetes/clusters/{cluster}/argocd/bootstrap/values.yaml` - Webhook secret in `configs.secret.extra`
+- `terraform/global/tailscale.tf` - ACL with `funnel` attribute for `tag:k8s`
+
+**Adding webhooks to a new cluster:**
+1. Generate secret: `openssl rand -hex 32`
+2. Add to values.yaml: `configs.secret.extra.webhook.github.secret: "<secret>"`
+3. Create webhook-funnel-ingress.yaml template (copy from existing cluster)
+4. Configure GitHub webhook with the cluster's funnel URL
+
+See `docs/guides/argocd-webhook-tailscale-funnel.md` for detailed setup guide.
