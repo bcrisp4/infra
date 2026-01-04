@@ -1,3 +1,0 @@
-name: istio
-namespace: istio-system
-namespaceLabels: {}

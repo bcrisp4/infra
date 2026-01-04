@@ -1,7 +1,0 @@
-apiVersion: v2
-name: zero-trust
-description: Zero-trust network policies for Cilium and Istio ambient
-type: application
-version: 0.1.0
-
-# No dependencies - all policies are in templates/

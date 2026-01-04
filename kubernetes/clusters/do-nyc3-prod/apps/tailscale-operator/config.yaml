@@ -1,3 +1,1 @@
 name: tailscale-operator
-namespaceLabels:
-  istio-injection: enabled
