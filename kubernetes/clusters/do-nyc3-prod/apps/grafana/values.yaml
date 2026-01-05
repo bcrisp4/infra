@@ -63,7 +63,7 @@ grafana:
     datasources.yaml:
       apiVersion: 1
       datasources:
-        - name: Mimir
+        - name: mimir-do-nyc3-prod
           type: prometheus
           access: proxy
           url: http://mimir-gateway.mimir.svc.cluster.local/prometheus
@@ -71,6 +71,11 @@ grafana:
           editable: false
           jsonData:
             prometheusType: Mimir
+            prometheusVersion: 2.9.1
+            timeInterval: 30s
+            cacheLevel: High
+            incrementalQuerying: true
+            incrementalQueryOverlapWindow: 10m
             httpHeaderName1: X-Scope-OrgID
           secureJsonData:
             httpHeaderValue1: prod
