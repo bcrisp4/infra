@@ -18,3 +18,4 @@
 kubeconfig*
 talosconfig*
 *.tfplan
+tfplan
