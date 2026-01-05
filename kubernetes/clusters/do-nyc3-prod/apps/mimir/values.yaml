@@ -142,6 +142,9 @@ mimir-distributed:
   # Distributor - sized for current cluster capacity
   distributor:
     replicas: 3
+    podAnnotations:
+      # Mark Kafka port as opaque for outbound connections
+      config.linkerd.io/opaque-ports: "9092"
     resources:
       requests:
         cpu: 200m
@@ -152,6 +155,9 @@ mimir-distributed:
   # Ingester - HA with 3 replicas
   ingester:
     replicas: 3
+    podAnnotations:
+      # Mark Kafka port as opaque for outbound connections
+      config.linkerd.io/opaque-ports: "9092"
     persistentVolume:
       size: 10Gi
     resources:
