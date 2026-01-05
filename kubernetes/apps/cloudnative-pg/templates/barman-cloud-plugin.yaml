@@ -1,0 +1,169 @@
+{{- if .Values.barmanCloudPlugin.enabled }}
+# Barman Cloud Plugin for CloudNativePG
+# Source: https://github.com/cloudnative-pg/plugin-barman-cloud
+#
+# This plugin enables backup and WAL archiving to S3-compatible object storage.
+# Must be installed in the same namespace as the CNPG operator.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: barman-cloud
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: barman-cloud
+rules:
+  - apiGroups:
+      - barmancloud.cnpg.io
+    resources:
+      - objectstores
+    verbs:
+      - get
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get
+      - list
+      - watch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: barman-cloud
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: barman-cloud
+subjects:
+  - kind: ServiceAccount
+    name: barman-cloud
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: barman-cloud
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: barman-cloud
+  template:
+    metadata:
+      labels:
+        app: barman-cloud
+    spec:
+      serviceAccountName: barman-cloud
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: barman-cloud
+          image: ghcr.io/cloudnative-pg/plugin-barman-cloud:{{ .Values.barmanCloudPlugin.version }}
+          imagePullPolicy: IfNotPresent
+          args:
+            - --leader-elect
+          ports:
+            - containerPort: 9443
+              name: https
+              protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          resources:
+            {{- toYaml .Values.barmanCloudPlugin.resources | nindent 12 }}
+          volumeMounts:
+            - mountPath: /run/secrets/cnpg/tls
+              name: server-tls
+              readOnly: true
+      volumes:
+        - name: server-tls
+          projected:
+            sources:
+              - secret:
+                  name: barman-cloud-server-cert
+                  optional: false
+              - secret:
+                  name: cnpg-ca-secret
+                  items:
+                    - key: ca.crt
+                      path: client-ca.crt
+                  optional: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: barman-cloud
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+    - name: https
+      port: 9443
+      protocol: TCP
+      targetPort: https
+  selector:
+    app: barman-cloud
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: barman-cloud-server-cert
+  namespace: {{ .Release.Namespace }}
+spec:
+  secretName: barman-cloud-server-cert
+  issuerRef:
+    name: cnpg-ca-issuer
+    kind: Issuer
+  usages:
+    - server auth
+  dnsNames:
+    - barman-cloud
+    - barman-cloud.{{ .Release.Namespace }}
+    - barman-cloud.{{ .Release.Namespace }}.svc
+    - barman-cloud.{{ .Release.Namespace }}.svc.cluster.local
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: cnpg-ca-issuer
+  namespace: {{ .Release.Namespace }}
+spec:
+  ca:
+    secretName: cnpg-ca-secret
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: cnpg-ca
+  namespace: {{ .Release.Namespace }}
+spec:
+  isCA: true
+  commonName: cnpg-ca
+  secretName: cnpg-ca-secret
+  issuerRef:
+    name: cnpg-selfsigned-issuer
+    kind: Issuer
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+---
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: cnpg-selfsigned-issuer
+  namespace: {{ .Release.Namespace }}
+spec:
+  selfSigned: {}
+{{- end }}

@@ -2,7 +2,7 @@
 
 # CloudNativePG database configuration
 database:
-  # Number of PostgreSQL instances (1 for single, 3 for HA)
+  # Number of PostgreSQL instances (1 for single, 2+ for HA)
   instances: 1
   storage:
     size: 5Gi
@@ -12,6 +12,21 @@ database:
       memory: 256Mi
     limits:
       memory: 512Mi
+
+# Database backup configuration (Barman Cloud Plugin)
+backup:
+  enabled: false
+  # Take first backup immediately when ScheduledBackup is created
+  immediate: false
+  s3:
+    # 1Password item name for S3 credentials
+    itemName: ""
+    # S3 bucket name
+    bucket: ""
+    # S3 endpoint (without https://)
+    endpoint: ""
+    # Path prefix within bucket
+    path: "grafana-db"
 
 # ExternalSecret for admin credentials (1Password)
 externalSecret:

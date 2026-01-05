@@ -3,3 +3,14 @@
 cloudnative-pg:
   crds:
     create: true
+
+# Barman Cloud Plugin for S3-compatible backup storage
+barmanCloudPlugin:
+  enabled: false
+  version: "0.10.0"
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 128Mi

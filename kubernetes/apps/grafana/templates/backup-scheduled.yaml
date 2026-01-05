@@ -1,0 +1,21 @@
+{{- if .Values.backup.enabled }}
+# ScheduledBackup for daily base backups via Barman Cloud Plugin
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: grafana-db-daily
+spec:
+  # Daily at 2:00 AM UTC (6-field cron: seconds minutes hours day month weekday)
+  schedule: "0 0 2 * * *"
+  # Take first backup immediately when created
+  immediate: {{ .Values.backup.immediate | default false }}
+  # Delete backup when ScheduledBackup is deleted
+  backupOwnerReference: self
+  cluster:
+    name: grafana-db
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+    parameters:
+      barmanObjectName: grafana-db-backup
+{{- end }}

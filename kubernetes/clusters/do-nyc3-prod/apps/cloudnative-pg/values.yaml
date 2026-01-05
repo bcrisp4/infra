@@ -7,3 +7,7 @@ cloudnative-pg:
       memory: 100Mi
     limits:
       memory: 256Mi
+
+# Enable Barman Cloud plugin for S3 backups
+barmanCloudPlugin:
+  enabled: true

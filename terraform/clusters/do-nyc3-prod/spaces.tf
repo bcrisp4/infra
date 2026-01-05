@@ -92,3 +92,57 @@ output "spaces_region" {
   description = "Spaces region"
   value       = local.spaces_region
 }
+
+# Backup buckets for CloudNativePG database backups
+# Used with Barman Cloud plugin for continuous WAL archiving and base backups
+locals {
+  backup_buckets = {
+    grafana-postgres = {
+      name        = "${local.bucket_prefix}-grafana-postgres-backups"
+      description = "Grafana PostgreSQL database backups"
+    }
+  }
+}
+
+resource "digitalocean_spaces_bucket" "backups" {
+  for_each = local.backup_buckets
+
+  name   = each.value.name
+  region = local.spaces_region
+  acl    = "private"
+
+  versioning {
+    enabled = true
+  }
+
+  lifecycle_rule {
+    id      = "expire-old-versions"
+    enabled = true
+
+    noncurrent_version_expiration {
+      days = 30
+    }
+  }
+}
+
+resource "digitalocean_spaces_key" "backups" {
+  for_each = digitalocean_spaces_bucket.backups
+
+  name = "${var.cluster_name}-${each.key}-backups"
+
+  grant {
+    bucket     = each.value.name
+    permission = "readwrite"
+  }
+}
+
+output "backup_buckets" {
+  description = "Spaces bucket information for database backups"
+  value = {
+    for k, v in digitalocean_spaces_bucket.backups : k => {
+      name     = v.name
+      region   = v.region
+      endpoint = "https://${local.spaces_region}.digitaloceanspaces.com"
+    }
+  }
+}

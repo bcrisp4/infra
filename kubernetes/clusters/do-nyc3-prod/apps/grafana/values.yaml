@@ -1,6 +1,20 @@
 # Grafana for do-nyc3-prod
 # Uses PostgreSQL via CloudNativePG instead of SQLite
 
+# Database HA configuration
+database:
+  instances: 2
+
+# Database backup to DigitalOcean Spaces via Barman Cloud Plugin
+backup:
+  enabled: true
+  immediate: true
+  s3:
+    itemName: do-nyc3-prod-grafana-postgres-s3
+    bucket: bc4-do-nyc3-prod-grafana-postgres-backups
+    endpoint: nyc3.digitaloceanspaces.com
+    path: grafana-db
+
 # ExternalSecret for admin credentials from 1Password
 externalSecret:
   enabled: true
