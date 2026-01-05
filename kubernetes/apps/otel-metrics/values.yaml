@@ -1,0 +1,2 @@
+# Base values for otel-metrics
+# Cluster-specific overrides go in kubernetes/clusters/<cluster>/apps/otel-metrics/values.yaml
