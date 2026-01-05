@@ -7,16 +7,52 @@ externalSecret:
 
 # Tempo chart values
 tempo-distributed:
-  # Enable environment variable expansion in config
-  global:
+  tempo:
+    revisionHistoryLimit: 0
+
+  # Per-component env expansion config (not global - memcached doesn't understand Tempo args)
+  # S3 credentials are injected via extraEnvFrom and expanded with -config.expand-env=true
+  ingester:
     extraArgs:
       - -config.expand-env=true
     extraEnvFrom:
       - secretRef:
           name: s3-credentials
 
-  tempo:
-    revisionHistoryLimit: 0
+  distributor:
+    extraArgs:
+      - -config.expand-env=true
+    extraEnvFrom:
+      - secretRef:
+          name: s3-credentials
+
+  querier:
+    extraArgs:
+      - -config.expand-env=true
+    extraEnvFrom:
+      - secretRef:
+          name: s3-credentials
+
+  queryFrontend:
+    extraArgs:
+      - -config.expand-env=true
+    extraEnvFrom:
+      - secretRef:
+          name: s3-credentials
+
+  compactor:
+    extraArgs:
+      - -config.expand-env=true
+    extraEnvFrom:
+      - secretRef:
+          name: s3-credentials
+
+  metricsGenerator:
+    extraArgs:
+      - -config.expand-env=true
+    extraEnvFrom:
+      - secretRef:
+          name: s3-credentials
 
   # Storage configuration - backend set here, details in cluster values
   storage:
