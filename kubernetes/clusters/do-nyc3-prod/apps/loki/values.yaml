@@ -7,6 +7,16 @@ externalSecret:
 
 loki:
   loki:
+    # Promote OTLP resource attributes to indexed Loki labels
+    limits_config:
+      otlp_config:
+        resource_attributes:
+          attributes_config:
+            - action: index_label
+              attributes:
+                - cluster
+                - log_source
+
     storage:
       bucketNames:
         chunks: ${S3_BUCKET}

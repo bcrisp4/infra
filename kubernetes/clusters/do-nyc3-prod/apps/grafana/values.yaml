@@ -106,6 +106,18 @@ grafana:
           secureJsonData:
             httpHeaderValue1: prod
 
+        - name: loki-do-nyc3-prod
+          type: loki
+          access: proxy
+          url: http://loki-gateway.loki.svc.cluster.local
+          editable: false
+          jsonData:
+            timeout: 60
+            maxLines: 1000
+            httpHeaderName1: X-Scope-OrgID
+          secureJsonData:
+            httpHeaderValue1: prod
+
   # Image renderer for PNG export, alerts, and reporting
   # Enables dashboard/panel image export and alert notification images
   imageRenderer:

@@ -1,0 +1,11 @@
+apiVersion: v2
+name: otel-logs
+description: OpenTelemetry Collector for log collection
+type: application
+version: 0.1.0
+appVersion: "0.142.0"
+
+dependencies:
+  - name: opentelemetry-collector
+    version: ~0.142
+    repository: https://open-telemetry.github.io/opentelemetry-helm-charts
