@@ -638,6 +638,32 @@ If you need to rename a datasource:
 3. Manually delete the old datasource via Grafana UI (Connections > Data sources)
 4. Update any dashboards that reference the old datasource name
 
+### Grafana Datasources
+
+Available datasources for use with the Grafana MCP tools:
+
+| Name | UID | Type | Description |
+|------|-----|------|-------------|
+| `mimir-do-nyc3-prod` | `PDFDDA34E6E7D2823` | prometheus | Mimir metrics (PromQL) |
+| `loki-do-nyc3-prod` | `PF99E8F4CDB5B6FB2` | loki | Loki logs (LogQL) |
+
+**Keeping this list updated:**
+
+When datasources are added or removed, update this table. To get the current list:
+1. Use the `mcp__grafana-mcp-do-nyc3-prod__list_datasources` tool
+2. Or query Grafana API: `curl -s https://grafana-do-nyc3-prod.../api/datasources | jq '.[] | {name, uid, type}'`
+
+**Usage with MCP tools:**
+
+Most Grafana MCP query tools require a `datasourceUid` parameter:
+```
+# Query Prometheus/Mimir metrics
+mcp__grafana-mcp-do-nyc3-prod__query_prometheus(datasourceUid: "PDFDDA34E6E7D2823", expr: "up", ...)
+
+# Query Loki logs
+mcp__grafana-mcp-do-nyc3-prod__query_loki_logs(datasourceUid: "PF99E8F4CDB5B6FB2", logql: "{k8s_namespace_name=\"argocd\"}", ...)
+```
+
 ### Mimir Tenant Endpoint
 
 Mimir requires the `X-Scope-OrgID` header for multi-tenancy. Some clients (like linkerd-viz) cannot set custom HTTP headers. For these clients, use the gateway's tenant endpoint.
