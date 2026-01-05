@@ -21,9 +21,24 @@ externalSecret:
   itemName: do-nyc3-prod-grafana-admin
 
 grafana:
-  # Deployment strategy - Recreate since we have a single PG connection
+  # HA configuration - 2 replicas with headless service for alerting peer discovery
+  replicas: 2
+  headlessService: true
+
+  # Rolling update for zero-downtime deployments
   deploymentStrategy:
-    type: Recreate
+    type: RollingUpdate
+
+  # Pod disruption budget - always keep at least 1 replica available
+  podDisruptionBudget:
+    minAvailable: 1
+
+  # Pod IP for alerting HA peer discovery
+  extraEnvs:
+    - name: POD_IP
+      valueFrom:
+        fieldRef:
+          fieldPath: status.podIP
 
   grafana.ini:
     server:
@@ -32,6 +47,13 @@ grafana:
     feature_toggles:
       provisioning: true
       kubernetesDashboards: true
+    # Alerting HA configuration
+    # Uses headless service for peer discovery via memberlist gossip
+    unified_alerting:
+      enabled: true
+      ha_listen_address: "${POD_IP}:9094"
+      ha_advertise_address: "${POD_IP}:9094"
+      ha_peers: grafana-headless.grafana.svc.cluster.local:9094
 
   # Tailscale ingress
   ingress:

@@ -227,6 +227,15 @@ Key learnings from deploying ESO with 1Password:
    - Consider `refreshPolicy: CreatedOnce` for truly static secrets
    - Pod restarts and ArgoCD syncs trigger immediate re-fetches regardless of interval
 
+9. **Force Refresh an ExternalSecret**: To immediately sync after changing a secret in 1Password:
+   ```bash
+   # Add/update annotation to trigger reconciliation
+   kubectl annotate externalsecret <name> -n <namespace> force-sync=$(date +%s) --overwrite
+
+   # Example:
+   kubectl annotate externalsecret mimir-s3-credentials -n mimir force-sync=$(date +%s) --overwrite
+   ```
+
 ### 1Password Terraform Provider
 
 - Use v3.0+ which uses pure SDK (no CLI required) - works in TFC without installing `op`
