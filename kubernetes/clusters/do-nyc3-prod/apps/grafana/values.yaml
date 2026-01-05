@@ -62,8 +62,13 @@ grafana:
   datasources:
     datasources.yaml:
       apiVersion: 1
+      # Delete old datasource with previous name
+      deleteDatasources:
+        - name: Mimir
+          orgId: 1
       datasources:
         - name: mimir-do-nyc3-prod
+          uid: mimir-do-nyc3-prod
           type: prometheus
           access: proxy
           url: http://mimir-gateway.mimir.svc.cluster.local/prometheus
