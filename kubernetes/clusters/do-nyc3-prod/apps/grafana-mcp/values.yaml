@@ -1,0 +1,18 @@
+# ExternalSecret for API key from 1Password
+externalSecret:
+  enabled: true
+  itemName: do-nyc3-prod-grafana-service-account-token-mcp
+
+grafana-mcp:
+  ingress:
+    enabled: true
+    className: tailscale
+    hosts:
+      - host: grafana-mcp-do-nyc3-prod
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: grafana-mcp-tls
+        hosts:
+          - grafana-mcp-do-nyc3-prod

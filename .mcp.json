@@ -8,6 +8,10 @@
         "ARGOCD_BASE_URL": "https://argocd-do-nyc3-prod.marlin-tet.ts.net",
         "ARGOCD_API_TOKEN": "${ARGOCD_TOKEN_DO_NYC3_PROD}"
       }
+    },
+    "grafana-mcp-do-nyc3-prod": {
+      "type": "url",
+      "url": "https://grafana-mcp-do-nyc3-prod.marlin-tet.ts.net/mcp"
     }
   }
 }
