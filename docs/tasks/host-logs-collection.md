@@ -55,6 +55,22 @@ exec: "journalctl": executable file not found in $PATH
 
 The journald receiver internally shells out to `journalctl` to read the journal. The `otel/opentelemetry-collector-contrib` image is built on a minimal base image (distroless or Alpine) that does not include systemd utilities.
 
+## DOKS Node Reality (Verified)
+
+Verified via `kubectl debug node` on DOKS worker nodes:
+
+**Log locations:**
+- `/var/log/syslog` - **DOES NOT EXIST** (eliminates filelog/syslog option)
+- `/var/log/journal/` - **EXISTS** with persistent journals:
+  - Multiple machine-ID directories (one per boot)
+  - `system.journal` files at ~128MB each
+  - Total ~789MB of journal data per node
+- `/var/log/containers/` - Raw container logs
+- `/var/log/pods/` - Kubernetes pod logs (already collected via otel-logs filelog)
+- `/var/log/cloud-init.log` - Cloud-init logs
+
+**Conclusion:** Only journald-based options are viable on DOKS.
+
 ## Solutions
 
 ### Option 1: Custom Collector Image (Recommended)
@@ -62,15 +78,12 @@ The journald receiver internally shells out to `journalctl` to read the journal.
 Build a custom OpenTelemetry Collector image that includes `journalctl`:
 
 ```dockerfile
-FROM otel/opentelemetry-collector-contrib:latest
+FROM otel/opentelemetry-collector-contrib:0.120.0
 
-# Switch to root to install packages
 USER root
-
-# Install systemd utilities
-RUN apt-get update && apt-get install -y systemd && rm -rf /var/lib/apt/lists/*
-
-# Switch back to non-root user
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends systemd && \
+    rm -rf /var/lib/apt/lists/*
 USER 10001
 ```
 
@@ -85,45 +98,13 @@ USER 10001
 
 ### Option 2: Filelog Receiver for Syslog
 
-Read traditional syslog files instead of the journal:
+~~Read traditional syslog files instead of the journal.~~
 
-```yaml
-receivers:
-  filelog/syslog:
-    include:
-      - /var/log/syslog
-      - /var/log/messages
-      - /var/log/kern.log
-    start_at: end
-    operators:
-      - type: regex_parser
-        regex: '^(?P<timestamp>\w+\s+\d+\s+\d+:\d+:\d+)\s+(?P<host>\S+)\s+(?P<ident>\S+?)(?:\[(?P<pid>\d+)\])?:\s+(?P<message>.*)$'
-```
+**Status: NOT VIABLE on DOKS**
 
-With volume mount:
+DOKS nodes do not write traditional syslog files (`/var/log/syslog`, `/var/log/messages`). Systemd writes only to the binary journal at `/var/log/journal/`.
 
-```yaml
-extraVolumes:
-  - name: varlog
-    hostPath:
-      path: /var/log
-
-extraVolumeMounts:
-  - name: varlog
-    mountPath: /var/log
-    readOnly: true
-```
-
-**Pros:**
-- Works with stock collector image
-- No custom build required
-
-**Cons:**
-- DOKS nodes may not write to syslog files (systemd-only)
-- Less structured than journald
-- Manual regex parsing required
-
-### Option 3: journalctl Sidecar
+### Option 3: journalctl Sidecar (Alternative)
 
 Run a sidecar container that tails the journal and writes to a file the collector can read:
 

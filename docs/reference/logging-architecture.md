@@ -116,11 +116,49 @@ The `loki-do-nyc3-prod` datasource is pre-configured in Grafana with the tenant 
 {cluster="do-nyc3-prod", k8s_namespace_name="loki"} | json | level="error"
 ```
 
+## Architecture Decisions
+
+### ADR: Host/Systemd Log Collection Deferred
+
+**Status:** Accepted (January 2026)
+
+**Context:**
+
+The OpenTelemetry Collector journald receiver can collect host-level logs (kubelet, containerd, systemd services) from the journal. However, it requires the `journalctl` binary which is not included in the `otel/opentelemetry-collector-contrib` container image.
+
+Verified findings from DOKS worker nodes:
+- `/var/log/syslog` does NOT exist (DOKS uses systemd-only logging)
+- `/var/log/journal/` EXISTS with ~789MB of persistent journals per node
+- Viable options: custom collector image, journalctl sidecar, or Fluent Bit
+
+**Decision:**
+
+Defer host log collection. Do not build custom images or add sidecars at this time.
+
+**Rationale:**
+
+1. **Low value for managed Kubernetes**: DigitalOcean handles node-level issues. Kubelet and containerd problems manifest as pod events visible via `kubectl describe pod`.
+
+2. **Complexity vs benefit**: All solutions require either custom images (maintenance burden), sidecars (extra resources), or different tooling (Fluent Bit). The operational overhead exceeds the debugging value.
+
+3. **Pod logs cover 90%+ of needs**: Current otel-logs deployment captures all application logs. Host logs are mainly useful for:
+   - Node networking issues (rare)
+   - Kubelet configuration problems (rare in managed K8s)
+   - Node access auditing (SSH disabled by default on DOKS)
+
+**Consequences:**
+
+- Host logs (kubelet, containerd, systemd services) are not collected
+- If a debugging need arises that requires host logs, implement Option 1 (custom image) from [Host Logs Collection](../tasks/host-logs-collection.md)
+- Decision can be revisited if concrete debugging needs emerge
+
 ## Limitations
+
+Current limitations based on architectural decisions above:
 
 ### No Host/Systemd Logs
 
-The journald receiver requires the `journalctl` binary which isn't available in the otel-collector-contrib container image. To collect kubelet, containerd, and other systemd logs, a custom image with journalctl would be needed.
+Host-level logs (kubelet, containerd, systemd services) are not collected. See ADR above.
 
 ## Related Documentation
 
