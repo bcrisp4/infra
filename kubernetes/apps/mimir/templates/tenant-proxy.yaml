@@ -1,0 +1,131 @@
+{{- range $name, $config := .Values.tenantProxies }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mimir-tenant-proxy-{{ $name }}
+  labels:
+    app.kubernetes.io/name: mimir-tenant-proxy
+    app.kubernetes.io/instance: {{ $name }}
+data:
+  nginx.conf: |
+    worker_processes 1;
+    error_log /dev/stderr info;
+    pid /tmp/nginx.pid;
+
+    events {
+      worker_connections 1024;
+    }
+
+    http {
+      client_body_temp_path /tmp/client_temp;
+      proxy_temp_path /tmp/proxy_temp;
+      fastcgi_temp_path /tmp/fastcgi_temp;
+      uwsgi_temp_path /tmp/uwsgi_temp;
+      scgi_temp_path /tmp/scgi_temp;
+
+      access_log /dev/stdout;
+
+      server {
+        listen 8080;
+
+        location / {
+          proxy_pass http://mimir-gateway.{{ $.Release.Namespace }}.svc.cluster.local/;
+          proxy_set_header X-Scope-OrgID {{ $config.tenant }};
+          proxy_set_header Host $host;
+          proxy_http_version 1.1;
+        }
+
+        location /ready {
+          return 200 'OK';
+          add_header Content-Type text/plain;
+        }
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mimir-tenant-proxy-{{ $name }}
+  labels:
+    app.kubernetes.io/name: mimir-tenant-proxy
+    app.kubernetes.io/instance: {{ $name }}
+spec:
+  replicas: {{ $config.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: mimir-tenant-proxy
+      app.kubernetes.io/instance: {{ $name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: mimir-tenant-proxy
+        app.kubernetes.io/instance: {{ $name }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 101
+        runAsGroup: 101
+        fsGroup: 101
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:1.27-alpine
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 10m
+              memory: 16Mi
+            limits:
+              memory: 32Mi
+          livenessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+      volumes:
+        - name: config
+          configMap:
+            name: mimir-tenant-proxy-{{ $name }}
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mimir-tenant-proxy-{{ $name }}
+  labels:
+    app.kubernetes.io/name: mimir-tenant-proxy
+    app.kubernetes.io/instance: {{ $name }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: mimir-tenant-proxy
+    app.kubernetes.io/instance: {{ $name }}
+{{- end }}

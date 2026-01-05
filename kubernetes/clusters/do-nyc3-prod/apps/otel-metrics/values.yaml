@@ -336,6 +336,72 @@ opentelemetry-collector:
                 - target_label: job
                   replacement: kubelet
 
+      # Scrape Linkerd proxy metrics for linkerd-viz
+      # These metrics power the linkerd viz stat/dashboard commands
+      prometheus/linkerd:
+        config:
+          scrape_configs:
+            - job_name: "linkerd-proxy"
+              scrape_interval: 10s
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                # Only scrape pods on this node
+                - source_labels: [__meta_kubernetes_pod_node_name]
+                  action: keep
+                  regex: ${env:K8S_NODE_NAME}
+                # Only scrape linkerd-proxy containers
+                - source_labels: [__meta_kubernetes_pod_container_name]
+                  action: keep
+                  regex: linkerd-proxy
+                # Only scrape linkerd-admin port
+                - source_labels: [__meta_kubernetes_pod_container_port_name]
+                  action: keep
+                  regex: linkerd-admin
+                # Add namespace label
+                - source_labels: [__meta_kubernetes_namespace]
+                  action: replace
+                  target_label: namespace
+                # Add pod name label
+                - source_labels: [__meta_kubernetes_pod_name]
+                  action: replace
+                  target_label: pod
+                # Add node name label
+                - source_labels: [__meta_kubernetes_pod_node_name]
+                  action: replace
+                  target_label: node
+                # Add app label for consistency with other scrape configs
+                - source_labels: [__meta_kubernetes_pod_label_app]
+                  action: replace
+                  target_label: app
+                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+                  action: replace
+                  target_label: app
+                  regex: (.+)
+                # Map Linkerd pod labels to metric labels
+                # These are added by Linkerd injection and identify the source workload
+                - source_labels: [__meta_kubernetes_pod_label_linkerd_io_proxy_deployment]
+                  action: replace
+                  target_label: deployment
+                - source_labels: [__meta_kubernetes_pod_label_linkerd_io_proxy_daemonset]
+                  action: replace
+                  target_label: daemonset
+                - source_labels: [__meta_kubernetes_pod_label_linkerd_io_proxy_statefulset]
+                  action: replace
+                  target_label: statefulset
+                - source_labels: [__meta_kubernetes_pod_label_linkerd_io_proxy_job]
+                  action: replace
+                  target_label: k8s_job
+                # Set job label for linkerd-viz compatibility
+                - target_label: job
+                  replacement: linkerd-proxy
+              metric_relabel_configs:
+                # Keep metrics required by linkerd-viz
+                # These power the dashboard and CLI stats commands
+                - source_labels: [__name__]
+                  action: keep
+                  regex: 'request_total|response_total|response_latency_ms_(bucket|count|sum)|tcp_.*'
+
       # Scrape kube-apiserver metrics
       # Note: etcd and kube-scheduler are NOT accessible in DOKS (managed by DigitalOcean)
       prometheus/apiserver:
@@ -425,6 +491,11 @@ opentelemetry-collector:
 
         metrics/apiserver:
           receivers: [prometheus/apiserver]
+          processors: [memory_limiter, resource, batch]
+          exporters: [otlphttp/mimir]
+
+        metrics/linkerd:
+          receivers: [prometheus/linkerd]
           processors: [memory_limiter, resource, batch]
           exporters: [otlphttp/mimir]
 

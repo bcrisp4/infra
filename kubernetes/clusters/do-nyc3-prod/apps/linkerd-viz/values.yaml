@@ -1,12 +1,13 @@
 # Linkerd Viz for do-nyc3-prod
 #
-# Currently using built-in Prometheus. See README for migration steps
-# when switching to Mimir.
+# Uses Mimir as external metrics store via otel-metrics scraping.
+# Queries go through the tenant proxy which adds X-Scope-OrgID: prod header.
 
 linkerd-viz:
-  # Use built-in Prometheus until Mimir is deployed
+  # Disable built-in Prometheus - using Mimir instead
   prometheus:
-    enabled: true
-    # 6h retention is sufficient for real-time dashboards
-    args:
-      storage.tsdb.retention.time: 6h
+    enabled: false
+
+  # Point to Mimir tenant proxy for queries
+  # The proxy adds X-Scope-OrgID: prod header before forwarding to mimir-gateway
+  prometheusUrl: http://mimir-tenant-proxy-prod.mimir.svc.cluster.local/prometheus

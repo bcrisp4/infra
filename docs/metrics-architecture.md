@@ -10,23 +10,28 @@ This document describes the metrics collection and storage infrastructure for do
                                     │     (Visualization & Dashboards)        │
                                     └────────────────┬────────────────────────┘
                                                      │ PromQL queries
+                                                     │ (X-Scope-OrgID: prod)
                                                      ▼
 ┌──────────────────────────────────────────────────────────────────────────────┐
 │                              Mimir (Distributed)                              │
 │  ┌─────────┐  ┌─────────────┐  ┌──────────┐  ┌─────────────┐  ┌───────────┐ │
 │  │ Gateway │→ │ Distributor │→ │  Kafka   │→ │  Ingester   │→ │ S3 (DO    │ │
 │  │         │  │             │  │ (Strimzi)│  │             │  │  Spaces)  │ │
-│  └─────────┘  └─────────────┘  └──────────┘  └─────────────┘  └───────────┘ │
-│       ▲                                                              │       │
-│       │                        ┌──────────────┐  ┌──────────────┐    │       │
-│       │                        │ Store Gateway│← │  Compactor   │←───┘       │
-│       │                        └──────────────┘  └──────────────┘            │
+│  └────┬────┘  └─────────────┘  └──────────┘  └─────────────┘  └───────────┘ │
+│       │▲                                                             │       │
+│       ││                       ┌──────────────┐  ┌──────────────┐    │       │
+│       ││                       │ Store Gateway│← │  Compactor   │←───┘       │
+│       ││                       └──────────────┘  └──────────────┘            │
+│  ┌────┴┴────┐                                                                │
+│  │ Tenant   │ ← For clients that cannot set X-Scope-OrgID header             │
+│  │ Proxy    │   (e.g., linkerd-viz metrics-api)                              │
+│  └────▲─────┘                                                                │
 └───────┼──────────────────────────────────────────────────────────────────────┘
-        │ OTLP/HTTP
+        │ OTLP/HTTP (X-Scope-OrgID: prod)
         │
 ┌───────┴──────────────────────────────────────────────────────────────────────┐
 │                         otel-metrics (DaemonSet)                              │
-│  Scrapes metrics from pods, kubelet, cAdvisor, and kube-apiserver            │
+│  Scrapes metrics from pods, kubelet, cAdvisor, kube-apiserver, linkerd       │
 └───────┬──────────────────────────────────────────────────────────────────────┘
         │ Prometheus scrape
         ▼
@@ -36,9 +41,10 @@ This document describes the metrics collection and storage infrastructure for do
 │  │ Application Pods│  │ kube-state-     │  │ node-exporter   │               │
 │  │ (annotations)   │  │ metrics         │  │ (DaemonSet)     │               │
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘               │
-│  ┌─────────────────┐  ┌─────────────────┐                                    │
-│  │ kubelet/cAdvisor│  │ kube-apiserver  │                                    │
-│  └─────────────────┘  └─────────────────┘                                    │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐               │
+│  │ kubelet/cAdvisor│  │ kube-apiserver  │  │ Linkerd proxies │               │
+│  └─────────────────┘  └─────────────────┘  │ (port 4191)     │               │
+│                                            └─────────────────┘               │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -65,6 +71,19 @@ This document describes the metrics collection and storage infrastructure for do
 | Component | Purpose |
 |-----------|---------|
 | **Grafana** | Dashboards and alerting, queries Mimir via Prometheus datasource |
+| **linkerd-viz** | Service mesh dashboard, queries Mimir via tenant proxy |
+
+### Multi-Tenancy
+
+Mimir requires `X-Scope-OrgID` header for multi-tenancy. Current tenant: `prod`.
+
+| Component | How it sets tenant |
+|-----------|-------------------|
+| **Grafana** | `secureJsonData.httpHeaderValue1: prod` in datasource config |
+| **otel-metrics** | `headers: X-Scope-OrgID: prod` in OTLP exporter |
+| **linkerd-viz** | Via `mimir-tenant-proxy-prod` (cannot set headers directly) |
+
+The **tenant proxy** (`mimir-tenant-proxy-prod`) is a simple nginx that adds the `X-Scope-OrgID: prod` header for clients that cannot set custom HTTP headers.
 
 ## Data Flow
 
@@ -75,9 +94,12 @@ This document describes the metrics collection and storage infrastructure for do
    - kubelet metrics (port 10250)
    - cAdvisor metrics (/metrics/cadvisor)
    - kube-apiserver metrics
-3. Adds `cluster: do-nyc3-prod` resource attribute
-4. Sends to Mimir Gateway via OTLP/HTTP
-5. Mimir distributes to Kafka, then ingesters write to S3
+3. Scrapes Linkerd proxy metrics every 10s from:
+   - Linkerd sidecar containers on port 4191 (linkerd-admin)
+   - Filtered to request/response/TCP metrics only
+4. Adds `cluster: do-nyc3-prod` resource attribute
+5. Sends to Mimir Gateway via OTLP/HTTP with `X-Scope-OrgID: prod` header
+6. Mimir distributes to Kafka, then ingesters write to S3
 
 ## DOKS-Specific Considerations
 
@@ -196,6 +218,20 @@ curl -H "X-Scope-OrgID: prod" \
 - `apiserver_request_duration_seconds` - API latency
 - `etcd_request_duration_seconds` - etcd latency (from apiserver perspective)
 
+### From Linkerd Proxies
+
+Scraped from port 4191 on meshed pods. Labels include `namespace`, `pod`, `deployment` (or `statefulset`/`daemonset`).
+
+- `request_total` - Total requests by direction (inbound/outbound), target, status
+- `response_total` - Total responses by direction, target, status code, classification
+- `response_latency_ms_bucket` - Response latency histogram buckets
+- `response_latency_ms_count` - Response latency count
+- `response_latency_ms_sum` - Response latency sum
+- `tcp_open_total` - TCP connections opened
+- `tcp_close_total` - TCP connections closed
+- `tcp_read_bytes_total` - Bytes read from TCP connections
+- `tcp_write_bytes_total` - Bytes written to TCP connections
+
 ## Retention and Limits
 
 | Setting | Value |
@@ -258,9 +294,47 @@ curl -H "X-Scope-OrgID: prod" \
      curl -v http://mimir-gateway.mimir.svc.cluster.local/ready
    ```
 
+### Missing Linkerd metrics
+
+1. Check pod is meshed (has linkerd-proxy container):
+   ```bash
+   kubectl get pod -n <namespace> <pod> -o jsonpath='{.spec.containers[*].name}'
+   # Should include "linkerd-proxy"
+   ```
+
+2. Check linkerd-proxy exposes metrics:
+   ```bash
+   kubectl port-forward -n <namespace> <pod> 4191:4191
+   curl localhost:4191/metrics | head -20
+   ```
+
+3. Check otel-metrics is scraping Linkerd proxies:
+   ```bash
+   kubectl logs -n otel-metrics -l app.kubernetes.io/name=opentelemetry-collector --tail=100 | grep linkerd
+   ```
+
+### linkerd-viz showing no data
+
+1. Verify tenant proxy is running:
+   ```bash
+   kubectl get pods -n mimir -l app.kubernetes.io/name=mimir-tenant-proxy
+   ```
+
+2. Test tenant proxy connectivity:
+   ```bash
+   kubectl run curl --rm -it --image=curlimages/curl -- \
+     curl -v http://mimir-tenant-proxy-prod.mimir.svc.cluster.local/prometheus/api/v1/query?query=up
+   ```
+
+3. Check linkerd-viz metrics-api logs:
+   ```bash
+   kubectl logs -n linkerd-viz deploy/metrics-api --tail=100
+   ```
+
 ## Related Documentation
 
 - [Mimir Documentation](https://grafana.com/docs/mimir/latest/)
 - [OpenTelemetry Collector](https://opentelemetry.io/docs/collector/)
 - [kube-state-metrics](https://github.com/kubernetes/kube-state-metrics)
 - [Prometheus node-exporter](https://github.com/prometheus/node_exporter)
+- [Linkerd Proxy Metrics](https://linkerd.io/2-edge/reference/proxy-metrics/)

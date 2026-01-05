@@ -591,3 +591,46 @@ If you need to rename a datasource:
 2. Deploy and let Grafana create the new datasource
 3. Manually delete the old datasource via Grafana UI (Connections > Data sources)
 4. Update any dashboards that reference the old datasource name
+
+### Mimir Tenant Proxy
+
+Mimir requires the `X-Scope-OrgID` header for multi-tenancy. Some clients (like linkerd-viz) cannot set custom HTTP headers. For these clients, use a tenant proxy.
+
+**How it works:**
+
+```
+Client (no header support)
+    |
+    v
+mimir-tenant-proxy-{tenant} (adds X-Scope-OrgID: {tenant})
+    |
+    v
+mimir-gateway
+    |
+    v
+Mimir
+```
+
+**Configuration:**
+
+Add tenant proxies in cluster values:
+
+```yaml
+# kubernetes/clusters/{cluster}/apps/mimir/values.yaml
+tenantProxies:
+  prod:
+    tenant: prod
+    replicas: 1
+```
+
+This creates a service at `mimir-tenant-proxy-prod.mimir.svc.cluster.local` that forwards requests to mimir-gateway with the `X-Scope-OrgID: prod` header.
+
+**Usage example (linkerd-viz):**
+
+```yaml
+# kubernetes/clusters/{cluster}/apps/linkerd-viz/values.yaml
+linkerd-viz:
+  prometheus:
+    enabled: false
+  prometheusUrl: http://mimir-tenant-proxy-prod.mimir.svc.cluster.local/prometheus
+```

@@ -7,13 +7,35 @@ Linkerd observability extension providing metrics, dashboard, and live traffic i
 | Component | Purpose |
 |-----------|---------|
 | Dashboard | Web UI for service topology and stats |
-| Metrics API | Queries Prometheus for `linkerd viz stat` commands |
+| Metrics API | Queries Mimir for `linkerd viz stat` commands |
 | Tap | Live traffic sampling for debugging |
-| Prometheus | Built-in metrics storage (6h retention) |
 
 ## Current Setup
 
-The extension is deployed with its **built-in Prometheus** for metrics storage. This is a temporary configuration until Mimir and OpenTelemetry collectors are deployed.
+The extension uses **Mimir** as the external metrics backend:
+- Linkerd proxy metrics scraped by otel-metrics collectors (port 4191)
+- Metrics stored in Mimir with 30+ day retention
+- Built-in Prometheus disabled
+
+### Architecture
+
+```
+Linkerd proxies (port 4191)
+    |
+    v (scrape)
+otel-metrics DaemonSet
+    |
+    v (OTLP with X-Scope-OrgID: prod)
+Mimir
+    ^
+    | (query)
+mimir-tenant-proxy-prod (adds X-Scope-OrgID: prod)
+    ^
+    | (query without header)
+linkerd-viz metrics-api
+```
+
+The tenant proxy is needed because linkerd-viz cannot set custom HTTP headers. The proxy adds the `X-Scope-OrgID: prod` header before forwarding to the Mimir gateway.
 
 ### Accessing the Dashboard
 
@@ -38,71 +60,19 @@ linkerd viz stat deploy -n loki
 linkerd viz tap deploy/loki-gateway -n loki
 ```
 
-## Migration to Mimir
+## Reverting to Built-in Prometheus
 
-When Mimir and OTel collectors are deployed, follow these steps to switch from the built-in Prometheus to external metrics storage.
-
-### Step 1: Configure OTel to Scrape Linkerd Metrics
-
-Linkerd proxies expose metrics on port 4191. Configure OTel collector to scrape:
+If needed, revert to built-in Prometheus:
 
 ```yaml
-receivers:
-  prometheus:
-    config:
-      scrape_configs:
-        - job_name: 'linkerd-proxy'
-          kubernetes_sd_configs:
-            - role: pod
-          relabel_configs:
-            # Only scrape pods with linkerd proxy
-            - source_labels: [__meta_kubernetes_pod_container_name]
-              action: keep
-              regex: linkerd-proxy
-            - source_labels: [__meta_kubernetes_pod_container_port_name]
-              action: keep
-              regex: linkerd-admin
-          metric_relabel_configs:
-            # Keep only essential metrics to reduce cardinality
-            - source_labels: [__name__]
-              action: keep
-              regex: 'request_total|response_total|response_latency_ms_bucket|tcp_.*'
-```
-
-### Step 2: Update Linkerd Viz Values
-
-Once Mimir is receiving metrics, update the cluster values:
-
-```yaml
-# kubernetes/clusters/do-nyc3-prod/apps/linkerd-viz/values.yaml
+# kubernetes/clusters/{cluster}/apps/linkerd-viz/values.yaml
 linkerd-viz:
-  # Disable built-in Prometheus
   prometheus:
-    enabled: false
+    enabled: true
+    args:
+      storage.tsdb.retention.time: 6h
 
-  # Point to Mimir query frontend
-  prometheusUrl: http://mimir-query-frontend.mimir.svc:8080/prometheus
-```
-
-### Step 3: Verify Migration
-
-```bash
-# Check that stats still work after migration
-linkerd viz stat deploy -A
-
-# Verify dashboard shows data
-linkerd viz dashboard
-```
-
-### Step 4: Configure Grafana Dashboards (Optional)
-
-If using external Grafana, import the Linkerd dashboards and configure the viz extension to link to them:
-
-```yaml
-linkerd-viz:
-  grafana:
-    externalUrl: https://grafana.example.com
-    uidPrefix: linkerd-  # Prefix for dashboard UIDs
+  prometheusUrl: ""  # Empty = use built-in
 ```
 
 ## Metrics Endpoints
@@ -114,7 +84,13 @@ Linkerd exposes metrics at these endpoints for OTel/Prometheus scraping:
 | `/metrics` on linkerd-proxy | 4191 | Per-pod proxy metrics (request counts, latencies) |
 | `/metrics` on control plane | 9990 | Control plane component metrics |
 
-## Retention
+## Grafana Integration (Optional)
 
-- Built-in Prometheus: 6 hours (sufficient for real-time dashboards)
-- Mimir: Configure based on your retention policy (recommend 30+ days for historical analysis)
+To link the viz dashboard to external Grafana:
+
+```yaml
+linkerd-viz:
+  grafana:
+    externalUrl: https://grafana-do-nyc3-prod.marlin-tet.ts.net
+    uidPrefix: linkerd-
+```
