@@ -1,0 +1,33 @@
+{{- if .Values.kafka.enabled }}
+# NetworkPolicy to allow Linkerd proxy traffic to Kafka pods
+# Strimzi creates NetworkPolicies that only allow app ports (9092, etc.)
+# but Linkerd's inbound proxy listens on port 4143, which gets blocked.
+# This policy allows Linkerd ports from any pod in the namespace.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: mimir-kafka-allow-linkerd
+  labels:
+    app.kubernetes.io/name: kafka
+    app.kubernetes.io/instance: mimir-kafka
+    app.kubernetes.io/component: linkerd-policy
+spec:
+  podSelector:
+    matchLabels:
+      strimzi.io/cluster: mimir-kafka
+      strimzi.io/kind: Kafka
+      strimzi.io/name: mimir-kafka-kafka
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow Linkerd proxy ports from any pod in the namespace
+    - from:
+        - podSelector: {}
+      ports:
+        - protocol: TCP
+          port: 4143  # Linkerd inbound proxy
+        - protocol: TCP
+          port: 4190  # Linkerd tap
+        - protocol: TCP
+          port: 4191  # Linkerd admin/metrics
+{{- end }}
