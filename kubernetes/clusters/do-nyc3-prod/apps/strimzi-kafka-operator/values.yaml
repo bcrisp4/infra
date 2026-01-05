@@ -3,9 +3,9 @@
 strimzi-kafka-operator:
   replicas: 1
   watchAnyNamespace: true
-  # Skip Linkerd for Kafka admin ports - operator needs direct access for cluster management
+  # Skip Linkerd for Strimzi TLS ports (8443: agent, 9091: internal)
   annotations:
-    config.linkerd.io/skip-outbound-ports: "9090,9091"
+    config.linkerd.io/skip-outbound-ports: "8443,9091"
   resources:
     requests:
       cpu: 100m

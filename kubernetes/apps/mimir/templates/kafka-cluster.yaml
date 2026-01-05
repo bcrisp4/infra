@@ -25,21 +25,25 @@ spec:
             prometheus.io/scrape: "true"
             prometheus.io/port: "9404"
             prometheus.io/path: "/metrics"
-            # Skip Linkerd for inter-broker traffic (9090: KRaft controller, 9091: replication)
-            # These ports use Kafka's internal protocol which doesn't work well with mTLS proxying
-            config.linkerd.io/skip-outbound-ports: "9090,9091"
-            # Keep client port (9092) with opaque mode for mTLS
+            # Skip Linkerd for ports with Strimzi TLS (8443: agent, 9090: controller, 9091: replication)
+            # Keep Linkerd mTLS for client port (9092) which has no TLS
+            config.linkerd.io/skip-outbound-ports: "8443,9090,9091"
+            config.linkerd.io/skip-inbound-ports: "8443,9090,9091"
             config.linkerd.io/opaque-ports: "9092"
       # Bootstrap service (client connections)
       bootstrapService:
         metadata:
           annotations:
+            # 9091 has Strimzi TLS, 9092 uses Linkerd mTLS
+            config.linkerd.io/skip-inbound-ports: "9091"
             config.linkerd.io/opaque-ports: "9092"
       # Headless service (broker discovery)
       brokersService:
         metadata:
           annotations:
-            config.linkerd.io/opaque-ports: "9090,9091,9092"
+            # Skip Linkerd for Strimzi TLS ports, keep for client port
+            config.linkerd.io/skip-inbound-ports: "8443,9090,9091"
+            config.linkerd.io/opaque-ports: "9092"
     listeners:
       - name: plain
         port: 9092
@@ -62,8 +66,9 @@ spec:
       pod:
         metadata:
           annotations:
-            # Skip Linkerd for Kafka replication port - topic operator needs direct access
+            # Skip Linkerd for 9091 (has Strimzi TLS), keep for 9092 (no TLS)
             config.linkerd.io/skip-outbound-ports: "9091"
+            config.linkerd.io/opaque-ports: "9092"
     topicOperator:
       resources:
         requests:
