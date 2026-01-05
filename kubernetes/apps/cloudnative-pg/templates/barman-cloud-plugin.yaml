@@ -71,10 +71,15 @@ spec:
           image: ghcr.io/cloudnative-pg/plugin-barman-cloud:{{ .Values.barmanCloudPlugin.version }}
           imagePullPolicy: IfNotPresent
           args:
+            - operator
+            - --server-cert=/server/tls.crt
+            - --server-key=/server/tls.key
+            - --client-cert=/client/tls.crt
+            - --server-address=:9090
             - --leader-elect
           ports:
-            - containerPort: 9443
-              name: https
+            - containerPort: 9090
+              name: grpc
               protocol: TCP
           securityContext:
             allowPrivilegeEscalation: false
@@ -85,22 +90,19 @@ spec:
           resources:
             {{- toYaml .Values.barmanCloudPlugin.resources | nindent 12 }}
           volumeMounts:
-            - mountPath: /run/secrets/cnpg/tls
+            - mountPath: /server
               name: server-tls
+              readOnly: true
+            - mountPath: /client
+              name: client-ca
               readOnly: true
       volumes:
         - name: server-tls
-          projected:
-            sources:
-              - secret:
-                  name: barman-cloud-server-cert
-                  optional: false
-              - secret:
-                  name: cnpg-ca-secret
-                  items:
-                    - key: ca.crt
-                      path: client-ca.crt
-                  optional: false
+          secret:
+            secretName: barman-cloud-server-cert
+        - name: client-ca
+          secret:
+            secretName: cnpg-ca-secret
 ---
 apiVersion: v1
 kind: Service
@@ -109,10 +111,10 @@ metadata:
   namespace: {{ .Release.Namespace }}
 spec:
   ports:
-    - name: https
-      port: 9443
+    - name: grpc
+      port: 9090
       protocol: TCP
-      targetPort: https
+      targetPort: grpc
   selector:
     app: barman-cloud
 ---
