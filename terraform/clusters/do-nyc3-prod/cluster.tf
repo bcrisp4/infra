@@ -50,17 +50,17 @@ resource "digitalocean_kubernetes_cluster" "main" {
   destroy_all_associated_resources = true
 }
 
-# Primary worker node pool - larger instances for workloads
-resource "digitalocean_kubernetes_node_pool" "workers" {
+# Primary worker node pool - larger, more cost-efficient instances
+resource "digitalocean_kubernetes_node_pool" "workers_8vcpu_16gb" {
   cluster_id = digitalocean_kubernetes_cluster.main.id
 
-  name       = "workers"
-  size       = "s-4vcpu-8gb"
+  name       = "workers-8vcpu-16gb"
+  size       = "s-8vcpu-16gb"
   auto_scale = true
   min_nodes  = 3
   max_nodes  = 5
 
   labels = {
-    pool = "workers"
+    pool = "workers-8vcpu-16gb"
   }
 }
