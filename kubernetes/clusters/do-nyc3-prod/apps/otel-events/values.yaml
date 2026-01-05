@@ -26,6 +26,10 @@ opentelemetry-collector:
     limits:
       memory: 256Mi
 
+  # Disable Service - we only collect events, no incoming telemetry needed
+  service:
+    enabled: false
+
   # Disable default ports - we only collect events, no incoming telemetry
   ports:
     jaeger-compact:
