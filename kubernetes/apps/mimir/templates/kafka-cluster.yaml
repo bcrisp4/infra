@@ -28,6 +28,8 @@ spec:
             # Mark Kafka ports as opaque - skip protocol detection but keep mTLS
             # 9090: KRaft controller, 9091: replication, 9092: client connections
             config.linkerd.io/opaque-ports: "9090,9091,9092"
+            # Increase outbound connect timeout for mTLS handshake (default 1s is too short)
+            config.linkerd.io/proxy-outbound-connect-timeout: "5000ms"
       # Bootstrap service (client connections)
       bootstrapService:
         metadata:
