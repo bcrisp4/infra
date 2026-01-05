@@ -11,3 +11,4 @@ Task-oriented guides that show you how to achieve a specific goal. These assume 
 | [Update Linkerd Edge Release](update-linkerd-edge.md) | Upgrade Linkerd to a new edge release |
 | [ArgoCD Webhooks via Tailscale Funnel](argocd-webhook-tailscale-funnel.md) | Set up GitHub webhooks for private ArgoCD |
 | [Strimzi Kafka with Linkerd](strimzi-kafka-linkerd.md) | Configure Kafka to work with Linkerd mesh |
+| [Query Logs](query-logs.md) | LogQL query examples for Grafana/Loki |

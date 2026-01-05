@@ -8,6 +8,7 @@ Technical descriptions and specifications. Use these to look up specific details
 |----------|-------------|
 | [Architecture Overview](architecture.md) | High-level system architecture |
 | [Metrics Architecture](metrics-architecture.md) | Metrics collection and storage infrastructure |
+| [Logging Architecture](logging-architecture.md) | Log collection and storage infrastructure |
 
 ## Components
 

@@ -7,3 +7,4 @@ Pending work items and future improvements.
 | Task | Status | Description |
 |------|--------|-------------|
 | [Tailscale Operator 1.94 + Linkerd](tailscale-operator-1.94-linkerd.md) | Pending | Re-enable Linkerd for Tailscale operator after 1.94 release |
+| [Host Logs Collection](host-logs-collection.md) | Pending | Collect kubelet/containerd logs via custom collector image |

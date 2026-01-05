@@ -683,3 +683,42 @@ linkerd-viz:
     enabled: false
   prometheusUrl: http://mimir-gateway.mimir.svc.cluster.local/tenant/prod/prometheus
 ```
+
+### Logging with Loki
+
+Logs are collected by OpenTelemetry Collector DaemonSets (`otel-logs`) and shipped to Loki via native OTLP.
+
+**Architecture:**
+- `otel-logs` DaemonSet runs on each node
+- Reads container logs from `/var/log/pods` via filelog receiver
+- Enriches with Kubernetes metadata (namespace, pod, container, deployment, etc.)
+- Ships to Loki gateway via OTLP with tenant header `X-Scope-OrgID: prod`
+
+**Key labels for querying:**
+- `cluster` - Cluster identifier (e.g., `do-nyc3-prod`)
+- `log_source` - Always `pods` (host logs not yet implemented)
+- `k8s_namespace_name`, `k8s_pod_name`, `k8s_container_name` - Kubernetes metadata
+- `k8s_deployment_name`, `k8s_statefulset_name`, `k8s_daemonset_name` - Workload type
+- `detected_level` - Auto-detected log level (error, warn, info, debug)
+
+**Quick LogQL examples:**
+
+```logql
+# All logs from a namespace
+{k8s_namespace_name="argocd"}
+
+# Error logs
+{k8s_namespace_name="mimir"} |= "error"
+
+# Logs from specific deployment
+{k8s_deployment_name="loki-gateway"}
+
+# Filter by detected level
+{k8s_namespace_name="grafana", detected_level="error"}
+```
+
+**Limitations:**
+- Only pod logs are collected (no host/systemd logs)
+- Host logs require a custom collector image with `journalctl` binary
+
+See [docs/reference/logging-architecture.md](docs/reference/logging-architecture.md) for system design and [docs/how-to/query-logs.md](docs/how-to/query-logs.md) for query examples.
