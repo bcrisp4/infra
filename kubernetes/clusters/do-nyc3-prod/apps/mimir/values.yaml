@@ -135,6 +135,9 @@ mimir-distributed:
   # Distributor - sized for current cluster capacity
   distributor:
     replicas: 3
+    podAnnotations:
+      # Skip Linkerd for Kafka connections - binary protocol causes proxy timeouts
+      config.linkerd.io/skip-outbound-ports: "9092"
     resources:
       requests:
         cpu: 200m
@@ -145,6 +148,9 @@ mimir-distributed:
   # Ingester - HA with 3 replicas
   ingester:
     replicas: 3
+    podAnnotations:
+      # Skip Linkerd for Kafka connections - binary protocol causes proxy timeouts
+      config.linkerd.io/skip-outbound-ports: "9092"
     persistentVolume:
       size: 10Gi
     resources:
