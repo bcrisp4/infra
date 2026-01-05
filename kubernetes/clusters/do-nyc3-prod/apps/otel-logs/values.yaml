@@ -71,13 +71,6 @@ opentelemetry-collector:
       mountPath: /etc/machine-id
       readOnly: true
 
-  # Environment variables
-  extraEnvs:
-    - name: K8S_NODE_NAME
-      valueFrom:
-        fieldRef:
-          fieldPath: spec.nodeName
-
   # Collector configuration
   config:
     receivers:
