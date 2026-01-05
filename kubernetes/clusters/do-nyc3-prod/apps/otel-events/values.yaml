@@ -46,18 +46,14 @@ opentelemetry-collector:
       enabled: false
 
   config:
-    # Disable default receivers - we only need k8sobjects
+    # Disable default receivers - we only need k8sevents
     receivers:
       jaeger: null
       otlp: null
       prometheus: null
       zipkin: null
-      k8sobjects:
+      k8sevents:
         auth_type: serviceAccount
-        objects:
-          - name: events
-            mode: watch
-            group: events.k8s.io
 
     # Disable default exporters, add Loki exporter
     exporters:
@@ -103,6 +99,6 @@ opentelemetry-collector:
         metrics: null
         # Only logs pipeline for events
         logs:
-          receivers: [k8sobjects]
+          receivers: [k8sevents]
           processors: [memory_limiter, resource, resource/events, batch]
           exporters: [otlphttp/loki]
