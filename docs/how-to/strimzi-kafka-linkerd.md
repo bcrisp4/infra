@@ -238,6 +238,12 @@ level=warn msg="protocol detection failed" addr=x.x.x.x:9092
 1. Verify `opaque-ports: "9092"` on Kafka services
 2. Ensure annotation is on the *service*, not just the pods
 
+## Related
+
+- [Linkerd Reference](../reference/linkerd.md) - Linkerd service mesh configuration
+- [Linkerd Troubleshooting](../troubleshooting/linkerd.md) - Common Linkerd issues
+- [Metrics Architecture](../reference/metrics-architecture.md) - Where Kafka fits in the metrics pipeline
+
 ## Related Files
 
 - `kubernetes/apps/mimir/templates/kafka-cluster.yaml` - Kafka CR with Linkerd annotations

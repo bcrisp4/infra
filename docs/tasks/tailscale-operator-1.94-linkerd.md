@@ -76,6 +76,12 @@ kubectl get pods -n tailscale-operator
 linkerd viz stat deploy -n tailscale-operator
 ```
 
+## Related
+
+- [Tailscale Operator Reference](../reference/tailscale-operator.md) - Operator configuration details
+- [Linkerd Reference](../reference/linkerd.md) - Linkerd service mesh configuration
+- [Add Namespace to Mesh](../how-to/add-namespace-to-mesh.md) - How to enable Linkerd injection
+
 ## Related Files
 
 - `kubernetes/apps/tailscale-operator/templates/proxyclass.yaml` - ProxyClass with Linkerd injection and sufficient resources

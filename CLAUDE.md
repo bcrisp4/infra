@@ -21,6 +21,51 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **If secrets are accidentally committed, the repository history must be rewritten immediately.**
 
+## Documentation Structure
+
+This repo has two documentation layers:
+
+1. **`docs/`** - Human-centered canonical documentation. Complete, well-structured for reading.
+2. **`CLAUDE.md`** - AI-optimized version for Claude Code context. Summaries + key patterns.
+
+Documentation in `docs/` follows the [Divio documentation system](https://documentation.divio.com/):
+
+| Directory | Purpose | When to use |
+|-----------|---------|-------------|
+| `docs/tutorials/` | Learning-oriented | Step-by-step guides for beginners |
+| `docs/how-to/` | Task-oriented | Recipes for specific goals |
+| `docs/reference/` | Information-oriented | Technical descriptions, API docs |
+| `docs/explanation/` | Understanding-oriented | Background, rationale, concepts |
+| `docs/troubleshooting/` | Problem-oriented | Debugging guides, common issues |
+| `docs/tasks/` | Work tracking | Pending tasks, future work |
+
+### Adding New Documentation
+
+1. **Always create human-readable docs first** in the appropriate `docs/{category}/` directory
+2. Add an entry to `docs/{category}/README.md` index
+3. Add an entry to `docs/README.md` main index
+4. Update CLAUDE.md with either:
+   - **Short/medium content**: Include the full text (AI needs complete context)
+   - **Long/complex docs**: Add a summary of key points + link to full doc
+
+### CLAUDE.md Content Guidelines
+
+CLAUDE.md is AI-optimized, not a copy of docs/. It should contain:
+- **Commands and quick patterns** - Full text (AI needs exact syntax)
+- **Key gotchas and pitfalls** - Full text (critical for avoiding mistakes)
+- **Architecture overviews** - Summaries with links to detailed docs
+- **Long troubleshooting guides** - Summary + link to `docs/troubleshooting/`
+- **Step-by-step tutorials** - Summary + link to `docs/tutorials/`
+
+Example format for summaries:
+```
+### Topic Name
+
+Brief summary of key points. Main gotchas or patterns.
+
+See [docs/reference/topic.md](docs/reference/topic.md) for full details.
+```
+
 ## Commands
 
 ```bash
@@ -328,8 +373,8 @@ kubectl rollout restart statefulset -n <namespace>
 
 **Known issues:**
 - cert-manager namespace cannot have Linkerd injection (circular dependency - Linkerd excludes it automatically)
-- Tailscale operator proxies require Tailscale 1.94.0+ for Linkerd compatibility (see `docs/tailscale-operator-1.94-linkerd.md`)
-- Strimzi Kafka requires special Linkerd annotations and a supplementary NetworkPolicy (see `docs/strimzi-kafka-linkerd.md`)
+- Tailscale operator proxies require Tailscale 1.94.0+ for Linkerd compatibility (see [docs/tasks/tailscale-operator-1.94-linkerd.md](docs/tasks/tailscale-operator-1.94-linkerd.md))
+- Strimzi Kafka requires special Linkerd annotations and a supplementary NetworkPolicy (see [docs/how-to/strimzi-kafka-linkerd.md](docs/how-to/strimzi-kafka-linkerd.md))
 
 ### Linkerd Edge Releases
 
@@ -451,7 +496,7 @@ GitHub webhooks enable instant sync on push instead of 3-minute polling. The web
 3. Create webhook-funnel-ingress.yaml template (copy from existing cluster)
 4. Configure GitHub webhook with the cluster's funnel URL
 
-See `docs/guides/argocd-webhook-tailscale-funnel.md` for detailed setup guide.
+See [docs/how-to/argocd-webhook-tailscale-funnel.md](docs/how-to/argocd-webhook-tailscale-funnel.md) for detailed setup guide.
 
 ### CloudNativePG Barman Cloud Plugin
 

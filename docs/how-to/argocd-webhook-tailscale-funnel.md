@@ -212,6 +212,11 @@ level=info msg="Received push event repo: https://github.com/yourorg/yourrepo, r
 
 If you're using ApplicationSets with the Git generator, the same `/api/webhook` endpoint handles those webhooks too. No additional configuration is needed beyond what's described above.
 
+## Related
+
+- [ArgoCD Troubleshooting](../troubleshooting/argocd.md)
+- [Tailscale Operator Reference](../reference/tailscale-operator.md)
+
 ## References
 
 - [ArgoCD Webhook Configuration](https://argo-cd.readthedocs.io/en/latest/operator-manual/webhook/)
