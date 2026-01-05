@@ -3,7 +3,9 @@
 #
 # Collects:
 # - Pod logs via filelog receiver (preset)
-# - Host/systemd logs via journald receiver (kubelet, containerd)
+#
+# Note: Journald receiver requires journalctl binary which isn't in the
+# otel-collector-contrib image. Host/systemd logs would need a custom image.
 
 opentelemetry-collector:
   mode: daemonset
@@ -54,35 +56,8 @@ opentelemetry-collector:
       servicePort: 8888
       protocol: TCP
 
-  # Extra volumes for journald access
-  extraVolumes:
-    - name: journal
-      hostPath:
-        path: /var/log/journal
-    - name: machine-id
-      hostPath:
-        path: /etc/machine-id
-
-  extraVolumeMounts:
-    - name: journal
-      mountPath: /var/log/journal
-      readOnly: true
-    - name: machine-id
-      mountPath: /etc/machine-id
-      readOnly: true
-
   # Collector configuration
   config:
-    receivers:
-      # Journald receiver for host/systemd logs
-      journald:
-        directory: /var/log/journal
-        units:
-          - kubelet
-          - containerd
-          - docker
-        priority: info
-
     processors:
       batch:
         send_batch_size: 8192
@@ -104,13 +79,6 @@ opentelemetry-collector:
         attributes:
           - key: log_source
             value: pods
-            action: insert
-
-      # Add log_source=journal for journal pipeline
-      resource/journal:
-        attributes:
-          - key: log_source
-            value: journal
             action: insert
 
     exporters:
@@ -145,10 +113,4 @@ opentelemetry-collector:
         logs:
           receivers: [filelog]
           processors: [memory_limiter, k8sattributes, resource, resource/pods, batch]
-          exporters: [otlphttp/loki]
-
-        # Host/systemd logs pipeline
-        logs/journal:
-          receivers: [journald]
-          processors: [memory_limiter, resource, resource/journal, batch]
           exporters: [otlphttp/loki]
