@@ -21,7 +21,7 @@ Node
 
 Kubernetes API
 └── events.k8s.io/v1
-    └── k8sobjects receiver ──► [otel-events Deployment]
+    └── k8s_events receiver ──► [otel-events Deployment]
                                        │
                                   [processors]
                                        │
@@ -54,13 +54,15 @@ OpenTelemetry Collector configured for Kubernetes events collection:
 
 | Component | Description |
 |-----------|-------------|
-| **Receiver** | `k8sobjects` - Watches Kubernetes events via API |
+| **Receiver** | `k8s_events` - Purpose-built Kubernetes events receiver |
 | **Processors** | `memory_limiter`, `resource`, `resource/events`, `batch` |
 | **Exporter** | `otlphttp/loki` - Ships to Loki via OTLP |
 
 **Key features:**
 - Single replica Deployment (avoids duplicate events)
-- Watches `events.k8s.io/v1` API group
+- Uses semantic conventions for event attributes (e.g., `k8s_event_reason`, `k8s_object_kind`)
+- Sets log body to event message (not raw JSON)
+- Sets severity from event type (Normal/Warning)
 - Adds `log_source: events` label to distinguish from pod logs
 - Captures all cluster events (scheduling, scaling, failures, etc.)
 - In Linkerd service mesh for mTLS
@@ -109,19 +111,19 @@ From k8sattributes processor:
 | `container_image_tag` | Container image tag |
 | `detected_level` | Auto-detected log level |
 
-From k8sobjects receiver (events only):
+From k8s_events receiver (events only):
 
 | Label | Description |
 |-------|-------------|
-| `k8s.event.reason` | Event reason (e.g., `Scheduled`, `Pulling`, `Failed`) |
-| `k8s.event.action` | Event action |
-| `k8s.event.name` | Event name |
-| `k8s.event.uid` | Event UID |
-| `k8s.event.count` | Event occurrence count |
-| `k8s.namespace.name` | Namespace where event occurred |
-| `k8s.object.kind` | Kind of involved object (Pod, Deployment, etc.) |
-| `k8s.object.name` | Name of involved object |
-| `k8s.node.name` | Node name (if applicable) |
+| `k8s_event_reason` | Event reason (e.g., `Scheduled`, `Completed`, `Unhealthy`) |
+| `k8s_event_count` | Event occurrence count |
+| `k8s_event_name` | Event name |
+| `k8s_event_uid` | Event UID |
+| `k8s_event_start_time` | When the event first occurred |
+| `k8s_object_kind` | Kind of involved object (Pod, Deployment, Job, etc.) |
+| `k8s_object_name` | Name of involved object |
+| `k8s_object_uid` | UID of involved object |
+| `severity_text` | Event type: `Normal` or `Warning` |
 
 ## Multi-Tenancy
 
@@ -159,16 +161,16 @@ The `loki-do-nyc3-prod` datasource is pre-configured in Grafana with the tenant 
 {log_source="events"}
 
 # Events for specific namespace
-{log_source="events"} | json | k8s_namespace_name="argocd"
+{log_source="events", k8s_namespace_name="argocd"}
 
-# Warning/error events
-{log_source="events"} |= "Warning"
+# Warning events
+{log_source="events", severity_text="Warning"}
 
 # Pod scheduling events
-{log_source="events"} | json | k8s_event_reason="Scheduled"
+{log_source="events", k8s_event_reason="Scheduled"}
 
 # Failed events
-{log_source="events"} | json | k8s_event_reason=~"Failed.*"
+{log_source="events", k8s_event_reason=~"Failed.*"}
 ```
 
 ## Architecture Decisions
