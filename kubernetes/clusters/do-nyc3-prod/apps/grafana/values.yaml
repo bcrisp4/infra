@@ -101,3 +101,32 @@ grafana:
             httpHeaderName1: X-Scope-OrgID
           secureJsonData:
             httpHeaderValue1: prod
+
+  # Image renderer for PNG export, alerts, and reporting
+  imageRenderer:
+    enabled: true
+    replicas: 1
+    image:
+      repository: grafana/grafana-image-renderer
+      tag: latest
+      pullPolicy: IfNotPresent
+    env:
+      HTTP_HOST: "0.0.0.0"
+      # Chromium config directories
+      XDG_CONFIG_HOME: /tmp/.chromium
+      XDG_CACHE_HOME: /tmp/.chromium
+      # Rendering timeout (default 30s may be too short for complex dashboards)
+      RENDERING_VIEWPORT_MAX_WIDTH: "3000"
+      RENDERING_VIEWPORT_MAX_HEIGHT: "3000"
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
+    # Add to Linkerd mesh
+    podAnnotations:
+      linkerd.io/inject: enabled
+    networkPolicy:
+      limitIngress: true
+      limitEgress: false
