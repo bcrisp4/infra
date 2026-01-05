@@ -328,7 +328,8 @@ kubectl rollout restart statefulset -n <namespace>
 
 **Known issues:**
 - cert-manager namespace cannot have Linkerd injection (circular dependency - Linkerd excludes it automatically)
-- Tailscale operator proxies require Tailscale 1.94.0+ for Linkerd compatibility (see `docs/tasks/tailscale-operator-1.94-linkerd.md`)
+- Tailscale operator proxies require Tailscale 1.94.0+ for Linkerd compatibility (see `docs/tailscale-operator-1.94-linkerd.md`)
+- Strimzi Kafka requires special Linkerd annotations and a supplementary NetworkPolicy (see `docs/strimzi-kafka-linkerd.md`)
 
 ### Linkerd Edge Releases
 

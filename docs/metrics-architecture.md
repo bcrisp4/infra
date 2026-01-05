@@ -293,6 +293,14 @@ Scraped from port 4191 on meshed pods. Labels include `namespace`, `pod`, `deplo
      curl -v http://mimir-gateway.mimir.svc.cluster.local/ready
    ```
 
+4. Check Mimir-Kafka connectivity (Linkerd mesh issues):
+   ```bash
+   # Check for connection errors in distributor/ingester logs
+   kubectl logs -n mimir -l app.kubernetes.io/component=ingester --tail=100 | grep -i "kafka\|reset\|timeout"
+   ```
+
+   If you see "connection reset by peer" or timeout errors, check the Strimzi Kafka + Linkerd configuration. See [Strimzi Kafka with Linkerd](strimzi-kafka-linkerd.md).
+
 ### Missing Linkerd metrics
 
 1. Check pod is meshed (has linkerd-proxy container):
@@ -337,3 +345,4 @@ Scraped from port 4191 on meshed pods. Labels include `namespace`, `pod`, `deplo
 - [kube-state-metrics](https://github.com/kubernetes/kube-state-metrics)
 - [Prometheus node-exporter](https://github.com/prometheus/node_exporter)
 - [Linkerd Proxy Metrics](https://linkerd.io/2-edge/reference/proxy-metrics/)
+- [Strimzi Kafka with Linkerd](strimzi-kafka-linkerd.md) - Linkerd configuration for Mimir's Kafka ingest storage
