@@ -25,6 +25,9 @@ spec:
             prometheus.io/scrape: "true"
             prometheus.io/port: "9404"
             prometheus.io/path: "/metrics"
+            # Skip Linkerd for inter-broker ports - Kafka binary protocol causes proxy timeouts
+            config.linkerd.io/skip-inbound-ports: "9090,9091"
+            config.linkerd.io/skip-outbound-ports: "9090,9091"
     listeners:
       - name: plain
         port: 9092
