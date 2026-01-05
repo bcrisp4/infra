@@ -1,15 +1,23 @@
-{{- if .Values.barmanCloudPlugin.enabled }}
-# Barman Cloud Plugin for CloudNativePG
-# Based on official manifest: https://github.com/cloudnative-pg/plugin-barman-cloud/releases/tag/{{ .Values.barmanCloudPlugin.version }}
+# Barman Cloud Plugin v0.10.0 - Official Manifest
+# Source: https://raw.githubusercontent.com/cloudnative-pg/plugin-barman-cloud/refs/tags/v0.10.0/manifest.yaml
 #
-# Reference manifest stored in: files/barman-cloud-plugin-{{ .Values.barmanCloudPlugin.version }}.yaml
-# See that file for update instructions.
+# This is the unmodified official manifest. The Helm template extracts and
+# templates only the namespace-scoped resources from this file.
+#
+# To update to a new version:
+# 1. Download the new manifest:
+#    curl -sL https://raw.githubusercontent.com/cloudnative-pg/plugin-barman-cloud/refs/tags/vX.Y.Z/manifest.yaml \
+#      > kubernetes/apps/cloudnative-pg/files/barman-cloud-plugin-vX.Y.Z.yaml
+# 2. Update barmanCloudPlugin.version in values.yaml
+# 3. Update the file reference in templates/barman-cloud-plugin.yaml
+# 4. Compare key sections (RBAC, Deployment args, env vars) for breaking changes
+# 5. Test deployment in a non-production cluster first
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: plugin-barman-cloud
-  namespace: {{ .Release.Namespace }}
+  namespace: cnpg-system
   labels:
     app.kubernetes.io/name: plugin-barman-cloud
 ---
@@ -18,7 +26,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: barman-plugin-leader-election-role
-  namespace: {{ .Release.Namespace }}
+  namespace: cnpg-system
   labels:
     app.kubernetes.io/name: plugin-barman-cloud
 rules:
@@ -36,7 +44,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: barman-plugin-leader-election-rolebinding
-  namespace: {{ .Release.Namespace }}
+  namespace: cnpg-system
   labels:
     app.kubernetes.io/name: plugin-barman-cloud
 roleRef:
@@ -46,7 +54,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: plugin-barman-cloud
-    namespace: {{ .Release.Namespace }}
+    namespace: cnpg-system
 ---
 # Main ClusterRole for plugin operations
 apiVersion: rbac.authorization.k8s.io/v1
@@ -89,14 +97,14 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: plugin-barman-cloud
-    namespace: {{ .Release.Namespace }}
+    namespace: cnpg-system
 ---
 # Service with plugin discovery annotations (required for CNPG to find the plugin)
 apiVersion: v1
 kind: Service
 metadata:
   name: barman-cloud
-  namespace: {{ .Release.Namespace }}
+  namespace: cnpg-system
   labels:
     app: barman-cloud
     cnpg.io/pluginName: barman-cloud.cloudnative-pg.io
@@ -116,7 +124,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: barman-cloud
-  namespace: {{ .Release.Namespace }}
+  namespace: cnpg-system
   labels:
     app: barman-cloud
 spec:
@@ -138,7 +146,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: barman-cloud
-          image: ghcr.io/cloudnative-pg/plugin-barman-cloud:{{ .Values.barmanCloudPlugin.version }}
+          image: ghcr.io/cloudnative-pg/plugin-barman-cloud:v0.10.0
           imagePullPolicy: IfNotPresent
           args:
             - operator
@@ -149,7 +157,7 @@ spec:
             - --leader-elect
           env:
             - name: SIDECAR_IMAGE
-              value: ghcr.io/cloudnative-pg/plugin-barman-cloud:{{ .Values.barmanCloudPlugin.version }}
+              value: ghcr.io/cloudnative-pg/plugin-barman-cloud:v0.10.0
           ports:
             - containerPort: 9090
               protocol: TCP
@@ -169,7 +177,11 @@ spec:
             seccompProfile:
               type: RuntimeDefault
           resources:
-            {{- toYaml .Values.barmanCloudPlugin.resources | nindent 12 }}
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
           volumeMounts:
             - mountPath: /server
               name: server
@@ -188,7 +200,7 @@ apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
   name: selfsigned-issuer
-  namespace: {{ .Release.Namespace }}
+  namespace: cnpg-system
 spec:
   selfSigned: {}
 ---
@@ -197,15 +209,15 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: barman-cloud-server
-  namespace: {{ .Release.Namespace }}
+  namespace: cnpg-system
 spec:
   secretName: barman-cloud-server-tls
   commonName: barman-cloud
   dnsNames:
     - barman-cloud
-    - barman-cloud.{{ .Release.Namespace }}
-    - barman-cloud.{{ .Release.Namespace }}.svc
-    - barman-cloud.{{ .Release.Namespace }}.svc.cluster.local
+    - barman-cloud.cnpg-system
+    - barman-cloud.cnpg-system.svc
+    - barman-cloud.cnpg-system.svc.cluster.local
   duration: 2160h
   renewBefore: 360h
   isCA: false
@@ -221,7 +233,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: barman-cloud-client
-  namespace: {{ .Release.Namespace }}
+  namespace: cnpg-system
 spec:
   secretName: barman-cloud-client-tls
   commonName: barman-cloud-client
@@ -234,4 +246,3 @@ spec:
     group: cert-manager.io
   usages:
     - client auth
-{{- end }}

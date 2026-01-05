@@ -431,3 +431,71 @@ GitHub webhooks enable instant sync on push instead of 3-minute polling. The web
 4. Configure GitHub webhook with the cluster's funnel URL
 
 See `docs/guides/argocd-webhook-tailscale-funnel.md` for detailed setup guide.
+
+### CloudNativePG Barman Cloud Plugin
+
+The Barman Cloud plugin enables PostgreSQL backup to S3-compatible object storage (like DigitalOcean Spaces).
+
+**Plugin architecture:**
+- Plugin runs as a Deployment in `cnpg-system` namespace
+- CNPG operator discovers plugin via Service annotations (`cnpg.io/pluginName`, etc.)
+- mTLS between operator and plugin via cert-manager certificates
+- Plugin injects sidecar containers into CNPG Cluster pods for WAL archiving
+
+**Template structure:**
+- `kubernetes/apps/cloudnative-pg/templates/barman-cloud-plugin.yaml` - Templated version of official manifest
+- `kubernetes/apps/cloudnative-pg/templates/barman-cloud-crds.yaml` - ObjectStore CRD
+- `kubernetes/apps/cloudnative-pg/files/barman-cloud-plugin-vX.Y.Z.yaml` - Reference copy of official manifest
+
+**Updating the plugin:**
+
+1. Check for new releases at https://github.com/cloudnative-pg/plugin-barman-cloud/releases
+
+2. Download the new official manifest:
+```bash
+VERSION=v0.11.0  # Update to desired version
+curl -sL "https://raw.githubusercontent.com/cloudnative-pg/plugin-barman-cloud/refs/tags/${VERSION}/manifest.yaml" \
+  > kubernetes/apps/cloudnative-pg/files/barman-cloud-plugin-${VERSION}.yaml
+```
+
+3. Compare key sections for breaking changes:
+```bash
+# Compare RBAC rules
+diff <(grep -A20 "kind: ClusterRole" files/barman-cloud-plugin-v0.10.0.yaml) \
+     <(grep -A20 "kind: ClusterRole" files/barman-cloud-plugin-${VERSION}.yaml)
+
+# Compare Deployment args and env
+diff <(grep -A30 "kind: Deployment" files/barman-cloud-plugin-v0.10.0.yaml) \
+     <(grep -A30 "kind: Deployment" files/barman-cloud-plugin-${VERSION}.yaml)
+```
+
+4. Update the template if there are structural changes (new args, env vars, RBAC rules)
+
+5. Update `barmanCloudPlugin.version` in values.yaml:
+```yaml
+barmanCloudPlugin:
+  version: "v0.11.0"
+```
+
+6. Update the CRD if needed (compare `objectstores.barmancloud.cnpg.io` in the manifest)
+
+7. Test deployment:
+```bash
+helm template kubernetes/apps/cloudnative-pg -f kubernetes/clusters/do-nyc3-prod/apps/cloudnative-pg/values.yaml
+```
+
+**Configuring backups for an app:**
+
+1. Create ExternalSecret for S3 credentials (pulls from 1Password)
+2. Create ObjectStore CRD pointing to S3 bucket
+3. Create ScheduledBackup CRD with cron schedule
+4. Add `plugins` section to CNPG Cluster spec for WAL archiving
+
+See `kubernetes/apps/grafana/templates/backup-*.yaml` for examples.
+
+**Troubleshooting:**
+
+- Plugin not discovered: Check Service has `cnpg.io/pluginName` label and annotations
+- TLS errors: Verify cert-manager Certificates are Ready
+- RBAC errors: Compare ClusterRole with official manifest
+- Backup failures: Check ObjectStore status and sidecar logs
