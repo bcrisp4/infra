@@ -98,6 +98,10 @@ opentelemetry-collector:
 
     service:
       pipelines:
+        # Disable default pipelines
+        traces: null
+        metrics: null
+        # Only logs pipeline for events
         logs:
           receivers: [k8sobjects]
           processors: [memory_limiter, resource, resource/events, batch]
