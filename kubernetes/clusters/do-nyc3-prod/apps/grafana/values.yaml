@@ -57,3 +57,20 @@ grafana:
       memory: 256Mi
     limits:
       memory: 512Mi
+
+  # Provisioned datasources
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Mimir
+          type: prometheus
+          access: proxy
+          url: http://mimir-gateway.mimir.svc.cluster.local/prometheus
+          isDefault: true
+          editable: false
+          jsonData:
+            prometheusType: Mimir
+            httpHeaderName1: X-Scope-OrgID
+          secureJsonData:
+            httpHeaderValue1: prod
