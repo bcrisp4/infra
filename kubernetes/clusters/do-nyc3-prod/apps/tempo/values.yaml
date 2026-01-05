@@ -1,0 +1,119 @@
+# Tempo for do-nyc3-prod
+# Uses DO Spaces for S3-compatible storage
+
+externalSecret:
+  enabled: true
+  itemName: do-nyc3-prod-tempo-s3
+
+tempo-distributed:
+  # Storage configuration with environment variables from ExternalSecret
+  storage:
+    trace:
+      backend: s3
+      s3:
+        bucket: ${S3_BUCKET}
+        endpoint: ${S3_ENDPOINT}
+        access_key: ${AWS_ACCESS_KEY_ID}
+        secret_key: ${AWS_SECRET_ACCESS_KEY}
+        insecure: false
+
+  # Enable metrics generator for service graphs and span metrics
+  metricsGenerator:
+    enabled: true
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+    config:
+      processor:
+        service_graphs:
+          dimensions: []
+          histogram_buckets: [0.1, 0.2, 0.4, 0.8, 1.6, 3.2, 6.4, 12.8]
+          max_items: 10000
+          wait: 10s
+          workers: 10
+        span_metrics:
+          dimensions: []
+          histogram_buckets: [0.002, 0.004, 0.008, 0.016, 0.032, 0.064, 0.128, 0.256, 0.512, 1.02, 2.05, 4.10]
+      storage:
+        remote_write:
+          - url: http://mimir-gateway.mimir.svc.cluster.local/api/v1/push
+            headers:
+              X-Scope-OrgID: prod
+
+  # Enable processors in overrides
+  overrides:
+    defaults:
+      metrics_generator:
+        processors:
+          - service-graphs
+          - span-metrics
+
+  # Component replicas and resources (matching Loki sizing)
+  ingester:
+    replicas: 3
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        memory: 1Gi
+
+  distributor:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+
+  querier:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 200m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+
+  queryFrontend:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+
+  compactor:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        memory: 2Gi
+
+  gateway:
+    enabled: true
+    replicas: 2
+    resources:
+      requests:
+        cpu: 50m
+        memory: 32Mi
+      limits:
+        memory: 128Mi
+
+  memcached:
+    enabled: true
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 300Mi
+      limits:
+        memory: 300Mi

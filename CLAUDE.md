@@ -646,6 +646,7 @@ Available datasources for use with the Grafana MCP tools:
 |------|-----|------|-------------|
 | `mimir-do-nyc3-prod` | `PDFDDA34E6E7D2823` | prometheus | Mimir metrics (PromQL) |
 | `loki-do-nyc3-prod` | `PF99E8F4CDB5B6FB2` | loki | Loki logs (LogQL) |
+| `tempo-do-nyc3-prod` | TBD | tempo | Tempo traces (TraceQL) |
 
 **Keeping this list updated:**
 
@@ -748,3 +749,47 @@ Logs are collected by OpenTelemetry Collector DaemonSets (`otel-logs`) and shipp
 - Host logs require a custom collector image with `journalctl` binary
 
 See [docs/reference/logging-architecture.md](docs/reference/logging-architecture.md) for system design and [docs/how-to/query-logs.md](docs/how-to/query-logs.md) for query examples.
+
+### Tracing with Tempo
+
+Traces are stored in Grafana Tempo with S3-compatible storage (DigitalOcean Spaces).
+
+**Architecture:**
+- `tempo-distributed` Helm chart in distributed mode
+- S3 storage: `bc4-do-nyc3-prod-tempo` bucket
+- Multi-tenant with `X-Scope-OrgID: prod` header
+- Metrics generator enabled for service graphs and span metrics
+
+**Metrics Generator:**
+
+The metrics generator derives metrics from ingested traces and writes them to Mimir:
+
+| Processor | Metrics Generated | Purpose |
+|-----------|-------------------|---------|
+| service-graphs | `traces_service_graph_*` | Service relationship graphs |
+| span-metrics | `traces_spanmetrics_calls_total`, `traces_spanmetrics_latency` | RED metrics per service/operation |
+
+**Grafana Features:**
+- **Service Graph**: Visualize service dependencies (requires traces with service names)
+- **Trace to Logs**: Jump from trace spans to correlated logs in Loki
+- **Trace to Metrics**: Jump from traces to related Mimir metrics
+
+**Quick TraceQL examples:**
+
+```traceql
+# Find traces by service name
+{ resource.service.name = "my-service" }
+
+# Find traces with errors
+{ status = error }
+
+# Find slow traces (duration > 1s)
+{ duration > 1s }
+
+# Combine filters
+{ resource.service.name = "api-gateway" && status = error && duration > 500ms }
+```
+
+**Note:** Trace ingestion pipeline (OTel collectors) is configured separately.
+
+See [docs/reference/tracing-architecture.md](docs/reference/tracing-architecture.md) for full details including OTLP endpoints and service graph configuration.

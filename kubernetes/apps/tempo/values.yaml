@@ -1,0 +1,35 @@
+# Default values for tempo umbrella chart
+
+# ExternalSecret for S3 credentials from 1Password
+externalSecret:
+  enabled: false
+  itemName: ""
+
+# Tempo chart values
+tempo-distributed:
+  # Enable environment variable expansion in config
+  global:
+    extraArgs:
+      - -config.expand-env=true
+    extraEnvFrom:
+      - secretRef:
+          name: s3-credentials
+
+  tempo:
+    revisionHistoryLimit: 0
+
+  # Storage configuration - backend set here, details in cluster values
+  storage:
+    trace:
+      backend: s3
+
+  # Disable built-in MinIO
+  minio:
+    enabled: false
+
+  # Disable enterprise features
+  enterprise:
+    enabled: false
+
+  # Enable multi-tenancy
+  multitenancyEnabled: true

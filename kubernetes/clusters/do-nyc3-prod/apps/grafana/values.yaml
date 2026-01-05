@@ -117,6 +117,27 @@ grafana:
           secureJsonData:
             httpHeaderValue1: prod
 
+        - name: tempo-do-nyc3-prod
+          type: tempo
+          access: proxy
+          url: http://tempo-gateway.tempo.svc.cluster.local
+          editable: false
+          jsonData:
+            httpHeaderName1: X-Scope-OrgID
+            # Link to Mimir for service graph visualization
+            serviceMap:
+              datasourceUid: PDFDDA34E6E7D2823
+            # Link to Loki for logs correlation
+            tracesToLogs:
+              datasourceUid: PF99E8F4CDB5B6FB2
+              filterByTraceID: true
+              filterBySpanID: true
+            # Enable trace to metrics linking
+            tracesToMetrics:
+              datasourceUid: PDFDDA34E6E7D2823
+          secureJsonData:
+            httpHeaderValue1: prod
+
   # Image renderer for PNG export, alerts, and reporting
   # Enables dashboard/panel image export and alert notification images
   imageRenderer:
