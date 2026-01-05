@@ -10,7 +10,7 @@
       }
     },
     "grafana-mcp-do-nyc3-prod": {
-      "type": "url",
+      "type": "http",
       "url": "https://grafana-mcp-do-nyc3-prod.marlin-tet.ts.net/mcp"
     }
   }
