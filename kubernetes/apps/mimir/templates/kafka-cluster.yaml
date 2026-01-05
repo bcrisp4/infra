@@ -25,10 +25,19 @@ spec:
             prometheus.io/scrape: "true"
             prometheus.io/port: "9404"
             prometheus.io/path: "/metrics"
-            # Skip Linkerd for Kafka ports - binary protocol causes proxy timeouts
+            # Mark Kafka ports as opaque - skip protocol detection but keep mTLS
             # 9090: KRaft controller, 9091: replication, 9092: client connections
-            config.linkerd.io/skip-inbound-ports: "9090,9091,9092"
-            config.linkerd.io/skip-outbound-ports: "9090,9091,9092"
+            config.linkerd.io/opaque-ports: "9090,9091,9092"
+      # Bootstrap service (client connections)
+      bootstrapService:
+        metadata:
+          annotations:
+            config.linkerd.io/opaque-ports: "9092"
+      # Headless service (broker discovery)
+      brokersService:
+        metadata:
+          annotations:
+            config.linkerd.io/opaque-ports: "9090,9091,9092"
     listeners:
       - name: plain
         port: 9092
