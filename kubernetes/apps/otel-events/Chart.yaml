@@ -1,0 +1,8 @@
+apiVersion: v2
+name: otel-events
+version: 1.0.0
+description: OpenTelemetry Collector for Kubernetes Events
+dependencies:
+  - name: opentelemetry-collector
+    version: "~0.142"
+    repository: oci://ghcr.io/open-telemetry/opentelemetry-helm-charts

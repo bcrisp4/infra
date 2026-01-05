@@ -29,6 +29,8 @@ Task-oriented recipes for specific goals.
 - [Update Linkerd Edge](how-to/update-linkerd-edge.md) - Upgrade to a new Linkerd edge release
 - [Configure ArgoCD Webhook with Tailscale Funnel](how-to/argocd-webhook-tailscale-funnel.md) - Enable instant GitOps sync
 - [Configure Strimzi Kafka with Linkerd](how-to/strimzi-kafka-linkerd.md) - Run Kafka in the service mesh
+- [Query Logs](how-to/query-logs.md) - LogQL examples for querying pod logs
+- [Query Kubernetes Events](how-to/query-kubernetes-events.md) - LogQL examples for querying K8s events
 
 ## Reference
 
@@ -49,6 +51,7 @@ Technical descriptions and specifications.
 - [Grafana Datasources](reference/grafana-datasources.md) - Datasource provisioning pitfalls
 - [Mimir Tenancy](reference/mimir-tenancy.md) - Multi-tenant metrics configuration
 - [Metrics Architecture](reference/metrics-architecture.md) - Observability stack design
+- [Logging Architecture](reference/logging-architecture.md) - Log collection and storage design
 
 ## Explanation
 

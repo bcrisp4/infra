@@ -1,0 +1,2 @@
+# otel-events base values
+# Cluster-specific configuration in kubernetes/clusters/{cluster}/apps/otel-events/values.yaml

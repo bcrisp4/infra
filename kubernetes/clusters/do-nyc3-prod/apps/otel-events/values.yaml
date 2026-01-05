@@ -1,0 +1,100 @@
+# otel-events for do-nyc3-prod
+# Collects Kubernetes events and ships to Loki via OTLP
+
+opentelemetry-collector:
+  mode: deployment
+  replicaCount: 1  # Single replica to avoid duplicate events
+
+  image:
+    repository: otel/opentelemetry-collector-contrib
+
+  # ClusterRole for watching events
+  clusterRole:
+    create: true
+    rules:
+      - apiGroups: [""]
+        resources: ["events"]
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["events.k8s.io"]
+        resources: ["events"]
+        verbs: ["get", "list", "watch"]
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+  # Disable default ports - we only collect events, no incoming telemetry
+  ports:
+    jaeger-compact:
+      enabled: false
+    jaeger-thrift:
+      enabled: false
+    jaeger-grpc:
+      enabled: false
+    zipkin:
+      enabled: false
+    otlp:
+      enabled: false
+    otlp-http:
+      enabled: false
+
+  config:
+    # Disable default receivers - we only need k8sobjects
+    receivers:
+      jaeger: null
+      otlp: null
+      prometheus: null
+      zipkin: null
+      k8sobjects:
+        auth_type: serviceAccount
+        objects:
+          - name: events
+            mode: watch
+            group: events.k8s.io
+
+    # Disable default exporters, add Loki exporter
+    exporters:
+      debug: null
+      otlphttp/loki:
+        endpoint: "http://loki-gateway.loki.svc.cluster.local/otlp"
+        headers:
+          X-Scope-OrgID: "prod"
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          max_interval: 300s
+        sending_queue:
+          enabled: true
+          num_consumers: 5
+          queue_size: 1000
+
+    processors:
+      batch:
+        send_batch_size: 1000
+        timeout: 5s
+
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 200
+
+      resource:
+        attributes:
+          - key: cluster
+            value: do-nyc3-prod
+            action: insert
+
+      resource/events:
+        attributes:
+          - key: log_source
+            value: events
+            action: insert
+
+    service:
+      pipelines:
+        logs:
+          receivers: [k8sobjects]
+          processors: [memory_limiter, resource, resource/events, batch]
+          exporters: [otlphttp/loki]

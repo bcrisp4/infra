@@ -18,6 +18,15 @@ Node
 │                                    │
 │                                    ▼
 │                            Loki Distributed → DO Spaces
+
+Kubernetes API
+└── events.k8s.io/v1
+    └── k8sobjects receiver ──► [otel-events Deployment]
+                                       │
+                                  [processors]
+                                       │
+                                       ▼ (mTLS via Linkerd)
+                               loki-gateway.loki/otlp
 ```
 
 ## Components
@@ -37,6 +46,23 @@ OpenTelemetry Collector configured for log collection:
 - Enriches logs with Kubernetes metadata (namespace, pod, container, deployment, etc.)
 - Adds custom labels: `cluster`, `log_source`
 - Checkpoints file positions for reliable collection
+- In Linkerd service mesh for mTLS
+
+### otel-events (Deployment)
+
+OpenTelemetry Collector configured for Kubernetes events collection:
+
+| Component | Description |
+|-----------|-------------|
+| **Receiver** | `k8sobjects` - Watches Kubernetes events via API |
+| **Processors** | `memory_limiter`, `resource`, `resource/events`, `batch` |
+| **Exporter** | `otlphttp/loki` - Ships to Loki via OTLP |
+
+**Key features:**
+- Single replica Deployment (avoids duplicate events)
+- Watches `events.k8s.io/v1` API group
+- Adds `log_source: events` label to distinguish from pod logs
+- Captures all cluster events (scheduling, scaling, failures, etc.)
 - In Linkerd service mesh for mTLS
 
 ### Loki (Distributed Mode)
@@ -64,7 +90,7 @@ Logs are indexed with the following labels for efficient querying:
 | Label | Source | Description |
 |-------|--------|-------------|
 | `cluster` | resource processor | Cluster identifier (`do-nyc3-prod`) |
-| `log_source` | resource/pods processor | Log source type (`pods`) |
+| `log_source` | resource processor | Log source type (`pods` or `events`) |
 
 ### Structured Metadata (Queryable)
 
@@ -82,6 +108,20 @@ From k8sattributes processor:
 | `container_image_name` | Container image |
 | `container_image_tag` | Container image tag |
 | `detected_level` | Auto-detected log level |
+
+From k8sobjects receiver (events only):
+
+| Label | Description |
+|-------|-------------|
+| `k8s.event.reason` | Event reason (e.g., `Scheduled`, `Pulling`, `Failed`) |
+| `k8s.event.action` | Event action |
+| `k8s.event.name` | Event name |
+| `k8s.event.uid` | Event UID |
+| `k8s.event.count` | Event occurrence count |
+| `k8s.namespace.name` | Namespace where event occurred |
+| `k8s.object.kind` | Kind of involved object (Pod, Deployment, etc.) |
+| `k8s.object.name` | Name of involved object |
+| `k8s.node.name` | Node name (if applicable) |
 
 ## Multi-Tenancy
 
@@ -114,6 +154,21 @@ The `loki-do-nyc3-prod` datasource is pre-configured in Grafana with the tenant 
 
 # Combine filters
 {cluster="do-nyc3-prod", k8s_namespace_name="loki"} | json | level="error"
+
+# All cluster events
+{log_source="events"}
+
+# Events for specific namespace
+{log_source="events"} | json | k8s_namespace_name="argocd"
+
+# Warning/error events
+{log_source="events"} |= "Warning"
+
+# Pod scheduling events
+{log_source="events"} | json | k8s_event_reason="Scheduled"
+
+# Failed events
+{log_source="events"} | json | k8s_event_reason=~"Failed.*"
 ```
 
 ## Architecture Decisions

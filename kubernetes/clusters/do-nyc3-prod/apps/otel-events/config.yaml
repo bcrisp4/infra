@@ -1,0 +1,3 @@
+name: otel-events
+namespaceAnnotations:
+  linkerd.io/inject: enabled
