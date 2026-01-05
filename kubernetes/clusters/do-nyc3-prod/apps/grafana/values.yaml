@@ -54,6 +54,10 @@ grafana:
       ha_listen_address: "${POD_IP}:9094"
       ha_advertise_address: "${POD_IP}:9094"
       ha_peers: grafana-headless.grafana.svc.cluster.local:9094
+    # Image rendering configuration
+    rendering:
+      server_url: http://grafana-image-renderer.grafana.svc.cluster.local:8081/render
+      callback_url: http://grafana.grafana.svc.cluster.local/
 
   # Tailscale ingress
   ingress:
@@ -103,30 +107,12 @@ grafana:
             httpHeaderValue1: prod
 
   # Image renderer for PNG export, alerts, and reporting
+  # Enables dashboard/panel image export and alert notification images
   imageRenderer:
     enabled: true
-    replicas: 1
-    image:
-      repository: grafana/grafana-image-renderer
-      tag: latest
-      pullPolicy: IfNotPresent
-    env:
-      HTTP_HOST: "0.0.0.0"
-      # Chromium config directories
-      XDG_CONFIG_HOME: /tmp/.chromium
-      XDG_CACHE_HOME: /tmp/.chromium
-      # Rendering timeout (default 30s may be too short for complex dashboards)
-      RENDERING_VIEWPORT_MAX_WIDTH: "3000"
-      RENDERING_VIEWPORT_MAX_HEIGHT: "3000"
     resources:
       requests:
         cpu: 50m
         memory: 256Mi
       limits:
         memory: 1Gi
-    # Add to Linkerd mesh
-    podAnnotations:
-      linkerd.io/inject: enabled
-    networkPolicy:
-      limitIngress: true
-      limitEgress: false
