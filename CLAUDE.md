@@ -592,38 +592,41 @@ If you need to rename a datasource:
 3. Manually delete the old datasource via Grafana UI (Connections > Data sources)
 4. Update any dashboards that reference the old datasource name
 
-### Mimir Tenant Proxy
+### Mimir Tenant Endpoint
 
-Mimir requires the `X-Scope-OrgID` header for multi-tenancy. Some clients (like linkerd-viz) cannot set custom HTTP headers. For these clients, use a tenant proxy.
+Mimir requires the `X-Scope-OrgID` header for multi-tenancy. Some clients (like linkerd-viz) cannot set custom HTTP headers. For these clients, use the gateway's tenant endpoint.
 
 **How it works:**
+
+The Mimir gateway nginx is configured with a `/tenant/{tenant}/` path that adds the `X-Scope-OrgID` header before forwarding to internal Mimir components.
 
 ```
 Client (no header support)
     |
     v
-mimir-tenant-proxy-{tenant} (adds X-Scope-OrgID: {tenant})
+mimir-gateway/tenant/prod/ (adds X-Scope-OrgID: prod)
     |
     v
-mimir-gateway
-    |
-    v
-Mimir
+Mimir query components
 ```
 
 **Configuration:**
 
-Add tenant proxies in cluster values:
+Add serverSnippet to the gateway in cluster values:
 
 ```yaml
 # kubernetes/clusters/{cluster}/apps/mimir/values.yaml
-tenantProxies:
-  prod:
-    tenant: prod
-    replicas: 1
+mimir-distributed:
+  gateway:
+    nginx:
+      config:
+        serverSnippet: |
+          location /tenant/prod/ {
+            proxy_pass http://localhost:8080/;
+            proxy_set_header X-Scope-OrgID prod;
+            proxy_http_version 1.1;
+          }
 ```
-
-This creates a service at `mimir-tenant-proxy-prod.mimir.svc.cluster.local` that forwards requests to mimir-gateway with the `X-Scope-OrgID: prod` header.
 
 **Usage example (linkerd-viz):**
 
@@ -632,5 +635,5 @@ This creates a service at `mimir-tenant-proxy-prod.mimir.svc.cluster.local` that
 linkerd-viz:
   prometheus:
     enabled: false
-  prometheusUrl: http://mimir-tenant-proxy-prod.mimir.svc.cluster.local/prometheus
+  prometheusUrl: http://mimir-gateway.mimir.svc.cluster.local/tenant/prod/prometheus
 ```

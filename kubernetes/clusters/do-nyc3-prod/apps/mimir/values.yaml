@@ -10,13 +10,6 @@ kafka:
   replicas: 3
   storageSize: 50Gi
 
-# Tenant proxies for clients that cannot set X-Scope-OrgID header
-# Each proxy is a simple nginx that adds the tenant header and forwards to mimir-gateway
-tenantProxies:
-  prod:
-    tenant: prod
-    replicas: 1
-
 mimir-distributed:
   global:
     podAnnotations:
@@ -272,6 +265,16 @@ mimir-distributed:
         memory: 64Mi
       limits:
         memory: 128Mi
+    nginx:
+      config:
+        # Tenant proxy endpoint for clients that cannot set X-Scope-OrgID header
+        # Usage: http://mimir-gateway.mimir.svc.cluster.local/tenant/prod/prometheus/...
+        serverSnippet: |
+          location /tenant/prod/ {
+            proxy_pass http://localhost:8080/;
+            proxy_set_header X-Scope-OrgID prod;
+            proxy_http_version 1.1;
+          }
 
   # Caches
   chunks-cache:

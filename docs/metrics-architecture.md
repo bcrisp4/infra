@@ -22,11 +22,10 @@ This document describes the metrics collection and storage infrastructure for do
 │       ││                       ┌──────────────┐  ┌──────────────┐    │       │
 │       ││                       │ Store Gateway│← │  Compactor   │←───┘       │
 │       ││                       └──────────────┘  └──────────────┘            │
-│  ┌────┴┴────┐                                                                │
-│  │ Tenant   │ ← For clients that cannot set X-Scope-OrgID header             │
-│  │ Proxy    │   (e.g., linkerd-viz metrics-api)                              │
-│  └────▲─────┘                                                                │
-└───────┼──────────────────────────────────────────────────────────────────────┘
+│       │                                                                      │
+│       └── /tenant/prod/ path adds X-Scope-OrgID for clients that can't      │
+│           set headers (e.g., linkerd-viz metrics-api)                        │
+└──────────────────────────────────────────────────────────────────────────────┘
         │ OTLP/HTTP (X-Scope-OrgID: prod)
         │
 ┌───────┴──────────────────────────────────────────────────────────────────────┐
@@ -81,9 +80,9 @@ Mimir requires `X-Scope-OrgID` header for multi-tenancy. Current tenant: `prod`.
 |-----------|-------------------|
 | **Grafana** | `secureJsonData.httpHeaderValue1: prod` in datasource config |
 | **otel-metrics** | `headers: X-Scope-OrgID: prod` in OTLP exporter |
-| **linkerd-viz** | Via `mimir-tenant-proxy-prod` (cannot set headers directly) |
+| **linkerd-viz** | Via gateway's `/tenant/prod/` path (cannot set headers directly) |
 
-The **tenant proxy** (`mimir-tenant-proxy-prod`) is a simple nginx that adds the `X-Scope-OrgID: prod` header for clients that cannot set custom HTTP headers.
+The Mimir gateway exposes a `/tenant/prod/` path that adds the `X-Scope-OrgID: prod` header for clients that cannot set custom HTTP headers.
 
 ## Data Flow
 
@@ -315,15 +314,15 @@ Scraped from port 4191 on meshed pods. Labels include `namespace`, `pod`, `deplo
 
 ### linkerd-viz showing no data
 
-1. Verify tenant proxy is running:
+1. Verify Mimir gateway is running:
    ```bash
-   kubectl get pods -n mimir -l app.kubernetes.io/name=mimir-tenant-proxy
+   kubectl get pods -n mimir -l app.kubernetes.io/component=gateway
    ```
 
-2. Test tenant proxy connectivity:
+2. Test tenant endpoint connectivity:
    ```bash
    kubectl run curl --rm -it --image=curlimages/curl -- \
-     curl -v http://mimir-tenant-proxy-prod.mimir.svc.cluster.local/prometheus/api/v1/query?query=up
+     curl -v "http://mimir-gateway.mimir.svc.cluster.local/tenant/prod/prometheus/api/v1/query?query=up"
    ```
 
 3. Check linkerd-viz metrics-api logs:

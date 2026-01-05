@@ -1,13 +1,13 @@
 # Linkerd Viz for do-nyc3-prod
 #
 # Uses Mimir as external metrics store via otel-metrics scraping.
-# Queries go through the tenant proxy which adds X-Scope-OrgID: prod header.
+# Queries go through the gateway's /tenant/prod/ path which adds X-Scope-OrgID: prod header.
 
 linkerd-viz:
   # Disable built-in Prometheus - using Mimir instead
   prometheus:
     enabled: false
 
-  # Point to Mimir tenant proxy for queries
-  # The proxy adds X-Scope-OrgID: prod header before forwarding to mimir-gateway
-  prometheusUrl: http://mimir-tenant-proxy-prod.mimir.svc.cluster.local/prometheus
+  # Point to Mimir gateway's tenant endpoint
+  # The /tenant/prod/ path adds X-Scope-OrgID: prod header before forwarding
+  prometheusUrl: http://mimir-gateway.mimir.svc.cluster.local/tenant/prod/prometheus

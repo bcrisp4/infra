@@ -28,14 +28,11 @@ otel-metrics DaemonSet
     v (OTLP with X-Scope-OrgID: prod)
 Mimir
     ^
-    | (query)
-mimir-tenant-proxy-prod (adds X-Scope-OrgID: prod)
-    ^
-    | (query without header)
+    | (query via /tenant/prod/ path)
 linkerd-viz metrics-api
 ```
 
-The tenant proxy is needed because linkerd-viz cannot set custom HTTP headers. The proxy adds the `X-Scope-OrgID: prod` header before forwarding to the Mimir gateway.
+The Mimir gateway's `/tenant/prod/` path is used because linkerd-viz cannot set custom HTTP headers. This path adds the `X-Scope-OrgID: prod` header before forwarding to the Mimir query components.
 
 ### Accessing the Dashboard
 
