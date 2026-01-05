@@ -5,6 +5,8 @@ kind: ObjectStore
 metadata:
   name: grafana-db-backup
 spec:
+  # Retention policy for backups and WALs (format: XXu where u is d/w/m)
+  retentionPolicy: {{ .Values.backup.retentionPolicy | default "14d" | quote }}
   configuration:
     destinationPath: s3://{{ .Values.backup.s3.bucket }}/{{ .Values.backup.s3.path | default "grafana-db" }}
     endpointURL: https://{{ .Values.backup.s3.endpoint }}

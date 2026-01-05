@@ -8,16 +8,29 @@ database:
     size: 5Gi
   resources:
     requests:
-      cpu: 100m
-      memory: 256Mi
+      cpu: 250m
+      memory: 1Gi
     limits:
-      memory: 512Mi
+      memory: 1Gi
+  # PostgreSQL tuning (sized for 1Gi memory allocation)
+  # shared_buffers: 25% of RAM, effective_cache_size: 75% of RAM
+  postgresql:
+    shared_buffers: "256MB"
+    effective_cache_size: "768MB"
+    work_mem: "8MB"
+    maintenance_work_mem: "128MB"
+    # Checkpoint tuning to reduce I/O
+    checkpoint_timeout: "15min"
+    max_wal_size: "2GB"
+    checkpoint_completion_target: "0.9"
 
 # Database backup configuration (Barman Cloud Plugin)
 backup:
   enabled: false
   # Take first backup immediately when ScheduledBackup is created
   immediate: false
+  # Backup retention policy (format: XXu where u is d=days, w=weeks, m=months)
+  retentionPolicy: "28d"
   s3:
     # 1Password item name for S3 credentials
     itemName: ""

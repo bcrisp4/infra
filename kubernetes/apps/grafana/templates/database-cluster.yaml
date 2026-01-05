@@ -11,6 +11,16 @@ spec:
   resources:
     {{- toYaml .Values.database.resources | nindent 4 }}
 
+  # Pod anti-affinity to spread replicas across nodes
+  affinity:
+    enablePodAntiAffinity: true
+    topologyKey: kubernetes.io/hostname
+    podAntiAffinityType: preferred
+
+  # Prometheus monitoring (PodMonitor disabled - no Prometheus Operator CRDs)
+  monitoring:
+    enablePodMonitor: false
+
   bootstrap:
     initdb:
       database: grafana
@@ -18,9 +28,17 @@ spec:
 
   postgresql:
     parameters:
-      # Optimize for Grafana workload
-      shared_buffers: "128MB"
-      effective_cache_size: "256MB"
+      {{- with .Values.database.postgresql }}
+      # Memory settings (sized relative to container memory)
+      shared_buffers: {{ .shared_buffers | quote }}
+      effective_cache_size: {{ .effective_cache_size | quote }}
+      work_mem: {{ .work_mem | quote }}
+      maintenance_work_mem: {{ .maintenance_work_mem | quote }}
+      # Checkpoint tuning to reduce I/O spikes
+      checkpoint_timeout: {{ .checkpoint_timeout | quote }}
+      max_wal_size: {{ .max_wal_size | quote }}
+      checkpoint_completion_target: {{ .checkpoint_completion_target | quote }}
+      {{- end }}
 
   {{- if .Values.backup.enabled }}
   # Enable WAL archiving via Barman Cloud Plugin
