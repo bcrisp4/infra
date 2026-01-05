@@ -216,6 +216,17 @@ Key learnings from deploying ESO with 1Password:
      --from-literal=token="$(op service-account create 'name' --vault 'Vault' --permissions read_items --format json | jq -r '.token')"
    ```
 
+8. **1Password Rate Limits**: Service accounts have strict rate limits that ESO can easily hit:
+   - 1Password Teams/Families: 1,000 reads/hour (account-wide, not per-token)
+   - 1Password Business: 10,000 reads/hour, 50,000/day
+   - Check current usage: `op service-account ratelimit <service-account-name>`
+
+   To avoid rate limits:
+   - Use `refreshInterval: 24h` (or longer) for secrets that rarely change
+   - Set `refreshInterval: 3600` on ClusterSecretStore to reduce validation calls
+   - Consider `refreshPolicy: CreatedOnce` for truly static secrets
+   - Pod restarts and ArgoCD syncs trigger immediate re-fetches regardless of interval
+
 ### 1Password Terraform Provider
 
 - Use v3.0+ which uses pure SDK (no CLI required) - works in TFC without installing `op`
@@ -499,3 +510,75 @@ See `kubernetes/apps/grafana/templates/backup-*.yaml` for examples.
 - TLS errors: Verify cert-manager Certificates are Ready
 - RBAC errors: Compare ClusterRole with official manifest
 - Backup failures: Check ObjectStore status and sidecar logs
+
+### Grafana Datasource Provisioning
+
+Grafana datasources are provisioned via the Helm chart's `datasources` value, which creates a ConfigMap mounted at `/etc/grafana/provisioning/datasources/`.
+
+**Key pitfalls:**
+
+1. **Name is the identifier**: Grafana uses datasource `name` as the primary identifier. Changing the name creates a NEW datasource instead of updating the existing one. The old datasource remains in the database.
+
+2. **Don't use `deleteDatasources`**: The `deleteDatasources` directive crashes Grafana if the datasource to delete doesn't exist:
+   ```
+   Datasource provisioning error: data source not found
+   ```
+   Avoid using it - manually delete old datasources via the UI instead.
+
+3. **Don't use `uid` for existing datasources**: If a datasource already exists without a uid (or with a different uid), adding `uid` to provisioning can cause conflicts and crashes. Only use `uid` for new datasources.
+
+4. **Datasources persist in database**: Even though provisioning is via ConfigMap, Grafana stores datasources in its database (PostgreSQL). The ConfigMap is only read on startup to sync state.
+
+**Example Mimir/Prometheus datasource:**
+
+```yaml
+grafana:
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: mimir-do-nyc3-prod
+          type: prometheus
+          access: proxy
+          url: http://mimir-gateway.mimir.svc.cluster.local/prometheus
+          isDefault: true
+          editable: false
+          jsonData:
+            prometheusType: Mimir
+            prometheusVersion: 2.9.1
+            timeInterval: 30s
+            cacheLevel: High
+            incrementalQuerying: true
+            incrementalQueryOverlapWindow: 10m
+            httpHeaderName1: X-Scope-OrgID
+          secureJsonData:
+            httpHeaderValue1: prod
+```
+
+**Valid `prometheusVersion` values for Mimir:**
+
+The version dropdown uses specific values (from Grafana source code):
+- `2.0.0` through `2.9.0` for specific minor versions
+- `2.9.1` = "> 2.9.x" (use this for Mimir 3.0+)
+
+These are NOT actual Mimir versions - they're Grafana's internal version identifiers that enable specific API features.
+
+**Key `jsonData` fields:**
+
+| Field | Description |
+|-------|-------------|
+| `prometheusType` | `Prometheus`, `Mimir`, `Cortex`, or `Thanos` |
+| `prometheusVersion` | Version identifier (see above) |
+| `timeInterval` | Scrape interval (e.g., `30s`) - should match your scraper config |
+| `cacheLevel` | `Low`, `Medium`, `High`, or `None` - higher is better for high cardinality |
+| `incrementalQuerying` | `true` to cache query results and only fetch new data |
+| `incrementalQueryOverlapWindow` | Overlap window for incremental queries (e.g., `10m`) |
+| `httpHeaderName1` / `httpHeaderValue1` | Custom headers (use `secureJsonData` for sensitive values) |
+
+**Renaming a datasource:**
+
+If you need to rename a datasource:
+1. Update the provisioning config with the new name
+2. Deploy and let Grafana create the new datasource
+3. Manually delete the old datasource via Grafana UI (Connections > Data sources)
+4. Update any dashboards that reference the old datasource name
