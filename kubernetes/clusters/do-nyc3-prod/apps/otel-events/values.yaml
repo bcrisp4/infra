@@ -26,11 +26,7 @@ opentelemetry-collector:
     limits:
       memory: 256Mi
 
-  # Disable Service - we only collect events, no incoming telemetry needed
-  service:
-    enabled: false
-
-  # Disable default ports - we only collect events, no incoming telemetry
+  # Disable unused ports - only metrics for self-observability
   ports:
     jaeger-compact:
       enabled: false
@@ -44,6 +40,15 @@ opentelemetry-collector:
       enabled: false
     otlp-http:
       enabled: false
+    metrics:
+      enabled: true
+      containerPort: 8888
+      servicePort: 8888
+      protocol: TCP
+
+  # Enable Service for metrics scraping
+  service:
+    enabled: true
 
   config:
     # Disable default receivers - we only need k8s_events
