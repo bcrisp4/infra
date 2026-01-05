@@ -34,15 +34,13 @@ spec:
       bootstrapService:
         metadata:
           annotations:
-            # 9091 has Strimzi TLS, 9092 uses Linkerd mTLS
-            config.linkerd.io/skip-inbound-ports: "9091"
+            # Mark Kafka client port as opaque for Linkerd service discovery
             config.linkerd.io/opaque-ports: "9092"
       # Headless service (broker discovery)
       brokersService:
         metadata:
           annotations:
-            # Skip Linkerd for Strimzi TLS ports, keep for client port
-            config.linkerd.io/skip-inbound-ports: "8443,9090,9091"
+            # Mark Kafka client port as opaque (other ports use skip-inbound-ports)
             config.linkerd.io/opaque-ports: "9092"
     listeners:
       - name: plain
@@ -66,9 +64,8 @@ spec:
       pod:
         metadata:
           annotations:
-            # Skip Linkerd for 9091 (has Strimzi TLS), keep for 9092 (no TLS)
+            # Skip Linkerd for 9091 (has Strimzi TLS)
             config.linkerd.io/skip-outbound-ports: "9091"
-            config.linkerd.io/opaque-ports: "9092"
     topicOperator:
       resources:
         requests:

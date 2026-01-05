@@ -136,8 +136,6 @@ mimir-distributed:
   distributor:
     replicas: 3
     podAnnotations:
-      # Mark Kafka port as opaque for outbound connections
-      config.linkerd.io/opaque-ports: "9092"
       # Increase outbound connect timeout for mTLS handshake
       config.linkerd.io/proxy-outbound-connect-timeout: "5000ms"
     resources:
@@ -151,8 +149,6 @@ mimir-distributed:
   ingester:
     replicas: 3
     podAnnotations:
-      # Mark Kafka port as opaque for outbound connections
-      config.linkerd.io/opaque-ports: "9092"
       # Increase outbound connect timeout for mTLS handshake
       config.linkerd.io/proxy-outbound-connect-timeout: "5000ms"
     persistentVolume:
