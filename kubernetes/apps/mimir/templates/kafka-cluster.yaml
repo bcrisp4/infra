@@ -58,6 +58,12 @@ spec:
       message.max.bytes: 16777216
       replica.fetch.max.bytes: 16777216
   entityOperator:
+    template:
+      pod:
+        metadata:
+          annotations:
+            # Skip Linkerd for Kafka replication port - topic operator needs direct access
+            config.linkerd.io/skip-outbound-ports: "9091"
     topicOperator:
       resources:
         requests:
