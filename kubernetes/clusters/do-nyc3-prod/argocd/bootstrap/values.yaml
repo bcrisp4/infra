@@ -106,7 +106,7 @@ argo-cd:
 
   # Repo Server
   repoServer:
-    replicas: 1
+    replicas: 2
     resources:
       requests:
         cpu: 25m
