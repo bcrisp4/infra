@@ -3,6 +3,9 @@
 strimzi-kafka-operator:
   replicas: 1
   watchAnyNamespace: true
+  # Skip Linkerd for Kafka admin ports - operator needs direct access for cluster management
+  annotations:
+    config.linkerd.io/skip-outbound-ports: "9090,9091"
   resources:
     requests:
       cpu: 100m
