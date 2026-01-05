@@ -1,0 +1,3 @@
+name: otel-metrics
+namespaceAnnotations:
+  linkerd.io/inject: enabled

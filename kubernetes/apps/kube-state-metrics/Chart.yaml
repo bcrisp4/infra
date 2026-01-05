@@ -1,0 +1,10 @@
+apiVersion: v2
+name: kube-state-metrics
+description: Kubernetes state metrics for monitoring cluster objects
+type: application
+version: 0.1.0
+
+dependencies:
+  - name: kube-state-metrics
+    version: ~5.28
+    repository: https://prometheus-community.github.io/helm-charts

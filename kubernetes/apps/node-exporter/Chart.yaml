@@ -1,0 +1,10 @@
+apiVersion: v2
+name: node-exporter
+description: Prometheus node exporter for hardware and OS metrics
+type: application
+version: 0.1.0
+
+dependencies:
+  - name: prometheus-node-exporter
+    version: ~4.49
+    repository: https://prometheus-community.github.io/helm-charts

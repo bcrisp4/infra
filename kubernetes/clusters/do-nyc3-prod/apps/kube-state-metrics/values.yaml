@@ -1,0 +1,15 @@
+# kube-state-metrics for do-nyc3-prod
+# Provides Kubernetes object state metrics (pods, nodes, PVCs, etc.)
+
+kube-state-metrics:
+  # Enable Prometheus metrics scraping via pod annotations
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 128Mi

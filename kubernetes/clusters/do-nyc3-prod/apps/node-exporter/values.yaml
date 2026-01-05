@@ -1,0 +1,15 @@
+# node-exporter for do-nyc3-prod
+# Provides node-level hardware and OS metrics (CPU, memory, disk, network)
+
+prometheus-node-exporter:
+  # Enable Prometheus metrics scraping via pod annotations
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9100"
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 32Mi
+    limits:
+      memory: 64Mi
