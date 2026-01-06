@@ -49,6 +49,7 @@ Technical descriptions and specifications.
 - [ArgoCD Manifests](reference/argocd-manifests.md) - ApplicationSet and Go template patterns
 - [CloudNativePG Backup](reference/cloudnative-pg-backup.md) - Barman plugin for PostgreSQL backups
 - [Grafana Datasources](reference/grafana-datasources.md) - Datasource provisioning pitfalls
+- [Miniflux](reference/miniflux.md) - RSS reader deployment and configuration
 - [Mimir Tenancy](reference/mimir-tenancy.md) - Multi-tenant metrics configuration
 - [Metrics Architecture](reference/metrics-architecture.md) - Observability stack design
 - [Logging Architecture](reference/logging-architecture.md) - Log collection and storage design

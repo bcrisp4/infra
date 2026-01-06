@@ -829,3 +829,31 @@ OTLP Receiver -> memory_limiter -> k8sattributes -> resource (cluster label) -> 
 **Sampling:** No sampling enabled by default. All traces are kept. If volume becomes an issue, add probabilistic sampling to the collector config.
 
 See [docs/reference/tracing-architecture.md](docs/reference/tracing-architecture.md) for full collector configuration and sampling options.
+
+### Miniflux RSS Reader
+
+Miniflux is deployed on do-nyc3-prod with CNPG PostgreSQL (2 instances for HA), Tailscale ingress, Linkerd mesh, and Barman Cloud backups.
+
+**Files:**
+- `kubernetes/apps/miniflux/` - Umbrella chart
+- `kubernetes/clusters/do-nyc3-prod/apps/miniflux/` - Cluster config
+
+**Key tips from migration:**
+
+1. **pg_restore needs `--clean --if-exists`**: Miniflux runs migrations on startup, creating schema before restore. Use these flags to drop existing objects first.
+
+2. **Use `postgres` user for psql**: The `miniflux` user has peer auth issues. Use `postgres` instead:
+   ```bash
+   kubectl exec -n miniflux miniflux-db-1 -c postgres -- psql -U postgres -d miniflux
+   ```
+
+3. **Speed up replica join**: New replicas wait for checkpoint (up to 15 min). Trigger manually:
+   ```bash
+   kubectl exec -n miniflux miniflux-db-1 -c postgres -- psql -U postgres -c "CHECKPOINT;"
+   ```
+
+4. **Horizontal scaling supported** via `DISABLE_SCHEDULER_SERVICE=1` (HTTP-only) and `DISABLE_HTTP_SERVICE=1` (scheduler-only), but single instance is recommended for personal use.
+
+5. **RUN_MIGRATIONS=1 is safe** with multiple instances - Miniflux uses PostgreSQL advisory locks.
+
+See [docs/reference/miniflux.md](docs/reference/miniflux.md) for full deployment reference.

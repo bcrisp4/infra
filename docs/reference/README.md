@@ -22,4 +22,5 @@ Technical descriptions and specifications. Use these to look up specific details
 | [ArgoCD Manifests](argocd-manifests.md) | ArgoCD Application and ApplicationSet patterns |
 | [CloudNativePG Backups](cloudnative-pg-backup.md) | Barman Cloud plugin setup |
 | [Grafana Datasources](grafana-datasources.md) | Datasource provisioning |
+| [Miniflux](miniflux.md) | RSS reader deployment and configuration |
 | [Mimir Tenancy](mimir-tenancy.md) | Multi-tenant Mimir configuration |
