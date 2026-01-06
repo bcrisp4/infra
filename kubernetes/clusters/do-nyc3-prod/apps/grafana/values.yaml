@@ -132,6 +132,9 @@ grafana:
           editable: false
           jsonData:
             httpHeaderName1: X-Scope-OrgID
+            # Enable streaming for TraceQL queries over HTTP
+            streamingEnabled: true
+            streamingMetricsEnabled: true
             # Link to Mimir for service graph visualization
             serviceMap:
               datasourceUid: PDFDDA34E6E7D2823
