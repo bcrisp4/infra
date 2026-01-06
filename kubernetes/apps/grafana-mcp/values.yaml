@@ -1,3 +1,11 @@
+# Custom ingress for Tailscale ProxyGroup
+# The upstream chart's ingress doesn't support defaultBackend format
+ingress:
+  enabled: false
+  className: tailscale
+  host: ""
+  annotations: {}
+
 grafana-mcp:
   grafana:
     url: "http://grafana.grafana.svc.cluster.local:80"

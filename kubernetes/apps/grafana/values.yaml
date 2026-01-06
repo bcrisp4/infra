@@ -1,5 +1,13 @@
 # Grafana with PostgreSQL backend defaults
 
+# Custom ingress for Tailscale ProxyGroup
+# The upstream chart's ingress doesn't support defaultBackend format
+ingress:
+  enabled: false
+  className: tailscale
+  host: ""
+  annotations: {}
+
 # CloudNativePG database configuration
 database:
   # Number of PostgreSQL instances (1 for single, 2+ for HA)

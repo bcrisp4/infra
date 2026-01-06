@@ -94,15 +94,10 @@ argo-cd:
         memory: 64Mi
       limits:
         memory: 256Mi
-    # Tailscale ingress (adjust for your setup)
+    # Disable chart's ingress - using custom template with ProxyGroup format
+    # See templates/server-ingress.yaml
     ingress:
-      enabled: true
-      ingressClassName: tailscale
-      hostname: argocd-do-nyc3-prod
-      tls: true
-      annotations: {}
-        # TODO: Re-enable after Tailscale operator 1.94.0 is released
-        # tailscale.com/proxy-class: linkerd-mesh
+      enabled: false
 
   # Repo Server
   repoServer:

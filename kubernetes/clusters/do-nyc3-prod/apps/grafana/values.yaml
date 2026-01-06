@@ -1,6 +1,15 @@
 # Grafana for do-nyc3-prod
 # Uses PostgreSQL via CloudNativePG instead of SQLite
 
+# Custom Tailscale ingress with ProxyGroup
+ingress:
+  enabled: true
+  className: tailscale
+  host: grafana-do-nyc3-prod
+  annotations:
+    tailscale.com/proxy-group: ingress-proxies
+    tailscale.com/tags: tag:k8s-services
+
 # Database HA configuration
 database:
   instances: 2
@@ -67,18 +76,9 @@ grafana:
       address: otel-traces.otel-traces.svc.cluster.local:4317
       propagation: w3c
 
-  # Tailscale ingress
+  # Disable chart's ingress - using custom template with ProxyGroup format
   ingress:
-    enabled: true
-    ingressClassName: tailscale
-    hosts:
-      - grafana-do-nyc3-prod
-    paths:
-      - /
-    tls:
-      - secretName: grafana-tls
-        hosts:
-          - grafana-do-nyc3-prod
+    enabled: false
 
   # Disable chown init container (not needed with runAsNonRoot)
   initChownData:

@@ -3,16 +3,16 @@ externalSecret:
   enabled: true
   itemName: do-nyc3-prod-grafana-service-account-token-mcp
 
+# Custom Tailscale ingress with ProxyGroup
+ingress:
+  enabled: true
+  className: tailscale
+  host: grafana-mcp-do-nyc3-prod
+  annotations:
+    tailscale.com/proxy-group: ingress-proxies
+    tailscale.com/tags: tag:k8s-services
+
 grafana-mcp:
+  # Disable chart's ingress - using custom template with ProxyGroup format
   ingress:
-    enabled: true
-    className: tailscale
-    hosts:
-      - host: grafana-mcp-do-nyc3-prod
-        paths:
-          - path: /
-            pathType: Prefix
-    tls:
-      - secretName: grafana-mcp-tls
-        hosts:
-          - grafana-mcp-do-nyc3-prod
+    enabled: false
