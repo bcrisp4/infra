@@ -290,6 +290,7 @@ The following cluster applications are configured to emit traces:
 | Grafana | Working | OTLP gRPC | `grafana.ini` tracing section |
 | Mimir | Working | OTLP HTTP | OTel SDK env vars |
 | Loki | Broken | OTLP HTTP | OTel SDK env vars + `tracing.enabled` |
+| Linkerd Proxy | Working | OTLP gRPC | Control plane `proxy.tracing` config |
 
 ### Grafana
 
@@ -363,6 +364,36 @@ loki:
 - Requires `tracing.enabled: true` in addition to env vars
 - See Known Issues section below
 
+### Linkerd Proxy
+
+Linkerd proxies emit infrastructure-level spans showing network latency between services. This is configured at the control plane level and applies to all meshed workloads.
+
+```yaml
+# kubernetes/apps/linkerd/values.yaml
+linkerd-control-plane:
+  proxy:
+    tracing:
+      enabled: true
+      collector:
+        endpoint: "otel-traces.otel-traces.svc.cluster.local:4317"
+        meshIdentity:
+          serviceAccountName: otel-traces
+          namespace: otel-traces
+```
+
+**Notes:**
+- Uses OTLP gRPC (port 4317)
+- Proxy spans appear as child spans within existing application traces
+- Proxies only emit spans when participating in a trace (they don't create new traces)
+- The `meshIdentity` specifies the expected identity of the collector (required for mTLS)
+- Pods must be restarted after enabling tracing to pick up the new proxy config
+
+**What Linkerd proxy spans show:**
+- Inbound request latency (time in proxy before reaching application)
+- Outbound request latency (time in proxy after application sends request)
+- Network latency between services
+- mTLS handshake overhead
+
 ### Apps Not Instrumented
 
 | App | Reason |
@@ -371,7 +402,6 @@ loki:
 | cert-manager | Infrastructure operator, low value |
 | cloudnative-pg | Infrastructure operator, low value |
 | external-secrets | Infrastructure operator, low value |
-| linkerd | Service mesh has own observability |
 
 ## Known Issues
 
