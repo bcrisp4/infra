@@ -59,6 +59,7 @@ tempo-distributed:
         processors:
           - service-graphs
           - span-metrics
+          - local-blocks
 
   # Component replicas and resources (matching Loki sizing)
   ingester:
