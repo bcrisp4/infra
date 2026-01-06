@@ -1,0 +1,38 @@
+{{- if .Values.backup.enabled }}
+# ObjectStore for Barman Cloud Plugin backups to S3-compatible storage
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: miniflux-db-backup
+spec:
+  # Retention policy for backups and WALs (format: XXu where u is d/w/m)
+  retentionPolicy: {{ .Values.backup.retentionPolicy | default "28d" | quote }}
+  configuration:
+    destinationPath: s3://{{ .Values.backup.s3.bucket }}/{{ .Values.backup.s3.path | default "miniflux-db" }}
+    endpointURL: https://{{ .Values.backup.s3.endpoint }}
+    s3Credentials:
+      accessKeyId:
+        name: miniflux-db-backup-s3
+        key: ACCESS_KEY_ID
+      secretAccessKey:
+        name: miniflux-db-backup-s3
+        key: ACCESS_SECRET_KEY
+    wal:
+      compression: gzip
+      maxParallel: 2
+    data:
+      compression: gzip
+  # Workaround for boto3 checksum issues with S3-compatible storage
+  instanceSidecarConfiguration:
+    env:
+      - name: AWS_REQUEST_CHECKSUM_CALCULATION
+        value: when_required
+      - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+        value: when_required
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+{{- end }}

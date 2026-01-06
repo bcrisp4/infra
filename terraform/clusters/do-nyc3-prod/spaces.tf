@@ -101,6 +101,10 @@ locals {
       name        = "${local.bucket_prefix}-grafana-postgres-backups"
       description = "Grafana PostgreSQL database backups"
     }
+    miniflux-postgres = {
+      name        = "${local.bucket_prefix}-miniflux-postgres-backups"
+      description = "Miniflux PostgreSQL database backups"
+    }
   }
 }
 

@@ -1,0 +1,38 @@
+# Miniflux for do-nyc3-prod
+
+image:
+  tag: "2.2.15"
+
+config:
+  baseUrl: https://miniflux-do-nyc3-prod.marlin-tet.ts.net
+  pollingFrequency: 60
+  workerPoolSize: 10
+  logLevel: info
+
+ingress:
+  enabled: true
+  className: tailscale
+  host: miniflux-do-nyc3-prod
+  tls:
+    secretName: miniflux-tls
+
+database:
+  instances: 1
+  storage:
+    size: 5Gi
+
+# Database backup to DigitalOcean Spaces via Barman Cloud Plugin
+backup:
+  enabled: true
+  immediate: true
+  retentionPolicy: "28d"
+  s3:
+    itemName: do-nyc3-prod-miniflux-postgres-s3
+    bucket: bc4-do-nyc3-prod-miniflux-postgres-backups
+    endpoint: nyc3.digitaloceanspaces.com
+    path: miniflux-db
+
+# ExternalSecret for admin credentials from 1Password
+externalSecret:
+  enabled: true
+  itemName: miniflux-admin

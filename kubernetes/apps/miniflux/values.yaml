@@ -1,0 +1,75 @@
+# Miniflux RSS Reader defaults
+
+image:
+  repository: miniflux/miniflux
+  tag: "2.2.15"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# Miniflux configuration
+# See https://miniflux.app/docs/configuration.html
+config:
+  runMigrations: true
+  createAdmin: true
+  baseUrl: https://miniflux.example.com
+  pollingFrequency: 60
+  workerPoolSize: 10
+  logLevel: info
+
+# Miniflux resources
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
+
+# Service configuration
+service:
+  port: 8080
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: tailscale
+  host: miniflux
+  tls:
+    secretName: miniflux-tls
+
+# CloudNativePG database configuration
+database:
+  instances: 1
+  storage:
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  # PostgreSQL tuning (sized for 512Mi memory)
+  postgresql:
+    shared_buffers: "128MB"
+    effective_cache_size: "384MB"
+    work_mem: "4MB"
+    maintenance_work_mem: "64MB"
+    checkpoint_timeout: "10min"
+    max_wal_size: "1GB"
+    checkpoint_completion_target: "0.9"
+
+# Database backup configuration (Barman Cloud Plugin)
+backup:
+  enabled: false
+  immediate: false
+  retentionPolicy: "28d"
+  s3:
+    itemName: ""
+    bucket: ""
+    endpoint: ""
+    path: "miniflux-db"
+
+# ExternalSecret for admin credentials (1Password)
+externalSecret:
+  enabled: false
+  itemName: ""
