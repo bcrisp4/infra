@@ -10,6 +10,8 @@ ArgoCD polls Git repositories every 3 minutes by default. Webhooks eliminate thi
 
 Tailscale Funnel exposes a specific path from your private cluster to the public internet, tunneled securely through Tailscale's infrastructure. Using the Tailscale Kubernetes Operator, we can create an Ingress that exposes only the `/api/webhook` endpoint publicly while keeping the rest of ArgoCD private.
 
+**Note:** This ingress uses a **standalone proxy**, not the shared ProxyGroup. Funnel ingresses require path-based routing (`rules` with `paths`), which ProxyGroup doesn't support. Additionally, public-facing endpoints benefit from isolation. See [Migrate Ingress to ProxyGroup](tailscale-proxygroup-ingress.md#when-not-to-use-proxygroup) for details.
+
 ## Prerequisites
 
 - Kubernetes cluster with ArgoCD installed

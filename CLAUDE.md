@@ -330,6 +330,16 @@ spec:
 - No `tls.secretName` - Tailscale provides certs automatically
 - Requires `tailscale.com/proxy-group` annotation
 
+**When NOT to use ProxyGroup:**
+- **Tailscale Funnel ingresses** - Funnel requires path-based routing (`rules` with `paths`), which ProxyGroup doesn't support. Funnel ingresses use standalone proxies.
+- Example: `argocd-webhook-funnel` uses standalone proxy for GitHub webhooks
+
+**Current ingress configuration (do-nyc3-prod):**
+| Ingress | Type | Notes |
+|---------|------|-------|
+| miniflux, grafana, grafana-mcp, argocd-server | ProxyGroup | Shared HA proxies |
+| argocd-webhook-funnel | Standalone | Funnel for public webhook endpoint |
+
 **Known issue:** Operator 1.92.x has pod-level resources bug - can't use custom container resources or Linkerd injection until 1.94+.
 
 See [docs/reference/tailscale-operator.md](docs/reference/tailscale-operator.md) for full reference and [docs/how-to/tailscale-proxygroup-ingress.md](docs/how-to/tailscale-proxygroup-ingress.md) for migration guide.
@@ -512,6 +522,8 @@ The `templatePatch` conditionally applies these to `managedNamespaceMetadata`. T
 ### ArgoCD GitHub Webhooks
 
 GitHub webhooks enable instant sync on push instead of 3-minute polling. The webhook endpoint is exposed publicly via Tailscale Funnel while keeping the ArgoCD UI private.
+
+**Important:** This uses a **standalone proxy**, not ProxyGroup. Funnel requires path-based routing which ProxyGroup doesn't support.
 
 **Current setup (do-nyc3-prod):**
 - Webhook URL: `https://argocd-webhook-do-nyc3-prod.marlin-tet.ts.net/api/webhook`

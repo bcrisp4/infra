@@ -210,7 +210,49 @@ ingress:
     tailscale.com/tags: tag:k8s-services
 ```
 
+## When NOT to Use ProxyGroup
+
+Some ingresses should remain on standalone proxies:
+
+### Tailscale Funnel Ingresses
+
+Funnel ingresses (public endpoints via Tailscale infrastructure) cannot use ProxyGroup because:
+
+1. **Path-based routing required**: Funnel exposes specific paths (e.g., `/api/webhook`), which requires the `rules` format with `paths`. ProxyGroup only supports `defaultBackend`.
+
+2. **Security isolation**: Public-facing endpoints should be isolated from internal services.
+
+3. **Different proxy configuration**: Funnel proxies need the `tailscale.com/funnel: "true"` annotation, which isn't compatible with ProxyGroup.
+
+**Example: ArgoCD webhook Funnel ingress** (stays on standalone proxy):
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd-webhook-funnel
+  annotations:
+    tailscale.com/funnel: "true"  # This makes it standalone, not ProxyGroup
+spec:
+  ingressClassName: tailscale
+  tls:
+    - hosts:
+        - argocd-webhook-do-nyc3-prod
+  rules:
+    - http:
+        paths:
+          - path: /api/webhook
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 80
+```
+
+See [ArgoCD Webhooks via Tailscale Funnel](argocd-webhook-tailscale-funnel.md) for the full setup.
+
 ## Related
 
 - [Tailscale Operator Reference](../reference/tailscale-operator.md)
+- [ArgoCD Webhooks via Tailscale Funnel](argocd-webhook-tailscale-funnel.md)
 - [ProxyGroup HA Ingress Docs](https://tailscale.com/kb/1439/kubernetes-operator-cluster-ingress)

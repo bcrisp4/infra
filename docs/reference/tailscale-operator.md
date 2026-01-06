@@ -222,6 +222,14 @@ For custom subdomain structures, alternatives require additional infrastructure:
 
 Funnel allows exposing specific paths publicly through Tailscale's infrastructure.
 
+**Important:** Funnel ingresses use **standalone proxies**, not ProxyGroup. This is because:
+1. Funnel requires path-based routing (`rules` with `paths`), which ProxyGroup doesn't support
+2. Funnel ingresses should be isolated from other services for security
+3. The public-facing nature of Funnel benefits from dedicated proxy resources
+
+**Current Funnel ingresses (do-nyc3-prod):**
+- `argocd-webhook-funnel` - Exposes `/api/webhook` for GitHub webhooks
+
 To enable Funnel:
 
 1. Add `funnel` attribute to the tag in ACLs:
@@ -239,6 +247,16 @@ To enable Funnel:
 2. Create Ingress with `tailscale.com/funnel: "true"` annotation
 
 See [ArgoCD Webhooks via Tailscale Funnel](../how-to/argocd-webhook-tailscale-funnel.md) for a complete example.
+
+## Current Ingress Configuration (do-nyc3-prod)
+
+| Ingress | Hostname | Type | Notes |
+|---------|----------|------|-------|
+| miniflux | `miniflux.marlin-tet.ts.net` | ProxyGroup | |
+| grafana | `grafana-do-nyc3-prod.marlin-tet.ts.net` | ProxyGroup | |
+| grafana-mcp | `grafana-mcp-do-nyc3-prod.marlin-tet.ts.net` | ProxyGroup | |
+| argocd-server | `argocd-do-nyc3-prod.marlin-tet.ts.net` | ProxyGroup | |
+| argocd-webhook-funnel | `argocd-webhook-do-nyc3-prod.marlin-tet.ts.net` | Standalone | Funnel for GitHub webhooks |
 
 ## Known Issues
 
