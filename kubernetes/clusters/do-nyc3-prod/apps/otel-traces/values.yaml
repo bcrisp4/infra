@@ -2,6 +2,7 @@
 # DaemonSet with node-local routing via internalTrafficPolicy: Local
 
 opentelemetry-collector:
+  fullnameOverride: otel-traces
   mode: daemonset
   image:
     repository: otel/opentelemetry-collector-contrib
