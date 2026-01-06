@@ -6,6 +6,9 @@ externalSecret:
   itemName: do-nyc3-prod-tempo-s3
 
 tempo-distributed:
+  # Enable streaming over HTTP for TraceQL queries
+  streamOverHTTPEnabled: true
+
   # Enable OTLP receivers for trace ingestion
   traces:
     otlp:
