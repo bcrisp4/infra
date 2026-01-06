@@ -14,7 +14,7 @@ Applications
 [OTel Collector] ──────────────────────────────────────────┐
     │                                                      │
     ▼ (mTLS via Linkerd)                                   │
-tempo-gateway.tempo (OTLP endpoint)                        │
+tempo-distributor.tempo:4317 (OTLP gRPC)                   │
     │                                                      │
     ▼                                                      │
 Tempo Distributed                                          │
@@ -197,7 +197,7 @@ Traces are collected by OpenTelemetry Collector DaemonSets (`otel-traces`) and s
 └───────────────┼─────────────────────────────┼───────────────┘
                 └──────────────┬──────────────┘
                                ▼
-                    tempo-gateway.tempo.svc:4317
+                    tempo-distributor.tempo.svc:4317
                                │
                                ▼
                           Tempo (S3)
@@ -242,17 +242,17 @@ resource (add cluster=do-nyc3-prod)
 batch (group 256 spans or 10s timeout)
     │
     ▼
-OTLP Exporter → tempo-gateway:4317 (X-Scope-OrgID: prod)
+OTLP Exporter → tempo-distributor:4317 (X-Scope-OrgID: prod)
 ```
 
 ### Tempo OTLP Endpoints
 
-The collector exports to Tempo gateway. For direct access (debugging):
+The collector exports to Tempo distributor via OTLP gRPC:
 
 | Protocol | Endpoint |
 |----------|----------|
-| OTLP gRPC | `tempo-gateway.tempo.svc.cluster.local:4317` |
-| OTLP HTTP | `http://tempo-gateway.tempo.svc.cluster.local/otlp` |
+| OTLP gRPC (collector) | `tempo-distributor.tempo.svc.cluster.local:4317` |
+| OTLP HTTP (via gateway) | `http://tempo-gateway.tempo.svc.cluster.local/otlp` |
 
 All requests must include the `X-Scope-OrgID: prod` header.
 
@@ -280,6 +280,117 @@ All requests must include the `X-Scope-OrgID: prod` header.
    - Consider generating span metrics BEFORE sampling
 
 **Note:** If tail sampling is enabled, Tempo's metrics generator won't see dropped traces, resulting in incomplete service graphs and RED metrics.
+
+## Instrumented Cluster Apps
+
+The following cluster applications are configured to emit traces:
+
+| App | Status | Protocol | Configuration |
+|-----|--------|----------|---------------|
+| Grafana | Working | OTLP gRPC | `grafana.ini` tracing section |
+| Mimir | Working | OTLP HTTP | OTel SDK env vars |
+| Loki | Broken | OTLP HTTP | OTel SDK env vars + `tracing.enabled` |
+
+### Grafana
+
+Grafana uses native OpenTelemetry support configured via `grafana.ini`:
+
+```yaml
+# kubernetes/clusters/do-nyc3-prod/apps/grafana/values.yaml
+grafana:
+  grafana.ini:
+    tracing.opentelemetry:
+      custom_attributes: "cluster:do-nyc3-prod,service.name:grafana"
+      sampler_type: const
+      sampler_param: 1  # 100% sampling
+    tracing.opentelemetry.otlp:
+      address: otel-traces.otel-traces.svc.cluster.local:4317
+      propagation: w3c
+```
+
+**Notes:**
+- Uses OTLP gRPC (port 4317)
+- Traces UI operations, API calls, and datasource queries
+
+### Mimir
+
+Mimir uses the standard OTel SDK environment variables:
+
+```yaml
+# kubernetes/clusters/do-nyc3-prod/apps/mimir/values.yaml
+mimir-distributed:
+  global:
+    extraEnv:
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: "http://otel-traces.otel-traces.svc.cluster.local:4318"
+      - name: OTEL_SERVICE_NAME
+        value: "mimir"
+      - name: OTEL_TRACES_SAMPLER
+        value: "parentbased_always_on"
+      - name: OTEL_PROPAGATORS
+        value: "tracecontext,baggage"
+```
+
+**Notes:**
+- Uses OTLP HTTP (port 4318) - Mimir's OTel SDK does not support gRPC
+- All Mimir components (ingester, distributor, querier, etc.) emit traces
+- Traces query execution, ingestion, and inter-component communication
+
+### Loki
+
+Loki is configured for tracing but currently broken due to an upstream bug:
+
+```yaml
+# kubernetes/clusters/do-nyc3-prod/apps/loki/values.yaml
+loki:
+  global:
+    extraEnv:
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: "http://otel-traces.otel-traces.svc.cluster.local:4318"
+      - name: OTEL_SERVICE_NAME
+        value: "loki"
+      - name: OTEL_TRACES_SAMPLER
+        value: "parentbased_always_on"
+      - name: OTEL_PROPAGATORS
+        value: "tracecontext,baggage"
+  loki:
+    tracing:
+      enabled: true
+```
+
+**Notes:**
+- Uses OTLP HTTP (port 4318) - same as Mimir
+- Requires `tracing.enabled: true` in addition to env vars
+- See Known Issues section below
+
+### Apps Not Instrumented
+
+| App | Reason |
+|-----|--------|
+| ArgoCD | `--otlp-address` flag broken in v3.x ([Issue #25735](https://github.com/argoproj/argo-cd/issues/25735)) |
+| cert-manager | Infrastructure operator, low value |
+| cloudnative-pg | Infrastructure operator, low value |
+| external-secrets | Infrastructure operator, low value |
+| linkerd | Service mesh has own observability |
+
+## Known Issues
+
+### Loki OTel Schema Conflict (grafana/loki#19975)
+
+**Status:** Open bug in Loki 3.6.0+
+
+**Error:**
+```
+error in initializing tracing. tracing will not be enabled
+err="failed to initialise trace resource: conflicting Schema URL:
+https://opentelemetry.io/schemas/1.37.0 and https://opentelemetry.io/schemas/1.34.0"
+```
+
+**Cause:** Loki 3.6.0 has conflicting OTel SDK schema versions in its dependencies.
+
+**Workaround:** Downgrade to Loki 3.5.7 (Helm chart loki 6.46.0) if tracing is required.
+
+**Tracking:** [grafana/loki#19975](https://github.com/grafana/loki/issues/19975)
 
 ## Architecture Decisions
 
