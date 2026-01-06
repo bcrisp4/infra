@@ -17,7 +17,7 @@ ingress:
     secretName: miniflux-tls
 
 database:
-  instances: 1
+  instances: 2
   storage:
     size: 5Gi
 
