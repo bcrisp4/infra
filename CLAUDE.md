@@ -790,10 +790,42 @@ The metrics generator derives metrics from ingested traces and writes them to Mi
 { resource.service.name = "api-gateway" && status = error && duration > 500ms }
 ```
 
-**Note:** Trace ingestion pipeline (OTel collectors) is configured separately.
-
 **Key Gotcha - tempo-distributed chart:**
 
 Do NOT use `global.extraArgs` or `global.extraEnvFrom` in the tempo-distributed chart. These apply to ALL components including memcached, which doesn't understand Tempo's `-config.expand-env=true` flag. Instead, configure `extraArgs` and `extraEnvFrom` per-component (ingester, distributor, querier, etc.).
 
 See [docs/reference/tracing-architecture.md](docs/reference/tracing-architecture.md) for full architecture details including OTLP endpoints and service graph configuration.
+
+### Trace Ingestion
+
+Traces are collected by OpenTelemetry Collector DaemonSets (`otel-traces`) and shipped to Tempo via OTLP.
+
+**Architecture:**
+- `otel-traces` DaemonSet runs on each node (same pattern as otel-logs)
+- Service with `internalTrafficPolicy: Local` for node-local routing
+- Enriches with Kubernetes metadata (namespace, pod, container, deployment, etc.)
+- Ships to Tempo gateway via OTLP gRPC with tenant header `X-Scope-OrgID: prod`
+- Linkerd mesh injection for mTLS
+
+**Application Configuration:**
+
+Applications send traces to the OTel collector via OTLP:
+
+```bash
+# gRPC (recommended)
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-traces.otel-traces.svc.cluster.local:4317
+OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+
+# HTTP
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-traces.otel-traces.svc.cluster.local:4318
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+```
+
+**Processor Pipeline:**
+```
+OTLP Receiver -> memory_limiter -> k8sattributes -> resource (cluster label) -> batch -> Tempo
+```
+
+**Sampling:** No sampling enabled by default. All traces are kept. If volume becomes an issue, add probabilistic sampling to the collector config.
+
+See [docs/reference/tracing-architecture.md](docs/reference/tracing-architecture.md) for full collector configuration and sampling options.

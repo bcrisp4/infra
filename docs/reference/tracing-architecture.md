@@ -179,18 +179,107 @@ To view the service graph in Grafana:
 
 ## Trace Ingestion
 
-**Note:** Trace ingestion (OTel collectors sending traces to Tempo) is configured separately from this storage architecture. See the OTel collector configuration for trace export settings.
+Traces are collected by OpenTelemetry Collector DaemonSets (`otel-traces`) and shipped to Tempo via OTLP.
 
-### OTLP Endpoints
+### Collector Architecture
 
-Tempo accepts traces via OTLP:
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Node 1                         Node 2                      │
+│  ┌─────────┐                    ┌─────────┐                 │
+│  │ App Pod │──┐                 │ App Pod │──┐              │
+│  └─────────┘  │                 └─────────┘  │              │
+│               ▼                              ▼              │
+│         ┌───────────┐                 ┌───────────┐         │
+│         │otel-traces│                 │otel-traces│         │
+│         │(DaemonSet)│                 │(DaemonSet)│         │
+│         └─────┬─────┘                 └─────┬─────┘         │
+└───────────────┼─────────────────────────────┼───────────────┘
+                └──────────────┬──────────────┘
+                               ▼
+                    tempo-gateway.tempo.svc:4317
+                               │
+                               ▼
+                          Tempo (S3)
+```
+
+**Key features:**
+- DaemonSet mode (one collector per node)
+- Service with `internalTrafficPolicy: Local` for node-local routing
+- Linkerd mesh injection for mTLS
+
+### Application Configuration
+
+Applications send traces to the OTel collector via OTLP:
+
+**gRPC (recommended):**
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-traces.otel-traces.svc.cluster.local:4317
+OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+```
+
+**HTTP:**
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-traces.otel-traces.svc.cluster.local:4318
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+```
+
+### Processor Pipeline
+
+```
+OTLP Receiver (gRPC/HTTP)
+    │
+    ▼
+memory_limiter (reject if over 400MB - safety)
+    │
+    ▼
+k8sattributes (add pod/namespace/deployment metadata)
+    │
+    ▼
+resource (add cluster=do-nyc3-prod)
+    │
+    ▼
+batch (group 256 spans or 10s timeout)
+    │
+    ▼
+OTLP Exporter → tempo-gateway:4317 (X-Scope-OrgID: prod)
+```
+
+### Tempo OTLP Endpoints
+
+The collector exports to Tempo gateway. For direct access (debugging):
 
 | Protocol | Endpoint |
 |----------|----------|
+| OTLP gRPC | `tempo-gateway.tempo.svc.cluster.local:4317` |
 | OTLP HTTP | `http://tempo-gateway.tempo.svc.cluster.local/otlp` |
-| OTLP gRPC | `tempo-distributor.tempo.svc.cluster.local:4317` |
 
 All requests must include the `X-Scope-OrgID: prod` header.
+
+### Sampling
+
+**Current configuration:** No sampling - all traces are kept.
+
+**Why no server-side sampling in Tempo:**
+- Tempo is a storage backend, not a processing layer
+- Tail sampling requires buffering complete traces before deciding
+- Sampling must happen in the collector before traces reach Tempo
+
+**Future options if volume becomes an issue:**
+
+1. **Probabilistic (head) sampling** - Add to DaemonSet collectors (simple):
+   ```yaml
+   processors:
+     probabilistic_sampler:
+       sampling_percentage: 10
+   ```
+
+2. **Tail sampling** - Requires gateway collector layer (complex):
+   - Need load balancer with trace ID affinity
+   - Stateful collectors that buffer complete traces
+   - Consider generating span metrics BEFORE sampling
+
+**Note:** If tail sampling is enabled, Tempo's metrics generator won't see dropped traces, resulting in incomplete service graphs and RED metrics.
 
 ## Architecture Decisions
 
