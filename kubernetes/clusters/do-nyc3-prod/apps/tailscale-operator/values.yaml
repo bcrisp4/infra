@@ -5,6 +5,12 @@ externalSecret:
   enabled: true
   itemName: "do-nyc3-prod-tailscale-operator"
 
+# HA ingress ProxyGroup
+proxyGroup:
+  enabled: true
+  name: ingress-proxies
+  replicas: 2
+
 tailscale-operator:
   operatorConfig:
     hostname: do-nyc3-prod-ts-operator

@@ -6,6 +6,15 @@ externalSecret:
   enabled: false
   itemName: ""  # Set in cluster values (e.g., "do-nyc3-prod-tailscale-operator")
 
+# ProxyGroup for HA ingress (shared proxy replicas)
+proxyGroup:
+  enabled: false
+  name: ingress-proxies
+  replicas: 2
+  proxyClass: ha-ingress
+  tags:
+    - tag:k8s-ingress
+
 tailscale-operator:
   # OAuth credentials are synced from 1Password via ExternalSecret
   # The operator expects a secret named "operator-oauth" with client_id and client_secret keys

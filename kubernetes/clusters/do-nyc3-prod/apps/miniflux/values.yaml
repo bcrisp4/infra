@@ -16,6 +16,9 @@ ingress:
   host: miniflux
   tls:
     secretName: miniflux-tls
+  annotations:
+    tailscale.com/proxy-group: ingress-proxies
+    tailscale.com/tags: tag:k8s-services
 
 database:
   instances: 2

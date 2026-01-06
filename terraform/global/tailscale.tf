@@ -7,6 +7,9 @@ resource "tailscale_acl" "this" {
       {
         "tag:k8s-operator" = []
         "tag:k8s"          = concat(["tag:k8s-operator"], [for name, _ in var.clusters : "tag:k8s-operator-${name}"])
+        # ProxyGroup HA ingress tags
+        "tag:k8s-ingress"  = concat(["tag:k8s-operator"], [for name, _ in var.clusters : "tag:k8s-operator-${name}"])
+        "tag:k8s-services" = concat(["tag:k8s-operator"], [for name, _ in var.clusters : "tag:k8s-operator-${name}"])
       },
       # Legacy cluster tags (nbg1-prod1)
       {
@@ -33,6 +36,13 @@ resource "tailscale_acl" "this" {
         users  = ["autogroup:nonroot", "root"]
       }
     ]
+
+    # Auto-approve Tailscale Services for ProxyGroup HA ingress
+    autoApprovers = {
+      services = {
+        "tag:k8s-services" = ["tag:k8s-ingress"]
+      }
+    }
 
     nodeAttrs = [
       {
@@ -67,7 +77,8 @@ resource "tailscale_oauth_client" "k8s_operator" {
   tags        = ["tag:k8s-operator-${each.key}"]
   description = "Kubernetes operator for ${each.key}"
 
-  # Scopes needed for k8s operator
+  # Scopes needed for k8s operator with ProxyGroup support
   # See: https://tailscale.com/kb/1236/kubernetes-operator#prerequisites
-  scopes = ["devices", "auth_keys", "routes", "dns"]
+  # Services scope required for ProxyGroup HA ingress
+  scopes = ["devices", "auth_keys", "routes", "dns", "services"]
 }
