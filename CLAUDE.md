@@ -292,7 +292,47 @@ Key learnings from deploying ESO with 1Password:
 - OAuth client tags must own `tag:k8s` for ingresses to work (operator uses `tag:k8s` by default)
 - ACL example: `"tag:k8s" = ["tag:k8s-operator", "tag:k8s-operator-do-nyc3-prod"]`
 - If ingresses fail with "requested tags invalid or not permitted", check ACL tag ownership
-- Scopes needed: `devices`, `auth_keys`, `routes`, `dns`
+- Scopes needed: `devices`, `auth_keys`, `routes`, `dns`, `services` (services required for ProxyGroup)
+
+### Tailscale ProxyGroup HA Ingress
+
+ProxyGroup consolidates per-ingress proxies into shared, multi-replica proxies for HA.
+
+**ACL requirements:**
+- `tag:k8s-ingress` - Applied to ProxyGroup proxies (owned by operator tags)
+- `tag:k8s-services` - Applied to Tailscale Services (owned by operator tags)
+- `autoApprovers.services` - Allows `tag:k8s-ingress` to approve `tag:k8s-services`
+
+**Ingress format for ProxyGroup** (different from standard K8s Ingress):
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: myapp
+  annotations:
+    tailscale.com/proxy-group: ingress-proxies
+    tailscale.com/tags: tag:k8s-services
+spec:
+  ingressClassName: tailscale
+  defaultBackend:           # Use defaultBackend, NOT rules with host
+    service:
+      name: myapp
+      port:
+        number: 8080
+  tls:
+    - hosts:
+        - myapp             # Hostname only in tls.hosts, not in rules
+```
+
+**Key differences from standard Ingress:**
+- Uses `defaultBackend` instead of `rules` with `host` field
+- Hostname only in `tls.hosts`, NOT in rules (will fail with "rule with host ignored, unsupported")
+- No `tls.secretName` - Tailscale provides certs automatically
+- Requires `tailscale.com/proxy-group` annotation
+
+**Known issue:** Operator 1.92.x has pod-level resources bug - can't use custom container resources or Linkerd injection until 1.94+.
+
+See [docs/reference/tailscale-operator.md](docs/reference/tailscale-operator.md) for full reference and [docs/how-to/tailscale-proxygroup-ingress.md](docs/how-to/tailscale-proxygroup-ingress.md) for migration guide.
 
 ### Tailscale MagicDNS Naming
 
