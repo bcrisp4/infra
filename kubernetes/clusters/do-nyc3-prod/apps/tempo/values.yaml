@@ -55,14 +55,24 @@ tempo-distributed:
             headers:
               X-Scope-OrgID: prod
 
-  # Enable processors in overrides
+  # Per-tenant overrides (defaults apply to all tenants)
   overrides:
     defaults:
+      # Default retention: 2 days
+      compaction:
+        block_retention: 2d
       metrics_generator:
         processors:
           - service-graphs
           - span-metrics
           - local-blocks
+
+  # Per-tenant overrides (same structure as defaults)
+  per_tenant_overrides:
+    prod:
+      # Retention: 2 days (same as default, shown for clarity)
+      compaction:
+        block_retention: 2d
 
   # Component replicas and resources (matching Loki sizing)
   ingester:

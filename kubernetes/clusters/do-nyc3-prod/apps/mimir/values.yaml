@@ -28,6 +28,11 @@ mimir-distributed:
 
   mimir:
     structuredConfig:
+      # Default limits for all tenants
+      limits:
+        # Default retention: 2 days (per-tenant overrides below)
+        compactor_blocks_retention_period: 2d
+
       # Query frontend logging - log all queries
       frontend:
         log_queries_longer_than: -1s
@@ -105,6 +110,8 @@ mimir-distributed:
     overrides:
       # Limits for "prod" tenant (X-Scope-OrgID: prod)
       prod:
+        # Retention: 28 days (overrides default of 2 days)
+        compactor_blocks_retention_period: 28d
         # Increase label limit for Istio metrics (default: 30, Istio has ~44)
         max_label_names_per_series: 60
         # Ingestion limits sized for current cluster capacity
