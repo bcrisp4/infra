@@ -7,10 +7,11 @@ externalSecret:
 
 loki:
   # OpenTelemetry tracing to Tempo via otel-traces collector
+  # Uses HTTP/protobuf (port 4318), not gRPC (port 4317)
   global:
     extraEnv:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
-        value: "http://otel-traces.otel-traces.svc.cluster.local:4317"
+        value: "http://otel-traces.otel-traces.svc.cluster.local:4318"
       - name: OTEL_SERVICE_NAME
         value: "loki"
       - name: OTEL_TRACES_SAMPLER

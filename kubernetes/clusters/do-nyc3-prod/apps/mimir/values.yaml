@@ -15,9 +15,10 @@ mimir-distributed:
     podAnnotations:
       prometheus.io/label-cluster: "mimir-do-nyc3-prod"
     # OpenTelemetry tracing to Tempo via otel-traces collector
+    # Uses HTTP/protobuf (port 4318), not gRPC (port 4317)
     extraEnv:
       - name: OTEL_EXPORTER_OTLP_ENDPOINT
-        value: "http://otel-traces.otel-traces.svc.cluster.local:4317"
+        value: "http://otel-traces.otel-traces.svc.cluster.local:4318"
       - name: OTEL_SERVICE_NAME
         value: "mimir"
       - name: OTEL_TRACES_SAMPLER
