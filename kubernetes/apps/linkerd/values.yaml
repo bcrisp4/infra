@@ -45,3 +45,11 @@ linkerd-control-plane:
       memory:
         limit: 128Mi
         request: 32Mi
+    # Enable distributed tracing - export proxy spans to otel-traces collector
+    tracing:
+      enabled: true
+      collector:
+        endpoint: "otel-traces.otel-traces.svc.cluster.local:4317"
+        meshIdentity:
+          serviceAccountName: otel-traces
+          namespace: otel-traces
