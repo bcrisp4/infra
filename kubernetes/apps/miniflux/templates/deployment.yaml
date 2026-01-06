@@ -58,8 +58,18 @@ spec:
               value: "0.0.0.0:8080"
             - name: POLLING_FREQUENCY
               value: {{ .Values.config.pollingFrequency | quote }}
+            - name: POLLING_SCHEDULER
+              value: {{ .Values.config.pollingScheduler | quote }}
+            - name: BATCH_SIZE
+              value: {{ .Values.config.batchSize | quote }}
             - name: WORKER_POOL_SIZE
               value: {{ .Values.config.workerPoolSize | quote }}
+            - name: SCHEDULER_ENTRY_FREQUENCY_MIN_INTERVAL
+              value: {{ .Values.config.schedulerEntryFrequencyMinInterval | quote }}
+            - name: SCHEDULER_ENTRY_FREQUENCY_MAX_INTERVAL
+              value: {{ .Values.config.schedulerEntryFrequencyMaxInterval | quote }}
+            - name: HTTP_CLIENT_TIMEOUT
+              value: {{ .Values.config.httpClientTimeout | quote }}
             - name: LOG_LEVEL
               value: {{ .Values.config.logLevel | quote }}
           livenessProbe:

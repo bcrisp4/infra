@@ -58,8 +58,9 @@ image:
 
 config:
   baseUrl: https://miniflux-do-nyc3-prod.marlin-tet.ts.net
-  pollingFrequency: 60    # Minutes between feed refresh batches
-  workerPoolSize: 10      # Concurrent feed fetchers
+  pollingFrequency: 60        # Minutes between scheduler runs
+  pollingScheduler: entry_frequency  # Adapts to feed update patterns
+  workerPoolSize: 16          # Concurrent feed fetchers
   logLevel: info
 
 database:
@@ -72,6 +73,23 @@ backup:
   retentionPolicy: "28d"
 ```
 
+### Polling Scheduler
+
+Miniflux supports two scheduler modes:
+
+| Scheduler | Behavior |
+|-----------|----------|
+| `round_robin` | Polls all feeds equally in rotation |
+| `entry_frequency` | Adapts polling interval based on each feed's update frequency |
+
+**entry_frequency** (recommended) is more efficient - frequently updated feeds are polled more often, while dormant feeds are polled less.
+
+Related settings (with defaults):
+- `SCHEDULER_ENTRY_FREQUENCY_MIN_INTERVAL`: 5 minutes
+- `SCHEDULER_ENTRY_FREQUENCY_MAX_INTERVAL`: 1440 minutes (24 hours)
+- `BATCH_SIZE`: 100 feeds per scheduler run
+- `HTTP_CLIENT_TIMEOUT`: 30 seconds
+
 ### Environment Variables
 
 Miniflux configuration is passed via environment variables in the deployment:
@@ -83,6 +101,8 @@ Miniflux configuration is passed via environment variables in the deployment:
 | `ADMIN_PASSWORD` | ExternalSecret (`miniflux-admin`) | Initial admin password |
 | `RUN_MIGRATIONS` | Values | Run DB migrations on startup (default: 1) |
 | `CREATE_ADMIN` | Values | Create admin user if not exists (default: 1) |
+| `POLLING_SCHEDULER` | Values | Scheduler mode: `round_robin` or `entry_frequency` |
+| `WORKER_POOL_SIZE` | Values | Concurrent feed fetchers (default: 16) |
 
 ## Horizontal Scaling
 

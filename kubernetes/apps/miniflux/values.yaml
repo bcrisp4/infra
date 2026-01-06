@@ -13,8 +13,16 @@ config:
   runMigrations: true
   createAdmin: true
   baseUrl: https://miniflux.example.com
+  # Polling settings
   pollingFrequency: 60
-  workerPoolSize: 10
+  pollingScheduler: entry_frequency  # round_robin or entry_frequency
+  batchSize: 100
+  workerPoolSize: 16
+  # entry_frequency scheduler settings (ignored if using round_robin)
+  schedulerEntryFrequencyMinInterval: 5
+  schedulerEntryFrequencyMaxInterval: 1440
+  # HTTP client settings
+  httpClientTimeout: 30
   logLevel: info
 
 # Miniflux resources

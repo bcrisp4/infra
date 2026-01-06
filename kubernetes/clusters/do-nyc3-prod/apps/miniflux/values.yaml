@@ -6,7 +6,8 @@ image:
 config:
   baseUrl: https://miniflux-do-nyc3-prod.marlin-tet.ts.net
   pollingFrequency: 60
-  workerPoolSize: 10
+  pollingScheduler: entry_frequency
+  workerPoolSize: 16
   logLevel: info
 
 ingress:
