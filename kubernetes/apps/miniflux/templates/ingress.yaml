@@ -12,19 +12,12 @@ metadata:
   {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
+  defaultBackend:
+    service:
+      name: miniflux
+      port:
+        number: {{ .Values.service.port }}
   tls:
-    - secretName: {{ .Values.ingress.tls.secretName }}
-      hosts:
+    - hosts:
         - {{ .Values.ingress.host }}
-  rules:
-    - host: {{ .Values.ingress.host }}
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: miniflux
-                port:
-                  number: {{ .Values.service.port }}
 {{- end }}
