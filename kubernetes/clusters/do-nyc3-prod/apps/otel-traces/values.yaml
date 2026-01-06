@@ -82,9 +82,9 @@ opentelemetry-collector:
         timeout: 10s
 
     exporters:
-      # Export to Tempo via OTLP gRPC
+      # Export to Tempo distributor via OTLP gRPC
       otlp/tempo:
-        endpoint: "tempo-gateway.tempo.svc.cluster.local:4317"
+        endpoint: "tempo-distributor.tempo.svc.cluster.local:4317"
         tls:
           insecure: true  # Linkerd provides mTLS
         headers:

@@ -6,6 +6,14 @@ externalSecret:
   itemName: do-nyc3-prod-tempo-s3
 
 tempo-distributed:
+  # Enable OTLP receivers for trace ingestion
+  traces:
+    otlp:
+      grpc:
+        enabled: true
+      http:
+        enabled: true
+
   # Storage configuration with environment variables from ExternalSecret
   storage:
     trace:
