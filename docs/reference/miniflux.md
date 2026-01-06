@@ -33,7 +33,7 @@ Miniflux is a minimalist, self-hosted RSS reader deployed on do-nyc3-prod.
 **Components:**
 - **Miniflux**: Single deployment pod handling HTTP and background feed polling
 - **CloudNativePG**: PostgreSQL cluster with streaming replication (2 instances)
-- **Tailscale Ingress**: Private access via `miniflux-do-nyc3-prod.marlin-tet.ts.net`
+- **Tailscale Ingress**: Private access via `miniflux.marlin-tet.ts.net`
 - **Linkerd**: Service mesh for mTLS between pods
 - **Barman Cloud**: Daily backups to DigitalOcean Spaces
 
@@ -57,7 +57,7 @@ image:
   tag: "2.2.15"
 
 config:
-  baseUrl: https://miniflux-do-nyc3-prod.marlin-tet.ts.net
+  baseUrl: https://miniflux.marlin-tet.ts.net
   pollingFrequency: 60        # Minutes between scheduler runs
   pollingScheduler: entry_frequency  # Adapts to feed update patterns
   workerPoolSize: 16          # Concurrent feed fetchers

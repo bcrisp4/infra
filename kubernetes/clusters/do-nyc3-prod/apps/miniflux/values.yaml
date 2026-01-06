@@ -4,7 +4,7 @@ image:
   tag: "2.2.15"
 
 config:
-  baseUrl: https://miniflux-do-nyc3-prod.marlin-tet.ts.net
+  baseUrl: https://miniflux.marlin-tet.ts.net
   pollingFrequency: 60
   pollingScheduler: entry_frequency
   workerPoolSize: 16
@@ -13,7 +13,7 @@ config:
 ingress:
   enabled: true
   className: tailscale
-  host: miniflux-do-nyc3-prod
+  host: miniflux
   tls:
     secretName: miniflux-tls
 
