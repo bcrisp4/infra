@@ -58,6 +58,14 @@ grafana:
     rendering:
       server_url: http://grafana-image-renderer.grafana.svc.cluster.local:8081/render
       callback_url: http://grafana.grafana.svc.cluster.local/
+    # OpenTelemetry tracing
+    tracing.opentelemetry:
+      custom_attributes: "cluster:do-nyc3-prod,service.name:grafana"
+      sampler_type: const
+      sampler_param: 1
+    tracing.opentelemetry.otlp:
+      address: otel-traces.otel-traces.svc.cluster.local:4317
+      propagation: w3c
 
   # Tailscale ingress
   ingress:

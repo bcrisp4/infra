@@ -6,7 +6,21 @@ externalSecret:
   itemName: do-nyc3-prod-loki-s3
 
 loki:
+  # OpenTelemetry tracing to Tempo via otel-traces collector
+  global:
+    extraEnv:
+      - name: OTEL_EXPORTER_OTLP_ENDPOINT
+        value: "http://otel-traces.otel-traces.svc.cluster.local:4317"
+      - name: OTEL_SERVICE_NAME
+        value: "loki"
+      - name: OTEL_TRACES_SAMPLER
+        value: "parentbased_always_on"
+      - name: OTEL_PROPAGATORS
+        value: "tracecontext,baggage"
+
   loki:
+    tracing:
+      enabled: true
     pattern_ingester:
       enabled: true
     limits_config:
