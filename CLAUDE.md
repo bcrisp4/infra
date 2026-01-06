@@ -646,7 +646,7 @@ Available datasources for use with the Grafana MCP tools:
 |------|-----|------|-------------|
 | `mimir-do-nyc3-prod` | `PDFDDA34E6E7D2823` | prometheus | Mimir metrics (PromQL) |
 | `loki-do-nyc3-prod` | `PF99E8F4CDB5B6FB2` | loki | Loki logs (LogQL) |
-| `tempo-do-nyc3-prod` | TBD | tempo | Tempo traces (TraceQL) |
+| `tempo-do-nyc3-prod` | `P3FE448E25097FAF8` | tempo | Tempo traces (TraceQL) |
 
 **Keeping this list updated:**
 
@@ -792,4 +792,8 @@ The metrics generator derives metrics from ingested traces and writes them to Mi
 
 **Note:** Trace ingestion pipeline (OTel collectors) is configured separately.
 
-See [docs/reference/tracing-architecture.md](docs/reference/tracing-architecture.md) for full details including OTLP endpoints and service graph configuration.
+**Key Gotcha - tempo-distributed chart:**
+
+Do NOT use `global.extraArgs` or `global.extraEnvFrom` in the tempo-distributed chart. These apply to ALL components including memcached, which doesn't understand Tempo's `-config.expand-env=true` flag. Instead, configure `extraArgs` and `extraEnvFrom` per-component (ingester, distributor, querier, etc.).
+
+See [docs/reference/tracing-architecture.md](docs/reference/tracing-architecture.md) for full architecture details including OTLP endpoints and service graph configuration.
