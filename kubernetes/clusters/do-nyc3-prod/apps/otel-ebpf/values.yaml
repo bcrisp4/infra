@@ -6,13 +6,13 @@ opentelemetry-ebpf-instrumentation:
   securityContext:
     privileged: true
 
-  # Resources
+  # Resources - OBI needs significant memory for eBPF maps
   resources:
     requests:
       cpu: 100m
-      memory: 128Mi
+      memory: 256Mi
     limits:
-      memory: 512Mi
+      memory: 1Gi
 
   # Send to node-local collectors (internalTrafficPolicy: Local)
   config:
