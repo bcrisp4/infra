@@ -342,3 +342,8 @@ mimir-distributed:
         memory: 150Mi
       limits:
         memory: 150Mi
+
+  # Rollout operator - add cluster label for dashboard metrics
+  rollout_operator:
+    podAnnotations:
+      prometheus.io/label-cluster: "mimir-do-nyc3-prod"
