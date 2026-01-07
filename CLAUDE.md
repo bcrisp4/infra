@@ -170,8 +170,6 @@ Files to update when changing versions:
 - `terraform/clusters/_template/main.tf` - required_version only
 - `README.md` - prerequisites section
 
-Use pessimistic constraints (`~> X.Y`) pinned to minor version for stability while allowing patches.
-
 ### Dependabot
 
 Dependabot automatically creates PRs to update Helm chart dependencies and Terraform providers. Configuration is in `.github/dependabot.yml`.
@@ -203,12 +201,11 @@ helm repo update
 helm search repo <chart> --versions | head -5
 ```
 
-Use pessimistic constraints (`~X.Y`) pinned to latest minor version:
 ```yaml
 # kubernetes/apps/{app}/Chart.yaml
 dependencies:
   - name: external-secrets
-    version: "~1.2"
+    version: "1.2.3"
     repository: "https://charts.external-secrets.io"
 ```
 
