@@ -973,5 +973,9 @@ n8n:
             key: password
 ```
 
+**Initial setup note:** n8n requires manual owner account setup on first access (no env var automation available). Credentials persist in PostgreSQL.
+
 **Future enhancements:**
 - Tailscale Funnel for public webhook endpoint (for external integrations)
+
+See [docs/reference/n8n.md](docs/reference/n8n.md) for full deployment reference.

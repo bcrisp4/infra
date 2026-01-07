@@ -51,6 +51,7 @@ Technical descriptions and specifications.
 - [Grafana Datasources](reference/grafana-datasources.md) - Datasource provisioning pitfalls
 - [Miniflux](reference/miniflux.md) - RSS reader deployment and configuration
 - [Mimir Tenancy](reference/mimir-tenancy.md) - Multi-tenant metrics configuration
+- [n8n](reference/n8n.md) - Workflow automation deployment and configuration
 - [Metrics Architecture](reference/metrics-architecture.md) - Observability stack design
 - [Logging Architecture](reference/logging-architecture.md) - Log collection and storage design
 - [Tracing Architecture](reference/tracing-architecture.md) - Distributed tracing storage design
