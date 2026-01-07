@@ -25,3 +25,4 @@ Technical descriptions and specifications. Use these to look up specific details
 | [Miniflux](miniflux.md) | RSS reader deployment and configuration |
 | [Mimir Tenancy](mimir-tenancy.md) | Multi-tenant Mimir configuration |
 | [n8n](n8n.md) | Workflow automation deployment and configuration |
+| [Dependabot](dependabot.md) | Automated dependency updates for Helm and Terraform |

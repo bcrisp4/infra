@@ -1,0 +1,29 @@
+version: 2
+
+updates:
+  # Helm chart dependencies
+  - package-ecosystem: "helm"
+    directory: "/kubernetes/apps"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    reviewers:
+      - "bcrisp4"
+    labels:
+      - "dependencies"
+      - "helm"
+
+  # Terraform providers (auto-discovers all directories)
+  - package-ecosystem: "terraform"
+    directories:
+      - "/terraform/bootstrap"
+      - "/terraform/global"
+      - "/terraform/clusters/*"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    reviewers:
+      - "bcrisp4"
+    labels:
+      - "dependencies"
+      - "terraform"

@@ -172,6 +172,20 @@ Files to update when changing versions:
 
 Use pessimistic constraints (`~> X.Y`) pinned to minor version for stability while allowing patches.
 
+### Dependabot
+
+Dependabot automatically creates PRs to update Helm chart dependencies and Terraform providers. Configuration is in `.github/dependabot.yml`.
+
+**What it monitors:**
+- Helm: `kubernetes/apps/*/Chart.yaml` dependencies
+- Terraform: providers in `terraform/bootstrap/`, `terraform/global/`, `terraform/clusters/*` (auto-discovers new clusters)
+
+**Schedule:** Weekly on Mondays
+
+**Testing:** Go to Insights > Dependency graph > Dependabot and click "Check for updates"
+
+See [docs/reference/dependabot.md](docs/reference/dependabot.md) for full configuration details.
+
 ## Implementation Notes
 
 - Do not use em dashes in generated content
