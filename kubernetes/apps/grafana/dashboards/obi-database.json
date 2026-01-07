@@ -1,0 +1,483 @@
+{
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "title": "Overview",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "sum(rate(db_client_operation_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval]))",
+          "legendFormat": "Ops/s"
+        }
+      ],
+      "title": "Query Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(db_client_operation_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\", error_type!=\"\"}[$__rate_interval])) / sum(rate(db_client_operation_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval]))",
+          "legendFormat": "Error Rate"
+        }
+      ],
+      "title": "Error Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.1 },
+              { "color": "red", "value": 0.5 }
+            ]
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(db_client_operation_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval])) by (le))",
+          "legendFormat": "p50"
+        }
+      ],
+      "title": "Latency p50",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.25 },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(db_client_operation_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval])) by (le))",
+          "legendFormat": "p95"
+        }
+      ],
+      "title": "Latency p95",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "red", "value": 2 }
+            ]
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(db_client_operation_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval])) by (le))",
+          "legendFormat": "p99"
+        }
+      ],
+      "title": "Latency p99",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none" },
+      "targets": [
+        {
+          "expr": "count(count by (service_name) (db_client_operation_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}))",
+          "legendFormat": "Services"
+        }
+      ],
+      "title": "Active Services",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "title": "Query Performance",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "stacking": { "mode": "normal" } },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (db_system_name) (rate(db_client_operation_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval]))",
+          "legendFormat": "{{db_system_name}}"
+        }
+      ],
+      "title": "Query Rate by Database System",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2 },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (db_system_name, le) (rate(db_client_operation_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval])))",
+          "legendFormat": "{{db_system_name}} p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (db_system_name, le) (rate(db_client_operation_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval])))",
+          "legendFormat": "{{db_system_name}} p95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (db_system_name, le) (rate(db_client_operation_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval])))",
+          "legendFormat": "{{db_system_name}} p99"
+        }
+      ],
+      "title": "Latency by Database System",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "stacking": { "mode": "normal" } },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (service_name) (rate(db_client_operation_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval]))",
+          "legendFormat": "{{service_name}}"
+        }
+      ],
+      "title": "Query Rate by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2 },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (service_name, le) (rate(db_client_operation_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval])))",
+          "legendFormat": "{{service_name}} p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (service_name, le) (rate(db_client_operation_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval])))",
+          "legendFormat": "{{service_name}} p95"
+        }
+      ],
+      "title": "Latency by Service",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
+      "title": "Operations Breakdown",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "stacking": { "mode": "normal" } },
+          "unit": "ops"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "SELECT" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "INSERT" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "UPDATE" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
+          { "matcher": { "id": "byName", "options": "DELETE" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 23 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (db_operation_name) (rate(db_client_operation_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval]))",
+          "legendFormat": "{{db_operation_name}}"
+        }
+      ],
+      "title": "Query Rate by Operation",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2 },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 23 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (db_operation_name, le) (rate(db_client_operation_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval])))",
+          "legendFormat": "{{db_operation_name}}"
+        }
+      ],
+      "title": "Latency p95 by Operation",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "unit": "ops" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 31 },
+      "options": { "displayMode": "gradient", "orientation": "horizontal", "showUnfilled": true },
+      "targets": [
+        {
+          "expr": "topk(10, sum by (db_operation_name, db_system_name) (rate(db_client_operation_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval])))",
+          "legendFormat": "{{db_system_name}}: {{db_operation_name}}"
+        }
+      ],
+      "title": "Top Operations by Rate",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "unit": "s" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 31 },
+      "options": { "displayMode": "gradient", "orientation": "horizontal", "showUnfilled": true },
+      "targets": [
+        {
+          "expr": "topk(10, histogram_quantile(0.95, sum by (db_operation_name, db_system_name, le) (rate(db_client_operation_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval]))))",
+          "legendFormat": "{{db_system_name}}: {{db_operation_name}}"
+        }
+      ],
+      "title": "Slowest Operations (p95)",
+      "type": "bargauge"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 39 },
+      "title": "Errors",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "stacking": { "mode": "normal" } },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (error_type) (rate(db_client_operation_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\", error_type!=\"\"}[$__rate_interval]))",
+          "legendFormat": "{{error_type}}"
+        }
+      ],
+      "title": "Error Rate by Type",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "stacking": { "mode": "normal" } },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (service_name) (rate(db_client_operation_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\", error_type!=\"\"}[$__rate_interval]))",
+          "legendFormat": "{{service_name}}"
+        }
+      ],
+      "title": "Error Rate by Service",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 48 },
+      "title": "Database Servers",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "stacking": { "mode": "normal" } },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 49 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (server_address) (rate(db_client_operation_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval]))",
+          "legendFormat": "{{server_address}}"
+        }
+      ],
+      "title": "Query Rate by Server",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2 },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 49 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (server_address, le) (rate(db_client_operation_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval])))",
+          "legendFormat": "{{server_address}} p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (server_address, le) (rate(db_client_operation_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", db_system_name=~\"$db_system\"}[$__rate_interval])))",
+          "legendFormat": "{{server_address}} p95"
+        }
+      ],
+      "title": "Latency by Server",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["obi", "database", "sql", "postgresql", "mysql", "redis", "opentelemetry", "ebpf"],
+  "templating": {
+    "list": [
+      {
+        "hide": 0,
+        "name": "datasource",
+        "query": "prometheus",
+        "type": "datasource"
+      },
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "namespace",
+        "query": "label_values(db_client_operation_duration_seconds_count, k8s_namespace_name)",
+        "refresh": 2,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "service",
+        "query": "label_values(db_client_operation_duration_seconds_count{k8s_namespace_name=~\"$namespace\"}, service_name)",
+        "refresh": 2,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "db_system",
+        "query": "label_values(db_client_operation_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}, db_system_name)",
+        "refresh": 2,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timezone": "browser",
+  "title": "OBI Database Monitoring",
+  "uid": "obi-database",
+  "version": 1
+}
