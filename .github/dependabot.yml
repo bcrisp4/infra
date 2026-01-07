@@ -1,9 +1,10 @@
 version: 2
 
 updates:
-  # Helm chart dependencies
+  # Helm chart dependencies (auto-discovers all app charts)
   - package-ecosystem: "helm"
-    directory: "/kubernetes/apps"
+    directories:
+      - "/kubernetes/apps/*"
     schedule:
       interval: "weekly"
       day: "monday"
