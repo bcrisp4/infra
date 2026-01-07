@@ -1,0 +1,562 @@
+{
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "title": "Overview",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "sum(rate(messaging_process_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval]))",
+          "legendFormat": "Messages/s"
+        }
+      ],
+      "title": "Consumer Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "sum(rate(messaging_publish_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval]))",
+          "legendFormat": "Messages/s"
+        }
+      ],
+      "title": "Producer Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.1 },
+              { "color": "red", "value": 0.5 }
+            ]
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(messaging_process_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval])) by (le))",
+          "legendFormat": "p50"
+        }
+      ],
+      "title": "Consumer Latency p50",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(messaging_process_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval])) by (le))",
+          "legendFormat": "p95"
+        }
+      ],
+      "title": "Consumer Latency p95",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 2 }
+            ]
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(messaging_process_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval])) by (le))",
+          "legendFormat": "p99"
+        }
+      ],
+      "title": "Consumer Latency p99",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none" },
+      "targets": [
+        {
+          "expr": "count(count by (service_name) (messaging_process_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}))",
+          "legendFormat": "Consumers"
+        }
+      ],
+      "title": "Active Consumers",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "title": "Consumer Metrics (Message Processing)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": { "mode": "none" }
+          },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "sum by (service_name) (rate(messaging_process_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval]))",
+          "legendFormat": "{{ service_name }}"
+        }
+      ],
+      "title": "Consumer Rate by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": { "mode": "none" }
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (service_name, le) (rate(messaging_process_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval])))",
+          "legendFormat": "{{ service_name }}"
+        }
+      ],
+      "title": "Consumer Latency p95 by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": { "mode": "none" }
+          },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "sum by (messaging_destination_name) (rate(messaging_process_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval]))",
+          "legendFormat": "{{ messaging_destination_name }}"
+        }
+      ],
+      "title": "Consumer Rate by Topic/Destination",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": { "mode": "none" }
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (messaging_destination_name, le) (rate(messaging_process_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval])))",
+          "legendFormat": "{{ messaging_destination_name }}"
+        }
+      ],
+      "title": "Consumer Latency p95 by Topic/Destination",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": { "mode": "none" }
+          },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 22 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "sum by (k8s_namespace_name) (rate(messaging_process_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval]))",
+          "legendFormat": "{{ k8s_namespace_name }}"
+        }
+      ],
+      "title": "Consumer Rate by Namespace",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": { "mode": "none" }
+          },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 22 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "sum by (server_address) (rate(messaging_process_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval]))",
+          "legendFormat": "{{ server_address }}"
+        }
+      ],
+      "title": "Consumer Rate by Broker",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 30 },
+      "title": "Producer Metrics (Message Publishing)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": { "mode": "none" }
+          },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 31 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "sum by (service_name) (rate(messaging_publish_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval]))",
+          "legendFormat": "{{ service_name }}"
+        }
+      ],
+      "title": "Producer Rate by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": { "mode": "none" }
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 31 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (service_name, le) (rate(messaging_publish_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval])))",
+          "legendFormat": "{{ service_name }}"
+        }
+      ],
+      "title": "Producer Latency p95 by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": { "mode": "none" }
+          },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 39 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "sum by (messaging_destination_name) (rate(messaging_publish_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval]))",
+          "legendFormat": "{{ messaging_destination_name }}"
+        }
+      ],
+      "title": "Producer Rate by Topic/Destination",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "fillOpacity": 10,
+            "lineWidth": 1,
+            "showPoints": "never",
+            "stacking": { "mode": "none" }
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 39 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (messaging_destination_name, le) (rate(messaging_publish_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval])))",
+          "legendFormat": "{{ messaging_destination_name }}"
+        }
+      ],
+      "title": "Producer Latency p95 by Topic/Destination",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 47 },
+      "title": "Latency Heatmaps",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "continuous-YlRd" },
+          "custom": { "hideFrom": { "legend": false, "tooltip": false, "viz": false } },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 48 },
+      "options": {
+        "calculate": false,
+        "cellGap": 1,
+        "color": { "mode": "scheme", "scheme": "Spectral", "steps": 64, "reverse": true },
+        "yAxis": { "unit": "s" }
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(messaging_process_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval])) by (le)",
+          "format": "heatmap",
+          "legendFormat": "{{ le }}"
+        }
+      ],
+      "title": "Consumer Latency Distribution",
+      "type": "heatmap"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "continuous-YlRd" },
+          "custom": { "hideFrom": { "legend": false, "tooltip": false, "viz": false } },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 48 },
+      "options": {
+        "calculate": false,
+        "cellGap": 1,
+        "color": { "mode": "scheme", "scheme": "Spectral", "steps": 64, "reverse": true },
+        "yAxis": { "unit": "s" }
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(messaging_publish_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", messaging_system=~\"$messaging_system\"}[$__rate_interval])) by (le)",
+          "format": "heatmap",
+          "legendFormat": "{{ le }}"
+        }
+      ],
+      "title": "Producer Latency Distribution",
+      "type": "heatmap"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 56 },
+      "title": "Info",
+      "type": "row"
+    },
+    {
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 57 },
+      "options": {
+        "content": "## OBI Messaging Metrics (Experimental)\n\nThese metrics are captured by OpenTelemetry eBPF Instrumentation (OBI) for Kafka and other messaging systems.\n\n### Metrics\n\n| Metric | Description |\n|--------|-------------|\n| `messaging_process_duration_seconds` | Duration of message processing (consumer side) |\n| `messaging_publish_duration_seconds` | Duration of message publishing (producer side) |\n\n### Labels\n\n| Label | Description |\n|-------|-------------|\n| `messaging_system` | Messaging system (e.g., `kafka`) |\n| `messaging_destination_name` | Topic or queue name |\n| `service_name` | Service producing/consuming messages |\n| `server_address` | Broker address |\n\n**Note:** Producer metrics (`messaging_publish_duration`) may not appear until applications that publish messages are instrumented.",
+        "mode": "markdown"
+      },
+      "title": "Metrics Reference",
+      "type": "text"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["obi", "opentelemetry", "ebpf", "messaging", "kafka"],
+  "templating": {
+    "list": [
+      {
+        "current": { "selected": false, "text": "mimir-do-nyc3-prod", "value": "PDFDDA34E6E7D2823" },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Datasource",
+        "multi": false,
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "refresh": 1,
+        "regex": "",
+        "type": "datasource"
+      },
+      {
+        "current": {},
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "definition": "label_values(messaging_process_duration_seconds_count, messaging_system)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Messaging System",
+        "multi": true,
+        "name": "messaging_system",
+        "options": [],
+        "query": { "query": "label_values(messaging_process_duration_seconds_count, messaging_system)", "refId": "messaging_system" },
+        "refresh": 2,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "definition": "label_values(messaging_process_duration_seconds_count{messaging_system=~\"$messaging_system\"}, k8s_namespace_name)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Namespace",
+        "multi": true,
+        "name": "namespace",
+        "options": [],
+        "query": { "query": "label_values(messaging_process_duration_seconds_count{messaging_system=~\"$messaging_system\"}, k8s_namespace_name)", "refId": "namespace" },
+        "refresh": 2,
+        "regex": "",
+        "type": "query"
+      },
+      {
+        "current": {},
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "definition": "label_values(messaging_process_duration_seconds_count{messaging_system=~\"$messaging_system\", k8s_namespace_name=~\"$namespace\"}, service_name)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Service",
+        "multi": true,
+        "name": "service",
+        "options": [],
+        "query": { "query": "label_values(messaging_process_duration_seconds_count{messaging_system=~\"$messaging_system\", k8s_namespace_name=~\"$namespace\"}, service_name)", "refId": "service" },
+        "refresh": 2,
+        "regex": "",
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "title": "OBI Messaging / Kafka",
+  "uid": "obi-messaging"
+}
