@@ -26,15 +26,16 @@ This document describes the metrics collection and storage infrastructure for do
 │       └── /tenant/prod/ path adds X-Scope-OrgID for clients that can't      │
 │           set headers (e.g., linkerd-viz metrics-api)                        │
 └──────────────────────────────────────────────────────────────────────────────┘
-        │ OTLP/HTTP (X-Scope-OrgID: prod)
-        │
-┌───────┴──────────────────────────────────────────────────────────────────────┐
-│                         otel-metrics (DaemonSet)                              │
-│  Scrapes metrics from pods, kubelet, cAdvisor, kube-apiserver, linkerd       │
-└───────┬──────────────────────────────────────────────────────────────────────┘
-        │ Prometheus scrape
-        ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
+        ▲ OTLP/HTTP (X-Scope-OrgID: prod)              ▲ OTLP/HTTP
+        │                                              │
+┌───────┴──────────────────────────┐   ┌───────────────┴───────────────────────┐
+│     otel-metrics (DaemonSet)     │   │     otel-metrics-push (DaemonSet)     │
+│  Scrapes Prometheus metrics from │   │  Receives OTLP metrics from apps,    │
+│  pods, kubelet, apiserver, etc.  │   │  enriches with k8s metadata          │
+└───────┬──────────────────────────┘   └───────────────▲───────────────────────┘
+        │ Prometheus scrape                            │ OTLP (gRPC/HTTP)
+        ▼                                              │
+┌──────────────────────────────────────────────────────┴───────────────────────┐
 │                            Metric Sources                                     │
 │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐               │
 │  │ Application Pods│  │ kube-state-     │  │ node-exporter   │               │
@@ -44,6 +45,9 @@ This document describes the metrics collection and storage infrastructure for do
 │  │ kubelet/cAdvisor│  │ kube-apiserver  │  │ Linkerd proxies │               │
 │  └─────────────────┘  └─────────────────┘  │ (port 4191)     │               │
 │                                            └─────────────────┘               │
+│  ┌─────────────────────────────────────────────────────────────┐             │
+│  │ Applications with OpenTelemetry SDK (push OTLP metrics)     │             │
+│  └─────────────────────────────────────────────────────────────┘             │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -54,6 +58,7 @@ This document describes the metrics collection and storage infrastructure for do
 | Component | Type | Purpose |
 |-----------|------|---------|
 | **otel-metrics** | DaemonSet | Scrapes Prometheus metrics from pods and system components, forwards to Mimir via OTLP |
+| **otel-metrics-push** | DaemonSet | Receives OTLP metrics from applications, enriches with k8s metadata, forwards to Mimir |
 | **kube-state-metrics** | Deployment | Exposes Kubernetes object state (pods, nodes, PVCs, deployments) as metrics |
 | **node-exporter** | DaemonSet | Exposes node-level hardware/OS metrics (CPU, memory, disk, network) |
 
@@ -80,11 +85,14 @@ Mimir requires `X-Scope-OrgID` header for multi-tenancy. Current tenant: `prod`.
 |-----------|-------------------|
 | **Grafana** | `secureJsonData.httpHeaderValue1: prod` in datasource config |
 | **otel-metrics** | `headers: X-Scope-OrgID: prod` in OTLP exporter |
+| **otel-metrics-push** | `headers: X-Scope-OrgID: prod` in OTLP exporter |
 | **linkerd-viz** | Via gateway's `/tenant/prod/` path (cannot set headers directly) |
 
 The Mimir gateway exposes a `/tenant/prod/` path that adds the `X-Scope-OrgID: prod` header for clients that cannot set custom HTTP headers.
 
 ## Data Flow
+
+### Pull-based Collection (otel-metrics)
 
 1. **otel-metrics** DaemonSet runs on every node
 2. Scrapes metrics every 30s from:
@@ -99,6 +107,19 @@ The Mimir gateway exposes a `/tenant/prod/` path that adds the `X-Scope-OrgID: p
 4. Adds `cluster: do-nyc3-prod` resource attribute
 5. Sends to Mimir Gateway via OTLP/HTTP with `X-Scope-OrgID: prod` header
 6. Mimir distributes to Kafka, then ingesters write to S3
+
+### Push-based Collection (otel-metrics-push)
+
+1. **otel-metrics-push** DaemonSet runs on every node
+2. Applications send OTLP metrics to the collector:
+   - gRPC: `otel-metrics-push.otel-metrics-push.svc.cluster.local:4317`
+   - HTTP: `otel-metrics-push.otel-metrics-push.svc.cluster.local:4318`
+3. Service uses `internalTrafficPolicy: Local` for node-local routing
+4. Collector enriches metrics with Kubernetes metadata via k8sattributes processor:
+   - `k8s.namespace.name`, `k8s.pod.name`, `k8s.container.name`
+   - `k8s.deployment.name`, `k8s.statefulset.name`, `k8s.daemonset.name`
+5. Adds `cluster: do-nyc3-prod` resource attribute
+6. Sends to Mimir Gateway via OTLP/HTTP with `X-Scope-OrgID: prod` header
 
 ## DOKS-Specific Considerations
 
@@ -116,7 +137,12 @@ DigitalOcean Kubernetes (DOKS) is a managed service. Some components are NOT acc
 
 ## Adding Metrics to Your Application
 
-### Option 1: Prometheus Annotations (Recommended)
+There are two ways to get metrics from your application into Mimir:
+
+1. **Pull-based (Prometheus scraping)** - Expose a `/metrics` endpoint; otel-metrics scrapes it
+2. **Push-based (OTLP)** - Use OpenTelemetry SDK to push metrics to otel-metrics-push
+
+### Option 1: Prometheus Annotations (Pull-based, Recommended for existing apps)
 
 Add these annotations to your pod spec:
 
@@ -129,7 +155,7 @@ metadata:
     prometheus.io/scheme: "http"      # Optional: http or https
 ```
 
-### Option 2: Port Naming (Fallback)
+### Option 2: Port Naming (Pull-based, Fallback)
 
 Name your metrics port with "metrics" in the name:
 
@@ -139,7 +165,62 @@ ports:
     containerPort: 8080
 ```
 
-### Custom Labels
+### Option 3: OTLP Push (Push-based, Recommended for new apps with OTel SDK)
+
+Configure your application to send OTLP metrics to the collector:
+
+```yaml
+env:
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    value: "http://otel-metrics-push.otel-metrics-push.svc.cluster.local:4317"
+  - name: OTEL_EXPORTER_OTLP_PROTOCOL
+    value: "grpc"
+  - name: OTEL_SERVICE_NAME
+    value: "my-app"
+```
+
+For HTTP instead of gRPC:
+
+```yaml
+env:
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    value: "http://otel-metrics-push.otel-metrics-push.svc.cluster.local:4318"
+  - name: OTEL_EXPORTER_OTLP_PROTOCOL
+    value: "http/protobuf"
+```
+
+**Language-specific examples:**
+
+Go:
+```go
+import "go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
+
+exporter, _ := otlpmetricgrpc.New(ctx,
+    otlpmetricgrpc.WithEndpoint("otel-metrics-push.otel-metrics-push.svc.cluster.local:4317"),
+    otlpmetricgrpc.WithInsecure(),
+)
+```
+
+Python:
+```python
+from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
+
+exporter = OTLPMetricExporter(
+    endpoint="otel-metrics-push.otel-metrics-push.svc.cluster.local:4317",
+    insecure=True,
+)
+```
+
+Java/Spring Boot (`application.yaml`):
+```yaml
+management:
+  otlp:
+    metrics:
+      export:
+        url: http://otel-metrics-push.otel-metrics-push.svc.cluster.local:4318/v1/metrics
+```
+
+### Custom Labels (Pull-based only)
 
 Add custom labels to your metrics via annotations:
 
@@ -151,6 +232,8 @@ metadata:
     prometheus.io/label-environment: "production"
     prometheus.io/label-service: "my-app"
 ```
+
+For push-based metrics, labels should be set as resource attributes in your OpenTelemetry SDK configuration.
 
 ## Querying Metrics
 

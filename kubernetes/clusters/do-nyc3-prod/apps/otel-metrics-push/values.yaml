@@ -1,0 +1,129 @@
+# otel-metrics-push for do-nyc3-prod
+# OpenTelemetry Collector DaemonSet for receiving push-based OTLP metrics
+#
+# Applications send OTLP metrics to this collector, which enriches them with
+# Kubernetes metadata and forwards to Mimir via OTLP HTTP.
+#
+# Endpoints:
+#   gRPC: otel-metrics-push.otel-metrics-push.svc.cluster.local:4317
+#   HTTP: otel-metrics-push.otel-metrics-push.svc.cluster.local:4318
+
+opentelemetry-collector:
+  fullnameOverride: otel-metrics-push
+  mode: daemonset
+
+  image:
+    repository: otel/opentelemetry-collector-contrib
+
+  # Node-local routing - requests go to collector on same node
+  service:
+    enabled: true
+    internalTrafficPolicy: Local
+
+  # Pod network (in Linkerd mesh)
+  hostNetwork: false
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+  # Enable k8sattributes preset for Kubernetes metadata enrichment
+  presets:
+    kubernetesAttributes:
+      enabled: true
+      extractAllPodLabels: false
+      extractAllPodAnnotations: false
+
+  # Ports: OTLP receivers only
+  ports:
+    otlp:
+      enabled: true
+      containerPort: 4317
+      servicePort: 4317
+      protocol: TCP
+    otlp-http:
+      enabled: true
+      containerPort: 4318
+      servicePort: 4318
+      protocol: TCP
+    # Disable unused receivers
+    jaeger-compact:
+      enabled: false
+    jaeger-thrift:
+      enabled: false
+    jaeger-grpc:
+      enabled: false
+    zipkin:
+      enabled: false
+    # Metrics for self-observability
+    metrics:
+      enabled: true
+      containerPort: 8888
+      servicePort: 8888
+      protocol: TCP
+
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+
+    processors:
+      # Memory safety - MUST be first in pipeline
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 400
+
+      # Add cluster identifier
+      resource:
+        attributes:
+          - key: cluster
+            value: do-nyc3-prod
+            action: insert
+
+      # Batch metrics for efficient export
+      batch:
+        send_batch_size: 1000
+        timeout: 10s
+
+    exporters:
+      # Export to Mimir via OTLP HTTP
+      otlphttp/mimir:
+        endpoint: "http://mimir-gateway.mimir.svc.cluster.local/otlp"
+        headers:
+          X-Scope-OrgID: "prod"
+        tls:
+          insecure: true  # Linkerd provides mTLS
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          max_interval: 300s
+          max_elapsed_time: 600s
+          randomization_factor: 0.5
+        sending_queue:
+          enabled: true
+          num_consumers: 10
+          queue_size: 5000
+
+      # Debug exporter (not in pipeline, for troubleshooting)
+      debug:
+        verbosity: basic
+
+    service:
+      telemetry:
+        logs:
+          level: info
+        metrics:
+          address: 0.0.0.0:8888
+
+      pipelines:
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, k8sattributes, resource, batch]
+          exporters: [otlphttp/mimir]

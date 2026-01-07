@@ -908,6 +908,36 @@ OTLP Receiver -> memory_limiter -> k8sattributes -> resource (cluster label) -> 
 
 See [docs/reference/tracing-architecture.md](docs/reference/tracing-architecture.md) for full collector configuration and sampling options.
 
+### Push-based Metrics with otel-metrics-push
+
+Push-based metrics are collected by OpenTelemetry Collector DaemonSets (`otel-metrics-push`) and shipped to Mimir via OTLP.
+
+**Architecture:**
+- `otel-metrics-push` DaemonSet runs on each node (same pattern as otel-traces)
+- Service with `internalTrafficPolicy: Local` for node-local routing
+- Enriches with Kubernetes metadata (namespace, pod, container, deployment, etc.)
+- Ships to Mimir gateway via OTLP HTTP with tenant header `X-Scope-OrgID: prod`
+- Linkerd mesh injection for mTLS
+
+**Application Configuration:**
+
+Applications send metrics to the OTel collector via OTLP:
+
+```bash
+# gRPC (recommended)
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-metrics-push.otel-metrics-push.svc.cluster.local:4317
+OTEL_EXPORTER_OTLP_PROTOCOL=grpc
+
+# HTTP
+OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-metrics-push.otel-metrics-push.svc.cluster.local:4318
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
+```
+
+**Processor Pipeline:**
+```
+OTLP Receiver -> memory_limiter -> k8sattributes -> resource (cluster label) -> batch -> Mimir
+```
+
 ### Miniflux RSS Reader
 
 Miniflux is deployed on do-nyc3-prod with CNPG PostgreSQL (2 instances for HA), Tailscale ingress, Linkerd mesh, and Barman Cloud backups.
