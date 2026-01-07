@@ -6,8 +6,14 @@ kind: ProxyClass
 metadata:
   name: ha-ingress
 spec:
+  metrics:
+    enable: true
   statefulSet:
     pod:
+      # Enable Prometheus scraping on metrics port
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9002"
       # Spread replicas across nodes for HA
       topologySpreadConstraints:
         - maxSkew: 1
