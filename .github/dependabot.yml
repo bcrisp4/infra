@@ -1,0 +1,50 @@
+version: 2
+
+updates:
+  # Helm chart dependencies
+  - package-ecosystem: "helm"
+    directory: "/kubernetes/apps"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    reviewers:
+      - "bcrisp4"
+    labels:
+      - "dependencies"
+      - "helm"
+
+  # Terraform providers - bootstrap
+  - package-ecosystem: "terraform"
+    directory: "/terraform/bootstrap"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    reviewers:
+      - "bcrisp4"
+    labels:
+      - "dependencies"
+      - "terraform"
+
+  # Terraform providers - global
+  - package-ecosystem: "terraform"
+    directory: "/terraform/global"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    reviewers:
+      - "bcrisp4"
+    labels:
+      - "dependencies"
+      - "terraform"
+
+  # Terraform providers - do-nyc3-prod cluster
+  - package-ecosystem: "terraform"
+    directory: "/terraform/clusters/do-nyc3-prod"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    reviewers:
+      - "bcrisp4"
+    labels:
+      - "dependencies"
+      - "terraform"
