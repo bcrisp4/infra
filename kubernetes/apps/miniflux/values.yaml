@@ -2,7 +2,7 @@
 
 image:
   repository: miniflux/miniflux
-  tag: "2.2.15"
+  tag: "2.2.16"
   pullPolicy: IfNotPresent
 
 replicaCount: 1
