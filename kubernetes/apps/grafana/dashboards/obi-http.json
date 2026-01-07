@@ -1,0 +1,493 @@
+{
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "title": "Overview",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_request_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval]))",
+          "legendFormat": "Requests/s"
+        }
+      ],
+      "title": "Request Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(http_server_request_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", http_response_status_code=~\"5..\"}[$__rate_interval])) / sum(rate(http_server_request_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval]))",
+          "legendFormat": "Error Rate"
+        }
+      ],
+      "title": "Error Rate (5xx)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(http_server_request_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "p50"
+        }
+      ],
+      "title": "Latency p50",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 2 }
+            ]
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_request_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "p95"
+        }
+      ],
+      "title": "Latency p95",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 2 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_server_request_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])) by (le))",
+          "legendFormat": "p99"
+        }
+      ],
+      "title": "Latency p99",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          },
+          "unit": "short"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none" },
+      "targets": [
+        {
+          "expr": "count(count by (service_name) (http_server_request_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}))",
+          "legendFormat": "Services"
+        }
+      ],
+      "title": "Active Services",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "title": "Server-Side (Inbound Requests)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "stacking": { "mode": "normal" } },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (service_name) (rate(http_server_request_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval]))",
+          "legendFormat": "{{service_name}}"
+        }
+      ],
+      "title": "Request Rate by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2 },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (service_name, le) (rate(http_server_request_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])))",
+          "legendFormat": "{{service_name}} p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (service_name, le) (rate(http_server_request_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])))",
+          "legendFormat": "{{service_name}} p95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (service_name, le) (rate(http_server_request_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])))",
+          "legendFormat": "{{service_name}} p99"
+        }
+      ],
+      "title": "Latency by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "stacking": { "mode": "normal" } },
+          "unit": "reqps"
+        },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*2.." }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*3.." }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*4.." }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*5.." }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (http_response_status_code) (rate(http_server_request_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval]))",
+          "legendFormat": "{{http_response_status_code}}"
+        }
+      ],
+      "title": "Request Rate by Status Code",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "stacking": { "mode": "normal" } },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (http_request_method) (rate(http_server_request_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval]))",
+          "legendFormat": "{{http_request_method}}"
+        }
+      ],
+      "title": "Request Rate by Method",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "unit": "reqps" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 22 },
+      "options": { "displayMode": "gradient", "orientation": "horizontal", "showUnfilled": true },
+      "targets": [
+        {
+          "expr": "topk(10, sum by (http_route) (rate(http_server_request_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", http_route!=\"\"}[$__rate_interval])))",
+          "legendFormat": "{{http_route}}"
+        }
+      ],
+      "title": "Top 10 Routes by Request Rate",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "unit": "s" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 22 },
+      "options": { "displayMode": "gradient", "orientation": "horizontal", "showUnfilled": true },
+      "targets": [
+        {
+          "expr": "topk(10, histogram_quantile(0.95, sum by (http_route, le) (rate(http_server_request_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\", http_route!=\"\"}[$__rate_interval]))))",
+          "legendFormat": "{{http_route}}"
+        }
+      ],
+      "title": "Top 10 Slowest Routes (p95)",
+      "type": "bargauge"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 30 },
+      "title": "Client-Side (Outbound Requests)",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "stacking": { "mode": "normal" } },
+          "unit": "reqps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 31 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (service_name) (rate(http_client_request_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval]))",
+          "legendFormat": "{{service_name}}"
+        }
+      ],
+      "title": "Outbound Request Rate by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2 },
+          "unit": "s"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 31 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (service_name, le) (rate(http_client_request_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])))",
+          "legendFormat": "{{service_name}} p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (service_name, le) (rate(http_client_request_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])))",
+          "legendFormat": "{{service_name}} p95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (service_name, le) (rate(http_client_request_duration_seconds_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])))",
+          "legendFormat": "{{service_name}} p99"
+        }
+      ],
+      "title": "Outbound Latency by Service",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "stacking": { "mode": "normal" } },
+          "unit": "reqps"
+        },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*2.." }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*3.." }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*4.." }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*5.." }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 39 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "sum by (http_response_status_code) (rate(http_client_request_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval]))",
+          "legendFormat": "{{http_response_status_code}}"
+        }
+      ],
+      "title": "Outbound Request Rate by Status Code",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "unit": "reqps" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 39 },
+      "options": { "displayMode": "gradient", "orientation": "horizontal", "showUnfilled": true },
+      "targets": [
+        {
+          "expr": "topk(10, sum by (server_address) (rate(http_client_request_duration_seconds_count{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])))",
+          "legendFormat": "{{server_address}}"
+        }
+      ],
+      "title": "Top 10 Outbound Destinations",
+      "type": "bargauge"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 47 },
+      "title": "Body Sizes",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2 },
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 48 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(http_server_request_body_size_bytes_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])))",
+          "legendFormat": "Request p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_request_body_size_bytes_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])))",
+          "legendFormat": "Request p95"
+        },
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(http_server_response_body_size_bytes_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])))",
+          "legendFormat": "Response p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_response_body_size_bytes_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])))",
+          "legendFormat": "Response p95"
+        }
+      ],
+      "title": "Server Request/Response Body Size",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2 },
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 48 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(http_client_request_body_size_bytes_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])))",
+          "legendFormat": "Request p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_client_request_body_size_bytes_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])))",
+          "legendFormat": "Request p95"
+        },
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(http_client_response_body_size_bytes_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])))",
+          "legendFormat": "Response p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(http_client_response_body_size_bytes_bucket{k8s_namespace_name=~\"$namespace\", service_name=~\"$service\"}[$__rate_interval])))",
+          "legendFormat": "Response p95"
+        }
+      ],
+      "title": "Client Request/Response Body Size",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "tags": ["obi", "http", "opentelemetry", "ebpf"],
+  "templating": {
+    "list": [
+      {
+        "hide": 0,
+        "name": "datasource",
+        "query": "prometheus",
+        "type": "datasource"
+      },
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "namespace",
+        "query": "label_values(http_server_request_duration_seconds_count, k8s_namespace_name)",
+        "refresh": 2,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "service",
+        "query": "label_values(http_server_request_duration_seconds_count{k8s_namespace_name=~\"$namespace\"}, service_name)",
+        "refresh": 2,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-1h", "to": "now" },
+  "timezone": "browser",
+  "title": "OBI HTTP Monitoring",
+  "uid": "obi-http",
+  "version": 1
+}
