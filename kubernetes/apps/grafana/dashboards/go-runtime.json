@@ -1,0 +1,317 @@
+{
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "title": "Overview",
+      "type": "row"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "short" }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 1 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (go_goroutines{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "Goroutines",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "short" }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 1 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (go_threads{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "Threads",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "bytes" }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 1 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (go_memstats_heap_inuse_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "Memory (Heap In Use)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 },
+      "title": "GC CPU",
+      "type": "row"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "description": "Percentage of CPU time spent in garbage collection. Alert threshold is typically 10%.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10 },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 10 }
+            ]
+          },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (rate(go_cpu_classes_gc_total_cpu_seconds_total{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"}[$__rate_interval])) / (sum by (namespace, app, pod) (rate(go_cpu_classes_total_cpu_seconds_total{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"}[$__rate_interval])) - sum by (namespace, app, pod) (rate(go_cpu_classes_idle_cpu_seconds_total{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"}[$__rate_interval]))) * 100",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "GC CPU %",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "ops" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (rate(go_gc_cycles_total_gc_cycles_total{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"}[$__rate_interval]))",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "GC Cycles Rate",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 18 },
+      "title": "GC Pauses",
+      "type": "row"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "s" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 19 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum by (namespace, app, pod, le) (rate(go_gc_pauses_seconds_bucket{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"}[$__rate_interval])))",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "GC Pause Duration (p99)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "bytes" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 19 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (go_gc_heap_goal_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}} goal"
+        },
+        {
+          "expr": "sum by (namespace, app, pod) (go_gc_heap_live_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}} live"
+        }
+      ],
+      "title": "Heap Goal vs Live",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 27 },
+      "title": "Memory",
+      "type": "row"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "Bps" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (rate(go_memstats_alloc_bytes_total{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"}[$__rate_interval]))",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "Allocation Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "stacking": { "mode": "normal" } },
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (go_memstats_heap_inuse_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}} in use"
+        },
+        {
+          "expr": "sum by (namespace, app, pod) (go_memstats_heap_idle_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}} idle"
+        }
+      ],
+      "title": "Heap Breakdown",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "bytes" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 36 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (go_memstats_stack_inuse_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "Stack Memory",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "bytes" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 36 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (go_memstats_sys_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "Total System Memory",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 44 },
+      "title": "Runtime Settings",
+      "type": "row"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "GOMEMLIMIT" },
+            "properties": [{ "id": "unit", "value": "bytes" }]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 45 },
+      "options": { "showHeader": true },
+      "targets": [
+        {
+          "expr": "go_gc_gomemlimit_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "GOMEMLIMIT"
+        },
+        {
+          "expr": "go_gc_gogc_percent{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"}",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "GOGC"
+        }
+      ],
+      "title": "GOMEMLIMIT & GOGC",
+      "transformations": [
+        { "id": "merge" },
+        { "id": "organize", "options": { "excludeByName": { "Time": true } } }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "s" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 45 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum by (namespace, app, pod, le) (rate(go_sched_latencies_seconds_bucket{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"}[$__rate_interval])))",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "Scheduler Latency (p99)",
+      "type": "timeseries"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["go", "runtime", "gc"],
+  "templating": {
+    "list": [
+      {
+        "hide": 0,
+        "name": "datasource",
+        "query": "prometheus",
+        "type": "datasource"
+      },
+      {
+        "allValue": ".*",
+        "datasource": { "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "namespace",
+        "query": "label_values(go_goroutines, namespace)",
+        "refresh": 2,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "datasource": { "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "app",
+        "query": "label_values(go_goroutines{namespace=~\"$namespace\"}, app)",
+        "refresh": 2,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "datasource": { "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "pod",
+        "query": "label_values(go_goroutines{namespace=~\"$namespace\", app=~\"$app\"}, pod)",
+        "refresh": 2,
+        "type": "query"
+      }
+    ]
+  },
+  "timezone": "browser",
+  "title": "Go Runtime",
+  "uid": "go-runtime",
+  "version": 1
+}

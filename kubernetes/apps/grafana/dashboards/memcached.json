@@ -1,0 +1,297 @@
+{
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "sum(memcached_up{namespace=~\"$namespace\", pod=~\"$instance\"})",
+          "legendFormat": "Up"
+        }
+      ],
+      "title": "Instances Up",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "sum(memcached_current_bytes{namespace=~\"$namespace\", pod=~\"$instance\"})",
+          "legendFormat": "Used"
+        }
+      ],
+      "title": "Total Memory Used",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "sum(memcached_limit_bytes{namespace=~\"$namespace\", pod=~\"$instance\"})",
+          "legendFormat": "Limit"
+        }
+      ],
+      "title": "Total Memory Limit",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "sum(memcached_current_items{namespace=~\"$namespace\", pod=~\"$instance\"})",
+          "legendFormat": "Items"
+        }
+      ],
+      "title": "Total Items",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "sum(memcached_current_connections{namespace=~\"$namespace\", pod=~\"$instance\"})",
+          "legendFormat": "Connections"
+        }
+      ],
+      "title": "Total Connections",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 10 },
+              { "color": "red", "value": 100 }
+            ]
+          },
+          "unit": "ops"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "options": { "colorMode": "value", "graphMode": "area" },
+      "targets": [
+        {
+          "expr": "sum(rate(memcached_items_evicted_total{namespace=~\"$namespace\", pod=~\"$instance\"}[5m]))",
+          "legendFormat": "Evictions"
+        }
+      ],
+      "title": "Evictions/sec",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2 },
+          "max": 100,
+          "min": 0,
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table" }
+      },
+      "targets": [
+        {
+          "expr": "sum by (pod) (rate(memcached_commands_total{namespace=~\"$namespace\", pod=~\"$instance\", command=\"get\", status=\"hit\"}[5m])) / sum by (pod) (rate(memcached_commands_total{namespace=~\"$namespace\", pod=~\"$instance\", command=\"get\"}[5m])) * 100",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "Hit Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "lineWidth": 2 },
+          "max": 100,
+          "min": 0,
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table" }
+      },
+      "targets": [
+        {
+          "expr": "sum by (pod) (memcached_current_bytes{namespace=~\"$namespace\", pod=~\"$instance\"}) / sum by (pod) (memcached_limit_bytes{namespace=~\"$namespace\", pod=~\"$instance\"}) * 100",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "Memory Usage %",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 2 }, "unit": "ops" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "options": {
+        "legend": { "calcs": ["mean", "lastNotNull"], "displayMode": "table" }
+      },
+      "targets": [
+        {
+          "expr": "sum by (command) (rate(memcached_commands_total{namespace=~\"$namespace\", pod=~\"$instance\"}[5m]))",
+          "legendFormat": "{{command}}"
+        }
+      ],
+      "title": "Commands Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 2 }, "unit": "ops" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table" } },
+      "targets": [
+        {
+          "expr": "sum by (pod) (rate(memcached_items_evicted_total{namespace=~\"$namespace\", pod=~\"$instance\"}[5m]))",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "Evictions Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 2 }, "unit": "Bps" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "targets": [
+        {
+          "expr": "sum(rate(memcached_read_bytes_total{namespace=~\"$namespace\", pod=~\"$instance\"}[5m]))",
+          "legendFormat": "read"
+        },
+        {
+          "expr": "sum(rate(memcached_written_bytes_total{namespace=~\"$namespace\", pod=~\"$instance\"}[5m])) * -1",
+          "legendFormat": "write"
+        }
+      ],
+      "title": "Network I/O",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 5, "lineWidth": 2 }, "unit": "short" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "targets": [
+        {
+          "expr": "sum(memcached_current_connections{namespace=~\"$namespace\", pod=~\"$instance\"})",
+          "legendFormat": "current"
+        },
+        {
+          "expr": "sum(memcached_max_connections{namespace=~\"$namespace\", pod=~\"$instance\"})",
+          "legendFormat": "max"
+        }
+      ],
+      "title": "Connections",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 2 }, "unit": "short" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "targets": [
+        {
+          "expr": "sum(memcached_current_items{namespace=~\"$namespace\", pod=~\"$instance\"})",
+          "legendFormat": "items"
+        }
+      ],
+      "title": "Items",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 2 }, "unit": "bytes" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+      "targets": [
+        {
+          "expr": "sum(memcached_current_bytes{namespace=~\"$namespace\", pod=~\"$instance\"})",
+          "legendFormat": "used"
+        },
+        {
+          "expr": "sum(memcached_limit_bytes{namespace=~\"$namespace\", pod=~\"$instance\"})",
+          "legendFormat": "limit"
+        }
+      ],
+      "title": "Memory Used",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "30s",
+  "tags": ["memcached", "cache", "mimir"],
+  "templating": {
+    "list": [
+      {
+        "hide": 0,
+        "name": "datasource",
+        "query": "prometheus",
+        "type": "datasource"
+      },
+      {
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "namespace",
+        "query": "label_values(memcached_up, namespace)",
+        "refresh": 1,
+        "type": "query"
+      },
+      {
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "instance",
+        "query": "label_values(memcached_up{namespace=~\"$namespace\"}, pod)",
+        "refresh": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "timezone": "browser",
+  "title": "Memcached",
+  "uid": "memcached",
+  "version": 1
+}

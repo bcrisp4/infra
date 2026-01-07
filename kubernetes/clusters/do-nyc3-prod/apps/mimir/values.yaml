@@ -11,6 +11,14 @@ kafka:
   storageSize: 50Gi
 
 mimir-distributed:
+  # Enable Mimir dashboards - creates ConfigMaps with grafana_dashboard label
+  # Grafana sidecar picks these up from the mimir namespace
+  metaMonitoring:
+    dashboards:
+      enabled: true
+      annotations:
+        k8s-sidecar-target-directory: /tmp/dashboards/Mimir
+
   global:
     podAnnotations:
       prometheus.io/label-cluster: "mimir-do-nyc3-prod"

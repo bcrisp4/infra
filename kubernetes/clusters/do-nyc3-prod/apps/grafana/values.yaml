@@ -30,6 +30,16 @@ externalSecret:
   itemName: do-nyc3-prod-grafana-admin
 
 grafana:
+  # Dashboard sidecar - watches for ConfigMaps with grafana_dashboard label
+  # Picks up Mimir dashboards from mimir namespace
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+      folderAnnotation: k8s-sidecar-target-directory
+      provider:
+        foldersFromFilesStructure: true
+
   # HA configuration - 2 replicas with headless service for alerting peer discovery
   replicas: 2
   headlessService: true

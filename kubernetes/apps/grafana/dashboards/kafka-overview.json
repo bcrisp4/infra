@@ -1,0 +1,655 @@
+{
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "title": "Cluster Health",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Number of active brokers in the cluster",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "yellow", "value": 2 },
+              { "color": "green", "value": 3 }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "max(kafka_controller_kafkacontroller_activebrokercount{job=\"$job\"})" }],
+      "title": "Active Brokers",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Should always be exactly 1",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "green", "value": 1 },
+              { "color": "red", "value": 2 }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "sum(kafka_controller_kafkacontroller_activecontrollercount{job=\"$job\"})" }],
+      "title": "Active Controllers",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Partitions without an active leader (should be 0)",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "red", "value": 1 }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "sum(kafka_controller_kafkacontroller_offlinepartitionscount{job=\"$job\"})" }],
+      "title": "Offline Partitions",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Partitions with fewer replicas than expected (should be 0)",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "sum(kafka_server_replicamanager_underreplicatedpartitions{job=\"$job\"})" }],
+      "title": "Under-Replicated",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Partitions at minimum ISR - one more failure would cause unavailability",
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 10 }
+            ]
+          },
+          "unit": "none"
+        }
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [{ "expr": "sum(kafka_server_replicamanager_atminisrpartitioncount{job=\"$job\"})" }],
+      "title": "At Min ISR",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Global partition count / topic count",
+      "fieldConfig": { "defaults": { "unit": "none" } },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 1 },
+      "options": { "colorMode": "value", "graphMode": "none", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [
+        { "expr": "max(kafka_controller_kafkacontroller_globalpartitioncount{job=\"$job\"})", "legendFormat": "Partitions" },
+        { "expr": "max(kafka_controller_kafkacontroller_globaltopiccount{job=\"$job\"})", "legendFormat": "Topics" }
+      ],
+      "title": "Partitions / Topics",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "title": "Throughput",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Network throughput per broker",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "Bps" } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        { "expr": "rate(kafka_server_brokertopicmetrics_bytesinpersec_total{job=\"$job\", pod=~\"$broker\"}[$__rate_interval])", "legendFormat": "{{pod}} - In" },
+        { "expr": "-rate(kafka_server_brokertopicmetrics_bytesoutpersec_total{job=\"$job\", pod=~\"$broker\"}[$__rate_interval])", "legendFormat": "{{pod}} - Out" }
+      ],
+      "title": "Bytes In/Out per Broker",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Message rate per broker",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "msg/s" } },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        { "expr": "rate(kafka_server_brokertopicmetrics_messagesinpersec_total{job=\"$job\", pod=~\"$broker\"}[$__rate_interval])", "legendFormat": "{{pod}}" }
+      ],
+      "title": "Messages In per Broker",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Total cluster bytes-in rate excluding inter-broker replication traffic.",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "Bps" } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 14 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "sum(rate(kafka_server_brokertopicmetrics_bytesinpersec_total{job=\"$job\"}[$__rate_interval])) - sum(rate(kafka_server_brokertopicmetrics_replicationbytesinpersec_total{job=\"$job\"}[$__rate_interval]))", "legendFormat": "Bytes In (excl. replication)" }
+      ],
+      "title": "Bytes In Rate (excl. replication)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Inter-broker replication bytes",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "Bps" } },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 14 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "right" } },
+      "targets": [
+        { "expr": "rate(kafka_server_brokertopicmetrics_replicationbytesinpersec_total{job=\"$job\", pod=~\"$broker\"}[$__rate_interval])", "legendFormat": "{{pod}} - Replication In" },
+        { "expr": "-rate(kafka_server_brokertopicmetrics_replicationbytesoutpersec_total{job=\"$job\", pod=~\"$broker\"}[$__rate_interval])", "legendFormat": "{{pod}} - Replication Out" }
+      ],
+      "title": "Replication Traffic",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
+      "title": "Request Performance",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Percent of time request handlers are idle (normalized). Below 70% indicates performance degradation.",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "max": 1, "min": 0, "unit": "percentunit" } },
+      "gridPos": { "h": 8, "w": 6, "x": 0, "y": 23 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "clamp_max(irate(kafka_server_kafkarequesthandlerpool_requesthandleravgidlepercent_total{job=\"$job\", pod=~\"$broker\"}[$__rate_interval]) / 1e9 / 2, 1)", "legendFormat": "{{pod}}" }
+      ],
+      "title": "Request Handler Idle %",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Percent of time network processors are idle",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "max": 1, "min": 0, "unit": "percentunit" } },
+      "gridPos": { "h": 8, "w": 6, "x": 6, "y": 23 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "kafka_network_socketserver_networkprocessoravgidlepercent{job=\"$job\", pod=~\"$broker\"}", "legendFormat": "{{pod}}" }
+      ],
+      "title": "Network Processor Idle %",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Number of requests waiting in the request queue",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "none" } },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 23 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "kafka_network_requestchannel_requestqueuesize{job=\"$job\", pod=~\"$broker\"}", "legendFormat": "{{pod}}" }
+      ],
+      "title": "Request Queue Size",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Network buffer memory pool usage",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "bytes" } },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 23 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "kafka_network_socketserver_memorypoolused{job=\"$job\", pod=~\"$broker\"}", "legendFormat": "{{pod}} - Used" },
+        { "expr": "kafka_network_socketserver_memorypoolavailable{job=\"$job\", pod=~\"$broker\"}", "legendFormat": "{{pod}} - Available" }
+      ],
+      "title": "Network Memory Pool",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Total time spent in each request phase (stacked).",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1, "stacking": { "mode": "normal" } }, "unit": "ms" } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 31 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "sum(rate(kafka_network_requestmetrics_requestqueuetimems_total{job=\"$job\", request=~\"Produce|Fetch|FetchConsumer|FetchFollower\"}[$__rate_interval]))", "legendFormat": "Queue Time" },
+        { "expr": "sum(rate(kafka_network_requestmetrics_localtimems_total{job=\"$job\", request=~\"Produce|Fetch|FetchConsumer|FetchFollower\"}[$__rate_interval]))", "legendFormat": "Local Time" },
+        { "expr": "sum(rate(kafka_network_requestmetrics_remotetimems_total{job=\"$job\", request=~\"Produce|Fetch|FetchConsumer|FetchFollower\"}[$__rate_interval]))", "legendFormat": "Remote Time" },
+        { "expr": "sum(rate(kafka_network_requestmetrics_responsesendtimems_total{job=\"$job\", request=~\"Produce|Fetch|FetchConsumer|FetchFollower\"}[$__rate_interval]))", "legendFormat": "Response Send" }
+      ],
+      "title": "Request Time Breakdown (Produce/Fetch)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Rate of produce and fetch requests per broker",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "reqps" } },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 31 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "rate(kafka_server_brokertopicmetrics_totalproducerequestspersec_total{job=\"$job\", pod=~\"$broker\"}[$__rate_interval])", "legendFormat": "{{pod}} - Produce" },
+        { "expr": "rate(kafka_server_brokertopicmetrics_totalfetchrequestspersec_total{job=\"$job\", pod=~\"$broker\"}[$__rate_interval])", "legendFormat": "{{pod}} - Fetch" }
+      ],
+      "title": "Request Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Rate of failed produce and fetch requests",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "reqps" } },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 31 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "rate(kafka_server_brokertopicmetrics_failedproducerequestspersec_total{job=\"$job\", pod=~\"$broker\"}[$__rate_interval])", "legendFormat": "{{pod}} - Failed Produce" },
+        { "expr": "rate(kafka_server_brokertopicmetrics_failedfetchrequestspersec_total{job=\"$job\", pod=~\"$broker\"}[$__rate_interval])", "legendFormat": "{{pod}} - Failed Fetch" }
+      ],
+      "title": "Failed Requests",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 39 },
+      "title": "Replication & Partitions",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Partitions with insufficient replicas per broker",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "none" } },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 40 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "kafka_server_replicamanager_underreplicatedpartitions{job=\"$job\", pod=~\"$broker\"}", "legendFormat": "{{pod}}" }
+      ],
+      "title": "Under-Replicated Partitions",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Rate of in-sync replica pool changes",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "ops" } },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 40 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "rate(kafka_server_replicamanager_isrshrinkspersec_total{job=\"$job\", pod=~\"$broker\"}[$__rate_interval])", "legendFormat": "{{pod}} - Shrinks" },
+        { "expr": "rate(kafka_server_replicamanager_isrexpandspersec_total{job=\"$job\", pod=~\"$broker\"}[$__rate_interval])", "legendFormat": "{{pod}} - Expands" }
+      ],
+      "title": "ISR Shrinks/Expands",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Number of partition leaders per broker",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "none" } },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 40 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "kafka_server_replicamanager_leadercount{job=\"$job\", pod=~\"$broker\"}", "legendFormat": "{{pod}}" }
+      ],
+      "title": "Leader Count per Broker",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Total partitions hosted per broker",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "none" } },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 48 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "kafka_server_replicamanager_partitioncount{job=\"$job\", pod=~\"$broker\"}", "legendFormat": "{{pod}}" }
+      ],
+      "title": "Partition Count per Broker",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Maximum lag in messages for replica fetcher",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "none" } },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 48 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "kafka_server_replicafetchermanager_maxlag_clientid_replica{job=\"$job\", pod=~\"$broker\"}", "legendFormat": "{{pod}}" }
+      ],
+      "title": "Replica Fetcher Max Lag",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Rate of unclean leader elections (potential data loss)",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "ops" } },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 48 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "rate(kafka_controller_controllerstats_uncleanleaderelectionspersec_total{job=\"$job\", pod=~\"$broker\"}[$__rate_interval])", "legendFormat": "{{pod}}" }
+      ],
+      "title": "Unclean Leader Elections",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Replica fetcher lag in messages per partition (internal replication lag, NOT consumer group lag).",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "none" } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 56 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "kafka_server_fetcherlagmetrics_consumerlag{job=\"$job\"}", "legendFormat": "{{topic}}-{{partition}}" }
+      ],
+      "title": "Replica Fetcher Lag",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Delayed operations waiting in purgatory",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "none" } },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 56 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "kafka_server_delayedoperationpurgatory_purgatorysize_delayedoperation_produce{job=\"$job\", pod=~\"$broker\"}", "legendFormat": "{{pod}} - Produce" },
+        { "expr": "kafka_server_delayedoperationpurgatory_purgatorysize_delayedoperation_fetch{job=\"$job\", pod=~\"$broker\"}", "legendFormat": "{{pod}} - Fetch" }
+      ],
+      "title": "Delayed Operations (Purgatory)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 64 },
+      "title": "Storage",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Total log size per topic across all brokers",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "bytes" } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 65 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "sum by (topic) (kafka_log_log_size{job=\"$job\", topic=~\"$topic\", topic!~\"__.*\"})", "legendFormat": "{{topic}}" }
+      ],
+      "title": "Log Size by Topic",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Total log size per broker",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "bytes" } },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 65 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "sum by (pod) (kafka_log_log_size{job=\"$job\", pod=~\"$broker\"})", "legendFormat": "{{pod}}" }
+      ],
+      "title": "Log Size per Broker",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Number of log segments per topic",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "none" } },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 73 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "sum by (topic) (kafka_log_log_numlogsegments{job=\"$job\", topic=~\"$topic\", topic!~\"__.*\"})", "legendFormat": "{{topic}}" }
+      ],
+      "title": "Log Segments per Topic",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Disk read/write bytes for Kafka server",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "Bps" } },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 73 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "rate(kafka_server_kafkaserver_linux_disk_read_bytes{job=\"$job\", pod=~\"$broker\"}[$__rate_interval])", "legendFormat": "{{pod}} - Read" },
+        { "expr": "-rate(kafka_server_kafkaserver_linux_disk_write_bytes{job=\"$job\", pod=~\"$broker\"}[$__rate_interval])", "legendFormat": "{{pod}} - Write" }
+      ],
+      "title": "Disk I/O",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 81 },
+      "title": "JVM",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Heap memory usage per broker",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "bytes" } },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 82 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "jvm_memory_heap_used_bytes{job=\"$job\", pod=~\"$broker\"}", "legendFormat": "{{pod}} - Used" },
+        { "expr": "jvm_memory_heap_max_bytes{job=\"$job\", pod=~\"$broker\"}", "legendFormat": "{{pod}} - Max" }
+      ],
+      "title": "JVM Heap Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Percentage of heap memory used",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "max": 1, "min": 0, "unit": "percentunit" } },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 82 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "jvm_memory_heap_used_bytes{job=\"$job\", pod=~\"$broker\"} / jvm_memory_heap_max_bytes{job=\"$job\", pod=~\"$broker\"}", "legendFormat": "{{pod}}" }
+      ],
+      "title": "JVM Heap Usage %",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Time spent in garbage collection",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "s" } },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 82 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "rate(jvm_gc_collection_seconds_sum{job=\"$job\", pod=~\"$broker\"}[$__rate_interval])", "legendFormat": "{{pod}} - {{gc}}" }
+      ],
+      "title": "GC Pause Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Rate of garbage collection runs",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "ops" } },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 90 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "rate(jvm_gc_collection_seconds_count{job=\"$job\", pod=~\"$broker\"}[$__rate_interval])", "legendFormat": "{{pod}} - {{gc}}" }
+      ],
+      "title": "GC Collection Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Number of JVM threads",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "none" } },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 90 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "jvm_threads_current{job=\"$job\", pod=~\"$broker\"}", "legendFormat": "{{pod}}" }
+      ],
+      "title": "JVM Threads",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Non-heap memory usage (metaspace, code cache)",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "bytes" } },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 90 },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+      "targets": [
+        { "expr": "jvm_memory_nonheap_used_bytes{job=\"$job\", pod=~\"$broker\"}", "legendFormat": "{{pod}}" }
+      ],
+      "title": "JVM Non-Heap Memory",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 98 },
+      "title": "Kubernetes Resources",
+      "type": "row"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Container memory usage vs limit",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "bytes" } },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 99 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        { "expr": "container_memory_working_set_bytes{namespace=\"$namespace\", pod=~\"$broker\", container!=\"\"}", "legendFormat": "{{pod}} - Used" },
+        { "expr": "container_spec_memory_limit_bytes{namespace=\"$namespace\", pod=~\"$broker\", container!=\"\"} > 0", "legendFormat": "{{pod}} - Limit" }
+      ],
+      "title": "Container Memory Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Container memory as percentage of limit",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "max": 1, "min": 0, "unit": "percentunit" } },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 99 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        { "expr": "container_memory_working_set_bytes{namespace=\"$namespace\", pod=~\"$broker\", container!=\"\"} / container_spec_memory_limit_bytes{namespace=\"$namespace\", pod=~\"$broker\", container!=\"\"}", "legendFormat": "{{pod}}" }
+      ],
+      "title": "Container Memory %",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Container CPU usage in cores",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "short" } },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 99 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        { "expr": "rate(container_cpu_usage_seconds_total{namespace=\"$namespace\", pod=~\"$broker\", container!=\"\"}[$__rate_interval])", "legendFormat": "{{pod}}" }
+      ],
+      "title": "Container CPU Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "PVC disk usage for Kafka data volumes",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "bytes" } },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 107 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        { "expr": "kubelet_volume_stats_used_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\".*kafka.*\"}", "legendFormat": "{{persistentvolumeclaim}} - Used" },
+        { "expr": "kubelet_volume_stats_capacity_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\".*kafka.*\"}", "legendFormat": "{{persistentvolumeclaim}} - Capacity" }
+      ],
+      "title": "Disk Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "PVC disk usage as percentage of capacity",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "max": 1, "min": 0, "unit": "percentunit" } },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 107 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        { "expr": "kubelet_volume_stats_used_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\".*kafka.*\"} / kubelet_volume_stats_capacity_bytes{namespace=\"$namespace\", persistentvolumeclaim=~\".*kafka.*\"}", "legendFormat": "{{persistentvolumeclaim}}" }
+      ],
+      "title": "Disk Usage %",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "description": "Available inodes on Kafka data volumes",
+      "fieldConfig": { "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 1 }, "unit": "short" } },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 107 },
+      "options": { "legend": { "calcs": ["mean", "min"], "displayMode": "table", "placement": "bottom" } },
+      "targets": [
+        { "expr": "kubelet_volume_stats_inodes_free{namespace=\"$namespace\", persistentvolumeclaim=~\".*kafka.*\"}", "legendFormat": "{{persistentvolumeclaim}}" }
+      ],
+      "title": "Inodes Free",
+      "type": "timeseries"
+    }
+  ],
+  "refresh": "30s",
+  "tags": ["kafka", "jvm", "strimzi"],
+  "templating": {
+    "list": [
+      {
+        "hide": 0,
+        "name": "datasource",
+        "query": "prometheus",
+        "type": "datasource"
+      },
+      {
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "includeAll": false,
+        "name": "job",
+        "query": "label_values(kafka_controller_kafkacontroller_activebrokercount, job)",
+        "refresh": 1,
+        "type": "query"
+      },
+      {
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "includeAll": false,
+        "name": "namespace",
+        "query": "label_values(kafka_controller_kafkacontroller_activebrokercount{job=\"$job\"}, namespace)",
+        "refresh": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "broker",
+        "query": "label_values(kafka_controller_kafkacontroller_activebrokercount{job=\"$job\"}, pod)",
+        "refresh": 1,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "topic",
+        "query": "label_values(kafka_log_log_size{job=\"$job\", topic!~\"__.*\"}, topic)",
+        "refresh": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": { "from": "now-3h", "to": "now" },
+  "timezone": "browser",
+  "title": "Kafka Overview",
+  "uid": "kafka-overview",
+  "version": 1
+}

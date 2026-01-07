@@ -90,3 +90,21 @@ grafana:
   podAnnotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: "3000"
+
+  # Dashboard provisioning
+  # Dashboards from kubernetes/apps/grafana/dashboards/ are loaded via ConfigMap
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: custom
+          orgId: 1
+          folder: Custom
+          type: file
+          disableDeletion: false
+          editable: false
+          options:
+            path: /var/lib/grafana/dashboards/custom
+
+  dashboardsConfigMaps:
+    custom: grafana-dashboards

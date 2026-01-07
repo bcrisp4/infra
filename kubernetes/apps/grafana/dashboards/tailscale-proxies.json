@@ -1,0 +1,174 @@
+{
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 2 }, "unit": "Bps" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum by (app) (rate(tailscaled_inbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}[5m]))",
+          "legendFormat": "{{app}}"
+        }
+      ],
+      "title": "Inbound Traffic Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10, "lineWidth": 2 }, "unit": "Bps" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum by (app) (rate(tailscaled_outbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}[5m]))",
+          "legendFormat": "{{app}}"
+        }
+      ],
+      "title": "Outbound Traffic Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 20, "lineWidth": 2 }, "unit": "Bps" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table" } },
+      "targets": [
+        {
+          "expr": "sum by (path) (rate(tailscaled_inbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}[5m]) + rate(tailscaled_outbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}[5m]))",
+          "legendFormat": "{{path}}"
+        }
+      ],
+      "title": "Traffic by Path Type (All Proxies)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": { "fillOpacity": 10, "lineWidth": 2 },
+          "unit": "pps"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "sum by (app) (rate(tailscaled_outbound_dropped_packets_total{app=~\"ts-.*\", app=~\"$proxy\"}[5m]))",
+          "legendFormat": "{{app}}"
+        }
+      ],
+      "title": "Dropped Packets Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 16 },
+      "options": { "colorMode": "value", "graphMode": "none" },
+      "targets": [
+        {
+          "expr": "sum(increase(tailscaled_inbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}[24h]) + increase(tailscaled_outbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}[24h]))",
+          "legendFormat": "Total"
+        }
+      ],
+      "title": "Total Traffic (Last 24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        }
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 16 },
+      "options": { "colorMode": "value", "graphMode": "none" },
+      "targets": [
+        {
+          "expr": "sum(tailscaled_health_messages{app=~\"ts-.*\", app=~\"$proxy\"})",
+          "legendFormat": "Health Issues"
+        }
+      ],
+      "title": "Health Messages",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 16 },
+      "options": { "colorMode": "value", "graphMode": "none" },
+      "targets": [
+        {
+          "expr": "sum(tailscaled_advertised_routes{app=~\"ts-.*\", app=~\"$proxy\"})",
+          "legendFormat": "Advertised"
+        }
+      ],
+      "title": "Advertised Routes",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 16 },
+      "options": { "colorMode": "value", "graphMode": "none" },
+      "targets": [
+        {
+          "expr": "sum(tailscaled_approved_routes{app=~\"ts-.*\", app=~\"$proxy\"})",
+          "legendFormat": "Approved"
+        }
+      ],
+      "title": "Approved Routes",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "gridPos": { "h": 6, "w": 24, "x": 0, "y": 20 },
+      "options": { "displayMode": "gradient", "orientation": "horizontal" },
+      "targets": [
+        {
+          "expr": "sum by (app) (increase(tailscaled_inbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}[24h]) + increase(tailscaled_outbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}[24h]))",
+          "legendFormat": "{{app}}"
+        }
+      ],
+      "title": "Traffic per Proxy (Last 24h)",
+      "type": "bargauge"
+    }
+  ],
+  "refresh": "30s",
+  "tags": ["tailscale", "networking"],
+  "templating": {
+    "list": [
+      {
+        "hide": 0,
+        "name": "datasource",
+        "query": "prometheus",
+        "type": "datasource"
+      },
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "proxy",
+        "query": "label_values(tailscaled_inbound_bytes_total{app=~\"ts-.*\"}, app)",
+        "refresh": 2,
+        "type": "query"
+      }
+    ]
+  },
+  "timezone": "browser",
+  "title": "Tailscale Proxies",
+  "uid": "tailscale-proxies",
+  "version": 1
+}

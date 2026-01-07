@@ -1,0 +1,332 @@
+{
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "title": "Overview",
+      "type": "row"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "short" }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 1 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (jvm_threads_current{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "Threads",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "short" }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 1 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (jvm_classes_currently_loaded{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "Classes Loaded",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "bytes" }
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 1 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (jvm_memory_heap_used_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "Heap Used",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 9 },
+      "title": "Garbage Collection",
+      "type": "row"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "description": "Percentage of time spent in garbage collection. Alert threshold is typically 10%.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10 },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 10 }
+            ]
+          },
+          "unit": "percent"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 10 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (jvm_gc_overhead{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"}) * 100",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "GC Overhead %",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "ops" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 10 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (rate(jvm_gc_collection_seconds_count{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"}[$__rate_interval]))",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "GC Collections Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "s" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 18 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (rate(jvm_gc_pause_seconds_sum{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"}[$__rate_interval])) / sum by (namespace, app, pod) (rate(jvm_gc_pause_seconds_count{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"}[$__rate_interval]))",
+          "legendFormat": "{{pod}}"
+        }
+      ],
+      "title": "Avg GC Pause Duration",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "Bps" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 18 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (rate(jvm_gc_memory_allocated_bytes_total{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"}[$__rate_interval]))",
+          "legendFormat": "{{pod}} allocated"
+        },
+        {
+          "expr": "sum by (namespace, app, pod) (rate(jvm_gc_memory_promoted_bytes_total{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"}[$__rate_interval]))",
+          "legendFormat": "{{pod}} promoted"
+        }
+      ],
+      "title": "Allocation & Promotion Rate",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 26 },
+      "title": "Heap Memory",
+      "type": "row"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "bytes" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 27 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (jvm_memory_heap_used_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}} used"
+        },
+        {
+          "expr": "sum by (namespace, app, pod) (jvm_memory_heap_committed_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}} committed"
+        },
+        {
+          "expr": "sum by (namespace, app, pod) (jvm_memory_heap_max_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}} max"
+        }
+      ],
+      "title": "Heap: Used vs Committed vs Max",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "bytes" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 27 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (jvm_gc_live_data_size_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}} live"
+        },
+        {
+          "expr": "sum by (namespace, app, pod) (jvm_gc_max_data_size_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}} max"
+        }
+      ],
+      "title": "Live Data Size vs Max",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 35 },
+      "title": "Non-Heap Memory",
+      "type": "row"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "bytes" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 36 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod) (jvm_memory_nonheap_used_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}} used"
+        },
+        {
+          "expr": "sum by (namespace, app, pod) (jvm_memory_nonheap_committed_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}} committed"
+        }
+      ],
+      "title": "Non-Heap: Used vs Committed",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "stacking": { "mode": "normal" } },
+          "unit": "bytes"
+        }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 36 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod, pool) (jvm_memory_pool_used_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}} {{pool}}"
+        }
+      ],
+      "title": "Memory Pools (Stacked)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 44 },
+      "title": "Buffers & Info",
+      "type": "row"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "fillOpacity": 10 }, "unit": "bytes" }
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 45 },
+      "targets": [
+        {
+          "expr": "sum by (namespace, app, pod, id) (jvm_buffer_memory_used_bytes{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"})",
+          "legendFormat": "{{pod}} {{id}}"
+        }
+      ],
+      "title": "Buffer Pool Memory",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "version" },
+            "properties": [{ "id": "custom.width", "value": 200 }]
+          }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 45 },
+      "options": { "showHeader": true },
+      "targets": [
+        {
+          "expr": "jvm_info{namespace=~\"$namespace\", app=~\"$app\", pod=~\"$pod\"}",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "title": "JVM Info",
+      "transformations": [
+        { "id": "merge" },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Value": true,
+              "__name__": true,
+              "job": true
+            }
+          }
+        }
+      ],
+      "type": "table"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["java", "jvm", "runtime", "gc"],
+  "templating": {
+    "list": [
+      {
+        "hide": 0,
+        "name": "datasource",
+        "query": "prometheus",
+        "type": "datasource"
+      },
+      {
+        "allValue": ".*",
+        "datasource": { "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "namespace",
+        "query": "label_values(jvm_info, namespace)",
+        "refresh": 2,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "datasource": { "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "app",
+        "query": "label_values(jvm_info{namespace=~\"$namespace\"}, app)",
+        "refresh": 2,
+        "type": "query"
+      },
+      {
+        "allValue": ".*",
+        "datasource": { "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "pod",
+        "query": "label_values(jvm_info{namespace=~\"$namespace\", app=~\"$app\"}, pod)",
+        "refresh": 2,
+        "type": "query"
+      }
+    ]
+  },
+  "timezone": "browser",
+  "title": "Java Runtime",
+  "uid": "java-runtime",
+  "version": 1
+}
