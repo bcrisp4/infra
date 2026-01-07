@@ -23,10 +23,6 @@ opentelemetry-ebpf-instrumentation:
         max_queue_size: 16384
         # Reduce batch timeout from 15s to flush more frequently
         batch_timeout: 5s
-        # Sample 10% of traces to reduce volume
-        sampler:
-          name: parentbased_traceidratio
-          arg: "0.1"
       otel_metrics_export:
         endpoint: "http://otel-metrics-push.otel-metrics-push.svc.cluster.local:4318/v1/metrics"
       attributes:
