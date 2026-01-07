@@ -27,8 +27,22 @@ opentelemetry-ebpf-instrumentation:
         sampler:
           name: parentbased_traceidratio
           arg: "0.1"
+        # Explicitly enable all protocol instrumentations
+        instrumentations:
+          - http
+          - grpc
+          - sql
+          - redis
+          - kafka
       otel_metrics_export:
         endpoint: "http://otel-metrics-push.otel-metrics-push.svc.cluster.local:4318/v1/metrics"
+        # Explicitly enable all protocol instrumentations
+        instrumentations:
+          - http
+          - grpc
+          - sql
+          - redis
+          - kafka
       attributes:
         kubernetes:
           enable: true
