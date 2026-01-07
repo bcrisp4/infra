@@ -6,5 +6,5 @@ version: 1.0.0
 
 dependencies:
   - name: external-secrets
-    version: "~1.2"  # Requires 1.x for onepasswordSDK provider
+    version: 1.2.1  # Requires 1.x for onepasswordSDK provider
     repository: "https://charts.external-secrets.io"
