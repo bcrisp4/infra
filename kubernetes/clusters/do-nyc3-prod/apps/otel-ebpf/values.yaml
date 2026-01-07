@@ -35,6 +35,10 @@ opentelemetry-ebpf-instrumentation:
           k8s_src_owner_name:
             not_match: '{kube*,*jaeger-agent*,*prometheus*,*promtail*,*grafana-agent*,otel-*,linkerd*}'
 
+  # Cluster name for k8s.cluster.name attribute
+  env:
+    OTEL_EBPF_KUBE_CLUSTER_NAME: do-nyc3-prod
+
   # Tolerate all nodes
   tolerations:
     - operator: Exists
