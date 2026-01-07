@@ -41,6 +41,7 @@ loki:
               attributes:
                 - cluster
                 - log_source
+                - service_name
 
     storage:
       bucketNames:

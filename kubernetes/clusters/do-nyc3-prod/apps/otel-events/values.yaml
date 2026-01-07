@@ -96,6 +96,9 @@ opentelemetry-collector:
           - key: log_source
             value: events
             action: insert
+          - key: service_name
+            value: k8s-events
+            action: insert
 
     service:
       pipelines:
