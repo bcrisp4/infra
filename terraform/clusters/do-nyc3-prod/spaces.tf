@@ -105,6 +105,10 @@ locals {
       name        = "${local.bucket_prefix}-miniflux-postgres-backups"
       description = "Miniflux PostgreSQL database backups"
     }
+    n8n-postgres = {
+      name        = "${local.bucket_prefix}-n8n-postgres-backups"
+      description = "n8n PostgreSQL database backups"
+    }
   }
 }
 

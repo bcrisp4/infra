@@ -1,0 +1,40 @@
+# n8n for do-nyc3-prod
+
+n8n:
+  main:
+    config:
+      n8n:
+        host: n8n.marlin-tet.ts.net
+        protocol: https
+        metrics: true
+      webhook:
+        url: https://n8n.marlin-tet.ts.net
+
+ingress:
+  enabled: true
+  className: tailscale
+  host: n8n
+  annotations:
+    tailscale.com/proxy-group: ingress-proxies
+    tailscale.com/tags: tag:k8s-services
+
+database:
+  instances: 1
+  storage:
+    size: 5Gi
+
+# Database backup to DigitalOcean Spaces via Barman Cloud Plugin
+backup:
+  enabled: true
+  immediate: true
+  retentionPolicy: "28d"
+  s3:
+    itemName: do-nyc3-prod-n8n-postgres-s3
+    bucket: bc4-do-nyc3-prod-n8n-postgres-backups
+    endpoint: nyc3.digitaloceanspaces.com
+    path: n8n-db
+
+# ExternalSecret for encryption key from 1Password
+externalSecret:
+  enabled: true
+  itemName: n8n-encryption-key

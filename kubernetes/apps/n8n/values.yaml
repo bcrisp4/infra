@@ -1,0 +1,125 @@
+# n8n workflow automation defaults
+
+# Upstream n8n Helm chart configuration
+# See https://github.com/8gears/n8n-helm-chart for all options
+n8n:
+  # Ingress disabled - we use custom Tailscale ProxyGroup ingress
+  ingress:
+    enabled: false
+
+  main:
+    # n8n configuration (converted to environment variables)
+    # See https://docs.n8n.io/hosting/configuration/environment-variables/
+    config:
+      n8n:
+        host: n8n.example.com
+        protocol: https
+        metrics: true
+      db:
+        type: postgresdb
+        postgresdb:
+          host: n8n-db-rw
+          port: 5432
+          database: n8n
+          user: n8n
+          schema: public
+
+    # Secrets - password injected via extraEnv from CNPG secret
+    secret: {}
+
+    # Extra environment variables for secrets
+    extraEnv:
+      # Database password from CNPG-generated secret
+      DB_POSTGRESDB_PASSWORD:
+        valueFrom:
+          secretKeyRef:
+            name: n8n-db-app
+            key: password
+      # Encryption key for credentials (from 1Password via ExternalSecret)
+      N8N_ENCRYPTION_KEY:
+        valueFrom:
+          secretKeyRef:
+            name: n8n-encryption-key
+            key: key
+
+    # Persistence for n8n data (workflows stored in PostgreSQL, but logs/cache here)
+    persistence:
+      enabled: true
+      type: dynamic
+      size: 1Gi
+
+    # Resource limits
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+
+    # Pod annotations for Prometheus scraping
+    podAnnotations:
+      prometheus.io/scrape: "true"
+      prometheus.io/port: "5678"
+      prometheus.io/path: "/metrics"
+
+    # Run as non-root
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+
+    # Single replica - n8n requires license for multiple replicas
+    replicaCount: 1
+
+    # Recreate strategy since we're using persistence
+    deploymentStrategy:
+      type: Recreate
+
+# Custom Tailscale ProxyGroup ingress
+ingress:
+  enabled: true
+  className: tailscale
+  host: n8n
+  annotations: {}
+
+# Service configuration
+service:
+  port: 5678
+
+# CloudNativePG database configuration
+database:
+  instances: 1
+  storage:
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  # PostgreSQL tuning (sized for 512Mi memory)
+  postgresql:
+    shared_buffers: "128MB"
+    effective_cache_size: "384MB"
+    work_mem: "4MB"
+    maintenance_work_mem: "64MB"
+    checkpoint_timeout: "10min"
+    max_wal_size: "1GB"
+    checkpoint_completion_target: "0.9"
+
+# Database backup configuration (Barman Cloud Plugin)
+backup:
+  enabled: false
+  immediate: false
+  retentionPolicy: "28d"
+  s3:
+    itemName: ""
+    bucket: ""
+    endpoint: ""
+    path: "n8n-db"
+
+# ExternalSecret for encryption key (1Password)
+externalSecret:
+  enabled: false
+  itemName: ""

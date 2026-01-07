@@ -611,6 +611,32 @@ helm template kubernetes/apps/cloudnative-pg -f kubernetes/clusters/do-nyc3-prod
 
 See `kubernetes/apps/grafana/templates/backup-*.yaml` for examples.
 
+**Creating S3 backup buckets:**
+
+Backup buckets and credentials are managed via Terraform in `terraform/clusters/do-nyc3-prod/spaces.tf`:
+
+1. Add entry to `backup_buckets` local:
+```hcl
+n8n-postgres = {
+  name        = "${local.bucket_prefix}-n8n-postgres-backups"
+  description = "n8n PostgreSQL database backups"
+}
+```
+
+2. Run `terraform plan` and `terraform apply` - this automatically creates:
+   - DigitalOcean Spaces bucket
+   - Per-bucket access key via `digitalocean_spaces_key`
+   - 1Password item via `onepassword_item.backup_credentials` (named `{cluster}-{key}-s3`)
+
+3. Reference in Kubernetes values.yaml:
+```yaml
+backup:
+  s3:
+    itemName: do-nyc3-prod-n8n-postgres-s3  # Matches 1Password item title
+    bucket: bc4-do-nyc3-prod-n8n-postgres-backups
+    endpoint: nyc3.digitaloceanspaces.com
+```
+
 **Troubleshooting:**
 
 - Plugin not discovered: Check Service has `cnpg.io/pluginName` label and annotations
@@ -909,3 +935,43 @@ Miniflux is deployed on do-nyc3-prod with CNPG PostgreSQL (2 instances for HA), 
 5. **RUN_MIGRATIONS=1 is safe** with multiple instances - Miniflux uses PostgreSQL advisory locks.
 
 See [docs/reference/miniflux.md](docs/reference/miniflux.md) for full deployment reference.
+
+### n8n Workflow Automation
+
+n8n is deployed on do-nyc3-prod with CNPG PostgreSQL, Tailscale ingress, Linkerd mesh, and Barman Cloud backups.
+
+**Files:**
+- `kubernetes/apps/n8n/` - Umbrella chart wrapping upstream 8gears Helm chart
+- `kubernetes/clusters/do-nyc3-prod/apps/n8n/` - Cluster config
+
+**Key configuration:**
+
+1. **PostgreSQL via environment variables**: n8n uses `DB_TYPE=postgresdb` and `DB_POSTGRESDB_*` env vars. The password is injected from CNPG-generated secret `n8n-db-app`.
+
+2. **Encryption key required**: n8n encrypts stored credentials with `N8N_ENCRYPTION_KEY`. This key must remain consistent - changing it makes existing credentials unreadable. Stored in 1Password as `n8n-encryption-key` with field `key`.
+
+3. **Single replica only**: Multiple replicas require n8n enterprise license. Use `replicaCount: 1`.
+
+4. **Metrics enabled**: Prometheus scraping configured on port 5678 at `/metrics`.
+
+**Upstream chart structure:**
+
+The 8gears n8n chart uses nested config under `n8n.main.config` which converts to environment variables:
+```yaml
+n8n:
+  main:
+    config:
+      db:
+        type: postgresdb
+        postgresdb:
+          host: n8n-db-rw
+    extraEnv:
+      DB_POSTGRESDB_PASSWORD:
+        valueFrom:
+          secretKeyRef:
+            name: n8n-db-app
+            key: password
+```
+
+**Future enhancements:**
+- Tailscale Funnel for public webhook endpoint (for external integrations)
