@@ -8,12 +8,12 @@ The configuration lives in `.github/dependabot.yml`.
 
 ### Ecosystems Configured
 
-| Ecosystem | Directory | What it updates |
-|-----------|-----------|-----------------|
+| Ecosystem | Directories | What it updates |
+|-----------|-------------|-----------------|
 | `helm` | `/kubernetes/apps` | Chart.yaml dependencies |
-| `terraform` | `/terraform/bootstrap` | hashicorp/tfe provider |
-| `terraform` | `/terraform/global` | tailscale, onepassword providers |
-| `terraform` | `/terraform/clusters/do-nyc3-prod` | digitalocean, onepassword providers |
+| `terraform` | `/terraform/bootstrap`, `/terraform/global`, `/terraform/clusters/*` | Provider versions |
+
+The `/terraform/clusters/*` glob pattern automatically discovers all cluster directories, so new clusters are monitored without config changes.
 
 ### Schedule
 
@@ -56,21 +56,21 @@ When a new provider version is released, Dependabot creates a PR updating the ve
 
 ## Adding New Directories
 
-### New Terraform Directory
+### New Cluster (Automatic)
 
-Add a new entry to `.github/dependabot.yml`:
+New clusters in `/terraform/clusters/` are automatically discovered via the `*` glob pattern. No configuration changes needed.
+
+### New Top-Level Terraform Directory
+
+If you add a new top-level directory (outside of `clusters/`), add it to the `directories` list in `.github/dependabot.yml`:
 
 ```yaml
 - package-ecosystem: "terraform"
-  directory: "/terraform/clusters/new-cluster"
-  schedule:
-    interval: "weekly"
-    day: "monday"
-  reviewers:
-    - "bcrisp4"
-  labels:
-    - "dependencies"
-    - "terraform"
+  directories:
+    - "/terraform/bootstrap"
+    - "/terraform/global"
+    - "/terraform/clusters/*"
+    - "/terraform/new-directory"  # Add new directory here
 ```
 
 ### New Helm Chart Location

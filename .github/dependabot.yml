@@ -13,33 +13,12 @@ updates:
       - "dependencies"
       - "helm"
 
-  # Terraform providers - bootstrap
+  # Terraform providers (auto-discovers all directories)
   - package-ecosystem: "terraform"
-    directory: "/terraform/bootstrap"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    reviewers:
-      - "bcrisp4"
-    labels:
-      - "dependencies"
-      - "terraform"
-
-  # Terraform providers - global
-  - package-ecosystem: "terraform"
-    directory: "/terraform/global"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-    reviewers:
-      - "bcrisp4"
-    labels:
-      - "dependencies"
-      - "terraform"
-
-  # Terraform providers - do-nyc3-prod cluster
-  - package-ecosystem: "terraform"
-    directory: "/terraform/clusters/do-nyc3-prod"
+    directories:
+      - "/terraform/bootstrap"
+      - "/terraform/global"
+      - "/terraform/clusters/*"
     schedule:
       interval: "weekly"
       day: "monday"

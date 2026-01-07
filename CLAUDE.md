@@ -178,7 +178,7 @@ Dependabot automatically creates PRs to update Helm chart dependencies and Terra
 
 **What it monitors:**
 - Helm: `kubernetes/apps/*/Chart.yaml` dependencies
-- Terraform: providers in `terraform/bootstrap/`, `terraform/global/`, `terraform/clusters/do-nyc3-prod/`
+- Terraform: providers in `terraform/bootstrap/`, `terraform/global/`, `terraform/clusters/*` (auto-discovers new clusters)
 
 **Schedule:** Weekly on Mondays
 
