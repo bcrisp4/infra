@@ -8,8 +8,8 @@
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
       "targets": [
         {
-          "expr": "sum by (app) (rate(tailscaled_inbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}[5m]))",
-          "legendFormat": "{{app}}"
+          "expr": "sum by (pod) (rate(tailscaled_inbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\", pod=~\"$pod\"}[5m]))",
+          "legendFormat": "{{pod}}"
         }
       ],
       "title": "Inbound Traffic Rate",
@@ -23,8 +23,8 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
       "targets": [
         {
-          "expr": "sum by (app) (rate(tailscaled_outbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}[5m]))",
-          "legendFormat": "{{app}}"
+          "expr": "sum by (pod) (rate(tailscaled_outbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\", pod=~\"$pod\"}[5m]))",
+          "legendFormat": "{{pod}}"
         }
       ],
       "title": "Outbound Traffic Rate",
@@ -39,11 +39,11 @@
       "options": { "legend": { "calcs": ["mean", "max"], "displayMode": "table" } },
       "targets": [
         {
-          "expr": "sum by (path) (rate(tailscaled_inbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}[5m]) + rate(tailscaled_outbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}[5m]))",
+          "expr": "sum by (path) (rate(tailscaled_inbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\", pod=~\"$pod\"}[5m]) + rate(tailscaled_outbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\", pod=~\"$pod\"}[5m]))",
           "legendFormat": "{{path}}"
         }
       ],
-      "title": "Traffic by Path Type (All Proxies)",
+      "title": "Traffic by Path Type",
       "type": "timeseries"
     },
     {
@@ -58,8 +58,8 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
       "targets": [
         {
-          "expr": "sum by (app) (rate(tailscaled_outbound_dropped_packets_total{app=~\"ts-.*\", app=~\"$proxy\"}[5m]))",
-          "legendFormat": "{{app}}"
+          "expr": "sum by (pod) (rate(tailscaled_outbound_dropped_packets_total{app=~\"ts-.*\", app=~\"$proxy\", pod=~\"$pod\"}[5m]))",
+          "legendFormat": "{{pod}}"
         }
       ],
       "title": "Dropped Packets Rate",
@@ -72,7 +72,7 @@
       "options": { "colorMode": "value", "graphMode": "none" },
       "targets": [
         {
-          "expr": "sum(increase(tailscaled_inbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}[24h]) + increase(tailscaled_outbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}[24h]))",
+          "expr": "sum(increase(tailscaled_inbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\", pod=~\"$pod\"}[24h]) + increase(tailscaled_outbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\", pod=~\"$pod\"}[24h]))",
           "legendFormat": "Total"
         }
       ],
@@ -97,7 +97,7 @@
       "options": { "colorMode": "value", "graphMode": "none" },
       "targets": [
         {
-          "expr": "sum(tailscaled_health_messages{app=~\"ts-.*\", app=~\"$proxy\"})",
+          "expr": "sum(tailscaled_health_messages{app=~\"ts-.*\", app=~\"$proxy\", pod=~\"$pod\"})",
           "legendFormat": "Health Issues"
         }
       ],
@@ -110,7 +110,7 @@
       "options": { "colorMode": "value", "graphMode": "none" },
       "targets": [
         {
-          "expr": "sum(tailscaled_advertised_routes{app=~\"ts-.*\", app=~\"$proxy\"})",
+          "expr": "sum(tailscaled_advertised_routes{app=~\"ts-.*\", app=~\"$proxy\", pod=~\"$pod\"})",
           "legendFormat": "Advertised"
         }
       ],
@@ -123,7 +123,7 @@
       "options": { "colorMode": "value", "graphMode": "none" },
       "targets": [
         {
-          "expr": "sum(tailscaled_approved_routes{app=~\"ts-.*\", app=~\"$proxy\"})",
+          "expr": "sum(tailscaled_approved_routes{app=~\"ts-.*\", app=~\"$proxy\", pod=~\"$pod\"})",
           "legendFormat": "Approved"
         }
       ],
@@ -137,11 +137,11 @@
       "options": { "displayMode": "gradient", "orientation": "horizontal" },
       "targets": [
         {
-          "expr": "sum by (app) (increase(tailscaled_inbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}[24h]) + increase(tailscaled_outbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}[24h]))",
-          "legendFormat": "{{app}}"
+          "expr": "sum by (pod) (increase(tailscaled_inbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\", pod=~\"$pod\"}[24h]) + increase(tailscaled_outbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\", pod=~\"$pod\"}[24h]))",
+          "legendFormat": "{{pod}}"
         }
       ],
-      "title": "Traffic per Proxy (Last 24h)",
+      "title": "Traffic per Pod (Last 24h)",
       "type": "bargauge"
     }
   ],
@@ -162,6 +162,16 @@
         "multi": true,
         "name": "proxy",
         "query": "label_values(tailscaled_inbound_bytes_total{app=~\"ts-.*\"}, app)",
+        "refresh": 2,
+        "type": "query"
+      },
+      {
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "includeAll": true,
+        "multi": true,
+        "name": "pod",
+        "query": "label_values(tailscaled_inbound_bytes_total{app=~\"ts-.*\", app=~\"$proxy\"}, pod)",
         "refresh": 2,
         "type": "query"
       }

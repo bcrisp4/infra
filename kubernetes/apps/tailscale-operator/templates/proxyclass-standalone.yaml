@@ -1,0 +1,15 @@
+# ProxyClass for standalone proxies (not in ProxyGroup) with metrics enabled
+# Used for individual ingresses like the ArgoCD webhook funnel
+apiVersion: tailscale.com/v1alpha1
+kind: ProxyClass
+metadata:
+  name: standalone-metrics
+spec:
+  metrics:
+    enable: true
+  statefulSet:
+    pod:
+      # Enable Prometheus scraping on metrics port
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9002"
