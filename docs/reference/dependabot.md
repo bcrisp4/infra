@@ -10,10 +10,10 @@ The configuration lives in `.github/dependabot.yml`.
 
 | Ecosystem | Directories | What it updates |
 |-----------|-------------|-----------------|
-| `helm` | `/kubernetes/apps` | Chart.yaml dependencies |
+| `helm` | `/kubernetes/apps/*` | Chart.yaml dependencies |
 | `terraform` | `/terraform/bootstrap`, `/terraform/global`, `/terraform/clusters/*` | Provider versions |
 
-The `/terraform/clusters/*` glob pattern automatically discovers all cluster directories, so new clusters are monitored without config changes.
+Glob patterns (`*`) automatically discover directories, so new apps and clusters are monitored without config changes.
 
 ### Schedule
 
