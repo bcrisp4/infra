@@ -5,7 +5,7 @@
 ingress:
   enabled: true
   className: tailscale
-  host: grafana-do-nyc3-prod
+  host: grafana
   annotations:
     tailscale.com/proxy-group: ingress-proxies
     tailscale.com/tags: tag:k8s-services
@@ -61,7 +61,7 @@ grafana:
 
   grafana.ini:
     server:
-      domain: grafana-do-nyc3-prod.marlin-tet.ts.net
+      domain: grafana.marlin-tet.ts.net
       root_url: "%(protocol)s://%(domain)s"
     feature_toggles:
       provisioning: true
