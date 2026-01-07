@@ -1,0 +1,47 @@
+opentelemetry-ebpf-instrumentation:
+  preset: application
+
+  # Privileged required for eBPF
+  privileged: true
+  securityContext:
+    privileged: true
+
+  # Resources
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+  # Send to node-local collectors (internalTrafficPolicy: Local)
+  config:
+    data:
+      otel_traces_export:
+        endpoint: "http://otel-traces.otel-traces.svc.cluster.local:4317"
+      otel_metrics_export:
+        endpoint: "http://otel-metrics-push.otel-metrics-push.svc.cluster.local:4318/v1/metrics"
+      attributes:
+        kubernetes:
+          enable: true
+      prometheus_export:
+        port: 9090
+        path: /metrics
+      # Filter out infrastructure components
+      filter:
+        network:
+          k8s_dst_owner_name:
+            not_match: '{kube*,*jaeger-agent*,*prometheus*,*promtail*,*grafana-agent*,otel-*,linkerd*}'
+          k8s_src_owner_name:
+            not_match: '{kube*,*jaeger-agent*,*prometheus*,*promtail*,*grafana-agent*,otel-*,linkerd*}'
+
+  # Tolerate all nodes
+  tolerations:
+    - operator: Exists
+
+  # Prometheus metrics
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 9090
+    portName: metrics

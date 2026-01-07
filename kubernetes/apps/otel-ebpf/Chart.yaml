@@ -1,0 +1,11 @@
+apiVersion: v2
+name: otel-ebpf
+description: OpenTelemetry eBPF Instrumentation for automatic tracing
+type: application
+version: 0.1.0
+appVersion: "0.3.0"
+
+dependencies:
+  - name: opentelemetry-ebpf-instrumentation
+    version: ~0.3
+    repository: https://open-telemetry.github.io/opentelemetry-helm-charts
