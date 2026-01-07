@@ -28,31 +28,11 @@ All ecosystems check for updates weekly on Monday.
 
 ### Helm Charts
 
-Dependabot scans `Chart.yaml` files in `/kubernetes/apps/` for dependencies:
-
-```yaml
-dependencies:
-  - name: grafana
-    version: ~10.4
-    repository: https://grafana.github.io/helm-charts
-```
-
-When a new version is available, Dependabot creates a PR updating the version constraint.
+Dependabot scans `Chart.yaml` files in `/kubernetes/apps/*/` for dependencies and creates PRs to update version numbers when new releases are available.
 
 ### Terraform Providers
 
-Dependabot scans `required_providers` blocks in Terraform files:
-
-```hcl
-required_providers {
-  digitalocean = {
-    source  = "digitalocean/digitalocean"
-    version = "~> 2.72"
-  }
-}
-```
-
-When a new provider version is released, Dependabot creates a PR updating the version constraint.
+Dependabot scans `required_providers` blocks in Terraform files and creates PRs to update version numbers when new provider releases are available.
 
 ## Adding New Directories
 
