@@ -42,7 +42,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(max by (k8s_cluster, namespace, pod, container)(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate5m{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\"})) / sum(kube_pod_container_resource_requests{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"cpu\"})",
+          "expr": "sum(max by (k8s_cluster, namespace, pod, container)(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate5m{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\"})) / sum(kube_pod_container_resource_requests{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"cpu\"})",
           "instant": true
         }
       ],
@@ -77,7 +77,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(max by (k8s_cluster, namespace, pod, container)(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate5m{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\"})) / sum(kube_pod_container_resource_limits{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"cpu\"})",
+          "expr": "sum(max by (k8s_cluster, namespace, pod, container)(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate5m{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\"})) / sum(kube_pod_container_resource_limits{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"cpu\"})",
           "instant": true
         }
       ],
@@ -112,7 +112,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(max by (k8s_cluster, namespace, pod, container)(container_memory_working_set_bytes{job=\"cadvisor\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\",container!=\"\", image!=\"\"})) / sum(kube_pod_container_resource_requests{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"memory\"})",
+          "expr": "sum(max by (k8s_cluster, namespace, pod, container)(container_memory_working_set_bytes{job=\"cadvisor\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\",container!=\"\", image!=\"\"})) / sum(kube_pod_container_resource_requests{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"memory\"})",
           "instant": true
         }
       ],
@@ -147,7 +147,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(max by (k8s_cluster, namespace, pod, container)(container_memory_working_set_bytes{job=\"cadvisor\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\",container!=\"\", image!=\"\"})) / sum(kube_pod_container_resource_limits{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"memory\"})",
+          "expr": "sum(max by (k8s_cluster, namespace, pod, container)(container_memory_working_set_bytes{job=\"cadvisor\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\",container!=\"\", image!=\"\"})) / sum(kube_pod_container_resource_limits{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"memory\"})",
           "instant": true
         }
       ],
@@ -1476,7 +1476,7 @@
         "hide": 0,
         "label": "k8s_cluster",
         "name": "k8s_cluster",
-        "query": "label_values(up{job=\"kube-state-metrics\"}, k8s_cluster)",
+        "query": "label_values(up{job=~\".*kube-state-metrics\"}, k8s_cluster)",
         "refresh": 2,
         "sort": 1,
         "type": "query"
@@ -1489,7 +1489,7 @@
         "hide": 0,
         "label": "namespace",
         "name": "namespace",
-        "query": "label_values(kube_namespace_status_phase{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\"}, namespace)",
+        "query": "label_values(kube_namespace_status_phase{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\"}, namespace)",
         "refresh": 2,
         "sort": 1,
         "type": "query"
