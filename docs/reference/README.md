@@ -24,6 +24,7 @@ Technical descriptions and specifications. Use these to look up specific details
 | [Grafana Datasources](grafana-datasources.md) | Datasource provisioning |
 | [Miniflux](miniflux.md) | RSS reader deployment and configuration |
 | [Mimir Tenancy](mimir-tenancy.md) | Multi-tenant Mimir configuration |
+| [kubernetes-mixin](kubernetes-mixin.md) | Kubernetes dashboards and recording rules |
 | [n8n](n8n.md) | Workflow automation deployment and configuration |
 | [Dependabot](dependabot.md) | Automated dependency updates for Helm and Terraform |
 | [Paperless-ngx](paperless-ngx.md) | Document management deployment and configuration |

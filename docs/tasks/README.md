@@ -8,6 +8,7 @@ Pending work items and future improvements.
 |------|--------|-------------|
 | [Tailscale Operator 1.94 + Linkerd](tailscale-operator-1.94-linkerd.md) | Pending | Re-enable Linkerd for Tailscale operator after 1.94 release |
 | [Host Logs Collection](host-logs-collection.md) | Deferred | Collect kubelet/containerd logs via custom collector image |
+| [Mimir Rules GitOps](mimir-rules-gitops.md) | Pending | Automate Mimir rules deployment via Kubernetes Job |
 
 ## Completed Tasks
 

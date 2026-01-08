@@ -14,3 +14,4 @@ Task-oriented guides that show you how to achieve a specific goal. These assume 
 | [Strimzi Kafka with Linkerd](strimzi-kafka-linkerd.md) | Configure Kafka to work with Linkerd mesh |
 | [Query Logs](query-logs.md) | LogQL query examples for Grafana/Loki |
 | [Query Kubernetes Events](query-kubernetes-events.md) | Query K8s events stored in Loki |
+| [Update kubernetes-mixin](update-kubernetes-mixin.md) | Update Kubernetes dashboards and recording rules |
