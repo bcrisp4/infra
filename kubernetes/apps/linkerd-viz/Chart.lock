@@ -2,5 +2,5 @@ dependencies:
 - name: linkerd-viz
   repository: https://helm.linkerd.io/edge
   version: 2025.12.3
-digest: sha256:8e57c7fbeea2b4360d4c5acc0344cbd4489aad137c7c5b1fd47fd822358eacdb
-generated: "2026-01-04T17:34:32.783602-05:00"
+digest: sha256:d9bb338129572e7986bae084014eccffed527e72cc23e3be31e8a4b1b7cfef2c
+generated: "2026-01-08T00:27:17.142380699Z"
