@@ -6,10 +6,14 @@ metadata:
   labels:
     app.kubernetes.io/name: paperless-ngx
     app.kubernetes.io/instance: {{ .Release.Name }}
-  {{- with .Values.ingress.annotations }}
   annotations:
+    {{- if .Values.ingress.proxyGroup }}
+    tailscale.com/proxy-group: {{ .Values.ingress.proxyGroup }}
+    tailscale.com/tags: tag:k8s-services
+    {{- end }}
+    {{- with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
-  {{- end }}
+    {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   defaultBackend:
