@@ -109,6 +109,14 @@ locals {
       name        = "${local.bucket_prefix}-n8n-postgres-backups"
       description = "n8n PostgreSQL database backups"
     }
+    paperless-ngx-postgres = {
+      name        = "${local.bucket_prefix}-paperless-ngx-postgres-backups"
+      description = "Paperless-ngx PostgreSQL database backups"
+    }
+    paperless-ngx-files = {
+      name        = "${local.bucket_prefix}-paperless-ngx-files"
+      description = "Paperless-ngx encrypted file backups (Restic)"
+    }
   }
 }
 

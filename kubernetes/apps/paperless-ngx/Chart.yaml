@@ -1,0 +1,6 @@
+apiVersion: v2
+name: paperless-ngx
+description: Paperless-ngx document management with CloudNativePG PostgreSQL
+type: application
+version: 1.0.0
+appVersion: "2.20.3"

@@ -1,0 +1,120 @@
+# Paperless-ngx document management defaults
+
+image:
+  repository: ghcr.io/paperless-ngx/paperless-ngx
+  tag: "2.20.3"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# Paperless configuration
+# See https://docs.paperless-ngx.com/configuration/
+config:
+  # Base URL for paperless (used in emails, API responses)
+  url: https://paperless-ngx.example.com
+  # Timezone
+  timezone: UTC
+  # OCR settings
+  ocrLanguage: eng
+  # Task settings
+  taskWorkers: 1
+  threadsPerWorker: 1
+
+# Paperless resources
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    memory: 2Gi
+
+# Service configuration
+service:
+  port: 8000
+
+# Persistence configuration (single PVC for data+media)
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClass: ""
+  accessMode: ReadWriteOnce
+
+# Redis configuration (standalone, no Bitnami)
+redis:
+  image:
+    repository: redis
+    tag: "7-alpine"
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 128Mi
+  # ExternalSecret for Redis password
+  externalSecret:
+    enabled: false
+    itemName: ""  # 1Password item name (e.g., paperless-ngx-redis)
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: tailscale
+  host: paperless-ngx
+  annotations: {}
+
+# CloudNativePG database configuration
+database:
+  instances: 1
+  storage:
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  # PostgreSQL tuning (sized for 512Mi memory)
+  postgresql:
+    shared_buffers: "128MB"
+    effective_cache_size: "384MB"
+    work_mem: "4MB"
+    maintenance_work_mem: "64MB"
+    checkpoint_timeout: "10min"
+    max_wal_size: "1GB"
+    checkpoint_completion_target: "0.9"
+
+# Database backup configuration (Barman Cloud Plugin)
+backup:
+  enabled: false
+  immediate: false
+  retentionPolicy: "28d"
+  s3:
+    itemName: ""
+    bucket: ""
+    endpoint: ""
+    path: "paperless-ngx-db"
+
+# File backup configuration (Restic to S3)
+fileBackup:
+  enabled: false
+  schedule: "0 4 * * *"  # Daily at 4 AM UTC
+  retention:
+    keepDaily: 7
+    keepWeekly: 4
+    keepMonthly: 6
+  s3:
+    itemName: ""       # 1Password item for S3 credentials
+    bucket: ""
+    endpoint: ""
+  restic:
+    itemName: ""       # 1Password item for Restic password
+
+# ExternalSecret for admin and secret key (1Password)
+externalSecret:
+  enabled: false
+  adminItemName: ""       # 1Password item for admin credentials
+  secretKeyItemName: ""   # 1Password item for secret key
+
+# Network Policy (egress restriction)
+networkPolicy:
+  enabled: true

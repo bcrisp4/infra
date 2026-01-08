@@ -1,0 +1,112 @@
+{{- if .Values.fileBackup.enabled }}
+# CronJob for encrypted file backups using Restic
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: paperless-ngx-backup
+  labels:
+    app.kubernetes.io/name: paperless-ngx-backup
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  schedule: {{ .Values.fileBackup.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 3
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: paperless-ngx-backup
+            app.kubernetes.io/instance: {{ .Release.Name }}
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: restic
+              image: restic/restic:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+                  echo "Starting backup..."
+
+                  # Initialize repository if needed (idempotent)
+                  restic snapshots || restic init
+
+                  # Run backup
+                  restic backup /data --host paperless-ngx --tag automated
+
+                  # Apply retention policy
+                  restic forget \
+                    --keep-daily {{ .Values.fileBackup.retention.keepDaily }} \
+                    --keep-weekly {{ .Values.fileBackup.retention.keepWeekly }} \
+                    --keep-monthly {{ .Values.fileBackup.retention.keepMonthly }} \
+                    --prune
+
+                  echo "Backup completed successfully"
+              env:
+                - name: RESTIC_REPOSITORY
+                  value: "s3:{{ .Values.fileBackup.s3.endpoint }}/{{ .Values.fileBackup.s3.bucket }}"
+                - name: RESTIC_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: paperless-ngx-restic
+                      key: password
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: paperless-ngx-files-s3
+                      key: AWS_ACCESS_KEY_ID
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: paperless-ngx-files-s3
+                      key: AWS_SECRET_ACCESS_KEY
+              volumeMounts:
+                - name: data
+                  mountPath: /data
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  memory: 1Gi
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: paperless-ngx-data
+---
+# NetworkPolicy to allow Restic backup job egress to S3 only
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: paperless-ngx-backup-egress
+  labels:
+    app.kubernetes.io/name: paperless-ngx-backup
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: paperless-ngx-backup
+  policyTypes:
+    - Egress
+  egress:
+    # Allow DNS resolution
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # Allow HTTPS to S3 endpoint (DigitalOcean Spaces)
+    - ports:
+        - port: 443
+          protocol: TCP
+{{- end }}

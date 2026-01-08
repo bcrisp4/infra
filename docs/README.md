@@ -53,6 +53,7 @@ Technical descriptions and specifications.
 - [Mimir Tenancy](reference/mimir-tenancy.md) - Multi-tenant metrics configuration
 - [n8n](reference/n8n.md) - Workflow automation deployment and configuration
 - [Dependabot](reference/dependabot.md) - Automated dependency updates
+- [Paperless-ngx](reference/paperless-ngx.md) - Document management deployment and configuration
 - [Metrics Architecture](reference/metrics-architecture.md) - Observability stack design
 - [Logging Architecture](reference/logging-architecture.md) - Log collection and storage design
 - [Tracing Architecture](reference/tracing-architecture.md) - Distributed tracing storage design

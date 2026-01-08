@@ -1,0 +1,53 @@
+# Cluster-specific values for paperless-ngx on do-nyc3-prod
+
+# External secrets configuration
+externalSecret:
+  enabled: true
+  adminItemName: paperless-ngx-admin
+  secretKeyItemName: paperless-ngx-secret-key
+
+# Redis password from 1Password
+redis:
+  externalSecret:
+    enabled: true
+    itemName: paperless-ngx-redis
+
+# CNPG PostgreSQL database
+database:
+  instances: 1
+  storage:
+    size: 5Gi
+
+# PostgreSQL backup configuration (Barman Cloud)
+backup:
+  enabled: true
+  immediate: true
+  s3:
+    itemName: do-nyc3-prod-paperless-ngx-postgres-s3
+    bucket: bc4-do-nyc3-prod-paperless-ngx-postgres-backups
+    endpoint: nyc3.digitaloceanspaces.com
+
+# File backup configuration (Restic)
+fileBackup:
+  enabled: true
+  schedule: "0 4 * * *"  # 4 AM UTC daily
+  restic:
+    itemName: paperless-ngx-restic
+  s3:
+    itemName: do-nyc3-prod-paperless-ngx-files-s3
+    bucket: bc4-do-nyc3-prod-paperless-ngx-files
+    endpoint: nyc3.digitaloceanspaces.com
+  retention:
+    keepDaily: 7
+    keepWeekly: 4
+    keepMonthly: 6
+
+# Tailscale ingress
+ingress:
+  enabled: true
+  hostname: paperless-ngx
+  proxyGroup: ingress-proxies
+
+# Network policy for data protection
+networkPolicy:
+  enabled: true

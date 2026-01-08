@@ -1,0 +1,23 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: paperless-ngx
+  labels:
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  {{- with .Values.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  defaultBackend:
+    service:
+      name: paperless-ngx
+      port:
+        number: {{ .Values.service.port }}
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host }}
+{{- end }}
