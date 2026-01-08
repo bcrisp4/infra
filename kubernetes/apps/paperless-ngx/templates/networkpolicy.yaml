@@ -42,4 +42,16 @@ spec:
       ports:
         - port: 6379
           protocol: TCP
+    # Allow Linkerd control plane (identity, destination, policy)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: linkerd
+      ports:
+        - port: 8080
+          protocol: TCP
+        - port: 8086
+          protocol: TCP
+        - port: 8090
+          protocol: TCP
 {{- end }}
