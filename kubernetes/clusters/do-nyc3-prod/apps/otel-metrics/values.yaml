@@ -152,10 +152,8 @@ opentelemetry-collector:
                   separator: /ts-
                   regex: (.+/ts-.+)
                 # Extra labels from annotations (prometheus.io/label-<name>)
-                - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_label_cluster]
-                  action: replace
-                  target_label: k8s_cluster
-                  regex: (.+)
+                # Note: prometheus.io/label-cluster is NOT mapped to k8s_cluster
+                # k8s_cluster is reserved for Kubernetes cluster identification only
                 - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_label_environment]
                   action: replace
                   target_label: environment
@@ -281,10 +279,8 @@ opentelemetry-collector:
                   separator: /ts-
                   regex: (.+/ts-.+)
                 # Extra labels from annotations (prometheus.io/label-<name>)
-                - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_label_cluster]
-                  action: replace
-                  target_label: k8s_cluster
-                  regex: (.+)
+                # Note: prometheus.io/label-cluster is NOT mapped to k8s_cluster
+                # k8s_cluster is reserved for Kubernetes cluster identification only
                 - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_label_environment]
                   action: replace
                   target_label: environment
