@@ -154,7 +154,7 @@ opentelemetry-collector:
                 # Extra labels from annotations (prometheus.io/label-<name>)
                 - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_label_cluster]
                   action: replace
-                  target_label: cluster
+                  target_label: k8s_cluster
                   regex: (.+)
                 - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_label_environment]
                   action: replace
@@ -171,6 +171,10 @@ opentelemetry-collector:
                   replacement: $1
                   target_label: instance
               metric_relabel_configs:
+                # Add k8s_cluster label to all metrics (avoids collision with CNPG's "cluster" label)
+                - target_label: k8s_cluster
+                  replacement: "do-nyc3-prod"
+                  action: replace
                 # Rename kube-state-metrics exported_* labels to standard names
                 # KSM uses exported_namespace/pod/etc for the monitored resource's labels
                 # while namespace/pod refer to the KSM pod itself
@@ -279,7 +283,7 @@ opentelemetry-collector:
                 # Extra labels from annotations (prometheus.io/label-<name>)
                 - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_label_cluster]
                   action: replace
-                  target_label: cluster
+                  target_label: k8s_cluster
                   regex: (.+)
                 - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_label_environment]
                   action: replace
@@ -289,6 +293,11 @@ opentelemetry-collector:
                   action: replace
                   target_label: service
                   regex: (.+)
+              metric_relabel_configs:
+                # Add k8s_cluster label to all metrics (avoids collision with CNPG's "cluster" label)
+                - target_label: k8s_cluster
+                  replacement: "do-nyc3-prod"
+                  action: replace
 
       # Scrape kubelet cAdvisor metrics for container resource usage
       prometheus/kubelet:
@@ -329,6 +338,11 @@ opentelemetry-collector:
                 # Set job label
                 - target_label: job
                   replacement: kubelet
+              metric_relabel_configs:
+                # Add k8s_cluster label to all metrics (avoids collision with CNPG's "cluster" label)
+                - target_label: k8s_cluster
+                  replacement: "do-nyc3-prod"
+                  action: replace
 
             # Scrape kubelet metrics (includes volume stats)
             - job_name: "kubelet"
@@ -363,6 +377,11 @@ opentelemetry-collector:
                 # Set job label
                 - target_label: job
                   replacement: kubelet
+              metric_relabel_configs:
+                # Add k8s_cluster label to all metrics (avoids collision with CNPG's "cluster" label)
+                - target_label: k8s_cluster
+                  replacement: "do-nyc3-prod"
+                  action: replace
 
       # Scrape Linkerd proxy metrics for linkerd-viz
       # These metrics power the linkerd viz stat/dashboard commands
@@ -424,6 +443,10 @@ opentelemetry-collector:
                 - target_label: job
                   replacement: linkerd-proxy
               metric_relabel_configs:
+                # Add k8s_cluster label to all metrics (avoids collision with CNPG's "cluster" label)
+                - target_label: k8s_cluster
+                  replacement: "do-nyc3-prod"
+                  action: replace
                 # Keep metrics required by linkerd-viz
                 # These power the dashboard and CLI stats commands
                 - source_labels: [__name__]
@@ -455,6 +478,11 @@ opentelemetry-collector:
                 # Set job label
                 - target_label: job
                   replacement: kube-apiserver
+              metric_relabel_configs:
+                # Add k8s_cluster label to all metrics (avoids collision with CNPG's "cluster" label)
+                - target_label: k8s_cluster
+                  replacement: "do-nyc3-prod"
+                  action: replace
 
     processors:
       batch:
@@ -466,9 +494,10 @@ opentelemetry-collector:
         limit_mib: 400
 
       # Add resource attributes for better querying in Mimir
+      # Note: Using k8s_cluster to avoid collision with CNPG's "cluster" label
       resource:
         attributes:
-          - key: cluster
+          - key: k8s_cluster
             value: do-nyc3-prod
             action: insert
 

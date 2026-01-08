@@ -57,7 +57,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "(\n  sum without(instance, node) (topk(1, (kubelet_volume_stats_capacity_bytes{cluster=\"$cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})))\n  -\n  sum without(instance, node) (topk(1, (kubelet_volume_stats_available_bytes{cluster=\"$cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})))\n)\n",
+          "expr": "(\n  sum without(instance, node) (topk(1, (kubelet_volume_stats_capacity_bytes{k8s_cluster=\"$k8s_cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})))\n  -\n  sum without(instance, node) (topk(1, (kubelet_volume_stats_available_bytes{k8s_cluster=\"$k8s_cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})))\n)\n",
           "legendFormat": "Used Space"
         },
         {
@@ -65,7 +65,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum without(instance, node) (topk(1, (kubelet_volume_stats_available_bytes{cluster=\"$cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})))\n",
+          "expr": "sum without(instance, node) (topk(1, (kubelet_volume_stats_available_bytes{k8s_cluster=\"$k8s_cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})))\n",
           "legendFormat": "Free Space"
         }
       ],
@@ -119,7 +119,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max without(instance,node) (\n(\n  topk(1, kubelet_volume_stats_capacity_bytes{cluster=\"$cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})\n  -\n  topk(1, kubelet_volume_stats_available_bytes{cluster=\"$cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})\n)\n/\ntopk(1, kubelet_volume_stats_capacity_bytes{cluster=\"$cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})\n* 100)\n",
+          "expr": "max without(instance,node) (\n(\n  topk(1, kubelet_volume_stats_capacity_bytes{k8s_cluster=\"$k8s_cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})\n  -\n  topk(1, kubelet_volume_stats_available_bytes{k8s_cluster=\"$k8s_cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})\n)\n/\ntopk(1, kubelet_volume_stats_capacity_bytes{k8s_cluster=\"$k8s_cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})\n* 100)\n",
           "instant": true
         }
       ],
@@ -169,7 +169,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum without(instance, node) (topk(1, (kubelet_volume_stats_inodes_used{cluster=\"$cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})))",
+          "expr": "sum without(instance, node) (topk(1, (kubelet_volume_stats_inodes_used{k8s_cluster=\"$k8s_cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})))",
           "legendFormat": "Used inodes"
         },
         {
@@ -177,7 +177,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "(\n  sum without(instance, node) (topk(1, (kubelet_volume_stats_inodes{cluster=\"$cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})))\n  -\n  sum without(instance, node) (topk(1, (kubelet_volume_stats_inodes_used{cluster=\"$cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})))\n)\n",
+          "expr": "(\n  sum without(instance, node) (topk(1, (kubelet_volume_stats_inodes{k8s_cluster=\"$k8s_cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})))\n  -\n  sum without(instance, node) (topk(1, (kubelet_volume_stats_inodes_used{k8s_cluster=\"$k8s_cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})))\n)\n",
           "legendFormat": "Free inodes"
         }
       ],
@@ -231,7 +231,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "max without(instance,node) (\ntopk(1, kubelet_volume_stats_inodes_used{cluster=\"$cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})\n/\ntopk(1, kubelet_volume_stats_inodes{cluster=\"$cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})\n* 100)\n",
+          "expr": "max without(instance,node) (\ntopk(1, kubelet_volume_stats_inodes_used{k8s_cluster=\"$k8s_cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})\n/\ntopk(1, kubelet_volume_stats_inodes{k8s_cluster=\"$k8s_cluster\", job=\"kubelet\", namespace=\"$namespace\", persistentvolumeclaim=\"$volume\"})\n* 100)\n",
           "instant": true
         }
       ],
@@ -265,9 +265,9 @@
           "uid": "${datasource}"
         },
         "hide": 2,
-        "label": "cluster",
-        "name": "cluster",
-        "query": "label_values(kubelet_volume_stats_capacity_bytes{job=\"kubelet\"}, cluster)",
+        "label": "k8s_cluster",
+        "name": "k8s_cluster",
+        "query": "label_values(kubelet_volume_stats_capacity_bytes{job=\"kubelet\"}, k8s_cluster)",
         "refresh": 2,
         "sort": 1,
         "type": "query"
@@ -280,7 +280,7 @@
         "hide": 0,
         "label": "Namespace",
         "name": "namespace",
-        "query": "label_values(kubelet_volume_stats_capacity_bytes{cluster=\"$cluster\", job=\"kubelet\"}, namespace)",
+        "query": "label_values(kubelet_volume_stats_capacity_bytes{k8s_cluster=\"$k8s_cluster\", job=\"kubelet\"}, namespace)",
         "refresh": 2,
         "sort": 1,
         "type": "query"
@@ -293,7 +293,7 @@
         "hide": 0,
         "label": "PersistentVolumeClaim",
         "name": "volume",
-        "query": "label_values(kubelet_volume_stats_capacity_bytes{cluster=\"$cluster\", job=\"kubelet\", namespace=\"$namespace\"}, persistentvolumeclaim)",
+        "query": "label_values(kubelet_volume_stats_capacity_bytes{k8s_cluster=\"$k8s_cluster\", job=\"kubelet\", namespace=\"$namespace\"}, persistentvolumeclaim)",
         "refresh": 2,
         "sort": 1,
         "type": "query"
