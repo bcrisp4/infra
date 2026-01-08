@@ -1,5 +1,9 @@
 # Cluster-specific values for paperless-ngx on do-nyc3-prod
 
+# Paperless configuration
+config:
+  url: https://paperless-ngx.marlin-tet.ts.net
+
 # External secrets configuration
 externalSecret:
   enabled: true
