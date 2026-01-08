@@ -214,7 +214,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(\n  max by (k8s_cluster, namespace, pod, container)(kube_pod_container_resource_requests{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"cpu\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n",
+          "expr": "sum(\n  max by (k8s_cluster, namespace, pod, container)(kube_pod_container_resource_requests{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"cpu\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n",
           "format": "table",
           "instant": true
         },
@@ -223,7 +223,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(\n  max by (k8s_cluster, namespace, pod, container)(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate5m{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n/sum(\n  max by (k8s_cluster, namespace, pod, container)(kube_pod_container_resource_requests{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"cpu\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n",
+          "expr": "sum(\n  max by (k8s_cluster, namespace, pod, container)(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate5m{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n/sum(\n  max by (k8s_cluster, namespace, pod, container)(kube_pod_container_resource_requests{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"cpu\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n",
           "format": "table",
           "instant": true
         },
@@ -232,7 +232,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(\n  max by (k8s_cluster, namespace, pod, container)(kube_pod_container_resource_limits{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"cpu\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n",
+          "expr": "sum(\n  max by (k8s_cluster, namespace, pod, container)(kube_pod_container_resource_limits{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"cpu\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n",
           "format": "table",
           "instant": true
         },
@@ -241,7 +241,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(\n  max by (k8s_cluster, namespace, pod, container)(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate5m{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n/sum(\n  max by (k8s_cluster, namespace, pod, container)(kube_pod_container_resource_limits{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"cpu\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n",
+          "expr": "sum(\n  max by (k8s_cluster, namespace, pod, container)(node_namespace_pod_container:container_cpu_usage_seconds_total:sum_rate5m{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n/sum(\n  max by (k8s_cluster, namespace, pod, container)(kube_pod_container_resource_limits{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"cpu\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n",
           "format": "table",
           "instant": true
         }
@@ -512,7 +512,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(\n  max by (k8s_cluster, namespace, pod, container)(kube_pod_container_resource_requests{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"memory\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n",
+          "expr": "sum(\n  max by (k8s_cluster, namespace, pod, container)(kube_pod_container_resource_requests{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"memory\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n",
           "format": "table",
           "instant": true
         },
@@ -521,7 +521,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(\n    max by (k8s_cluster, namespace, pod, container)(container_memory_working_set_bytes{job=\"cadvisor\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", container!=\"\", image!=\"\"})\n  * on(cluster, namespace, pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n/sum(\n  max by (k8s_cluster, namespace, pod, container)(kube_pod_container_resource_requests{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"memory\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n",
+          "expr": "sum(\n    max by (k8s_cluster, namespace, pod, container)(container_memory_working_set_bytes{job=\"cadvisor\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", container!=\"\", image!=\"\"})\n  * on(cluster, namespace, pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n/sum(\n  max by (k8s_cluster, namespace, pod, container)(kube_pod_container_resource_requests{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"memory\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n",
           "format": "table",
           "instant": true
         },
@@ -530,7 +530,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(\n  max by (k8s_cluster, namespace, pod, container)(kube_pod_container_resource_limits{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"memory\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n",
+          "expr": "sum(\n  max by (k8s_cluster, namespace, pod, container)(kube_pod_container_resource_limits{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"memory\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n",
           "format": "table",
           "instant": true
         },
@@ -539,7 +539,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(\n    max by (k8s_cluster, namespace, pod, container)(container_memory_working_set_bytes{job=\"cadvisor\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", container!=\"\", image!=\"\"})\n  * on(cluster, namespace, pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n/sum(\n  max by (k8s_cluster, namespace, pod, container)(kube_pod_container_resource_limits{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"memory\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n",
+          "expr": "sum(\n    max by (k8s_cluster, namespace, pod, container)(container_memory_working_set_bytes{job=\"cadvisor\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", container!=\"\", image!=\"\"})\n  * on(cluster, namespace, pod)\n    group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n/sum(\n  max by (k8s_cluster, namespace, pod, container)(kube_pod_container_resource_limits{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", resource=\"memory\"})\n* on(cluster, namespace, pod)\n  group_left(workload, workload_type) namespace_workload_pod:kube_pod_owner:relabel{k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", workload_type=~\"$type\"}\n) by (workload, workload_type)\n",
           "format": "table",
           "instant": true
         }
@@ -1207,7 +1207,7 @@
         "hide": 2,
         "label": "k8s_cluster",
         "name": "k8s_cluster",
-        "query": "label_values(up{job=\"kube-state-metrics\"}, k8s_cluster)",
+        "query": "label_values(up{job=~\".*kube-state-metrics\"}, k8s_cluster)",
         "refresh": 2,
         "sort": 1,
         "type": "query"
@@ -1220,7 +1220,7 @@
         "hide": 0,
         "label": "namespace",
         "name": "namespace",
-        "query": "label_values(kube_namespace_status_phase{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\"}, namespace)",
+        "query": "label_values(kube_namespace_status_phase{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\"}, namespace)",
         "refresh": 2,
         "sort": 1,
         "type": "query"

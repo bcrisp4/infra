@@ -101,7 +101,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(kube_node_status_capacity{k8s_cluster=\"$k8s_cluster\", job=\"kube-state-metrics\", node=~\"$node\", resource=\"cpu\"})",
+          "expr": "sum(kube_node_status_capacity{k8s_cluster=\"$k8s_cluster\", job=~\".*kube-state-metrics\", node=~\"$node\", resource=\"cpu\"})",
           "legendFormat": "max capacity"
         },
         {
@@ -330,7 +330,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(kube_node_status_capacity{k8s_cluster=\"$k8s_cluster\", job=\"kube-state-metrics\", node=~\"$node\", resource=\"memory\"})",
+          "expr": "sum(kube_node_status_capacity{k8s_cluster=\"$k8s_cluster\", job=~\".*kube-state-metrics\", node=~\"$node\", resource=\"memory\"})",
           "legendFormat": "max capacity"
         },
         {
@@ -433,7 +433,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(kube_node_status_capacity{k8s_cluster=\"$k8s_cluster\", job=\"kube-state-metrics\", node=~\"$node\", resource=\"memory\"})",
+          "expr": "sum(kube_node_status_capacity{k8s_cluster=\"$k8s_cluster\", job=~\".*kube-state-metrics\", node=~\"$node\", resource=\"memory\"})",
           "legendFormat": "max capacity"
         },
         {
@@ -639,7 +639,7 @@
         "hide": 2,
         "label": "k8s_cluster",
         "name": "k8s_cluster",
-        "query": "label_values(up{job=\"kube-state-metrics\"}, k8s_cluster)",
+        "query": "label_values(up{job=~\".*kube-state-metrics\"}, k8s_cluster)",
         "refresh": 2,
         "sort": 1,
         "type": "query"

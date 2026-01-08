@@ -484,7 +484,7 @@ namespace: kubernetes-mixin
 - "name": "k8s.rules.container_memory_requests"
   "rules":
   - "expr": |
-      kube_pod_container_resource_requests{resource="memory",job="kube-state-metrics"}  * on (namespace, pod, k8s_cluster)
+      kube_pod_container_resource_requests{resource="memory",job=~".*kube-state-metrics"}  * on (namespace, pod, k8s_cluster)
       group_left() max by (namespace, pod, k8s_cluster) (
         (kube_pod_status_phase{phase=~"Pending|Running"} == 1)
       )
@@ -493,7 +493,7 @@ namespace: kubernetes-mixin
       sum by (namespace, k8s_cluster) (
           sum by (namespace, pod, k8s_cluster) (
               max by (namespace, pod, container, k8s_cluster) (
-                kube_pod_container_resource_requests{resource="memory",job="kube-state-metrics"}
+                kube_pod_container_resource_requests{resource="memory",job=~".*kube-state-metrics"}
               ) * on(namespace, pod, k8s_cluster) group_left() max by (namespace, pod, k8s_cluster) (
                 kube_pod_status_phase{phase=~"Pending|Running"} == 1
               )
@@ -503,7 +503,7 @@ namespace: kubernetes-mixin
 - "name": "k8s.rules.container_cpu_requests"
   "rules":
   - "expr": |
-      kube_pod_container_resource_requests{resource="cpu",job="kube-state-metrics"}  * on (namespace, pod, k8s_cluster)
+      kube_pod_container_resource_requests{resource="cpu",job=~".*kube-state-metrics"}  * on (namespace, pod, k8s_cluster)
       group_left() max by (namespace, pod, k8s_cluster) (
         (kube_pod_status_phase{phase=~"Pending|Running"} == 1)
       )
@@ -512,7 +512,7 @@ namespace: kubernetes-mixin
       sum by (namespace, k8s_cluster) (
           sum by (namespace, pod, k8s_cluster) (
               max by (namespace, pod, container, k8s_cluster) (
-                kube_pod_container_resource_requests{resource="cpu",job="kube-state-metrics"}
+                kube_pod_container_resource_requests{resource="cpu",job=~".*kube-state-metrics"}
               ) * on(namespace, pod, k8s_cluster) group_left() max by (namespace, pod, k8s_cluster) (
                 kube_pod_status_phase{phase=~"Pending|Running"} == 1
               )
@@ -522,7 +522,7 @@ namespace: kubernetes-mixin
 - "name": "k8s.rules.container_memory_limits"
   "rules":
   - "expr": |
-      kube_pod_container_resource_limits{resource="memory",job="kube-state-metrics"}  * on (namespace, pod, k8s_cluster)
+      kube_pod_container_resource_limits{resource="memory",job=~".*kube-state-metrics"}  * on (namespace, pod, k8s_cluster)
       group_left() max by (namespace, pod, k8s_cluster) (
         (kube_pod_status_phase{phase=~"Pending|Running"} == 1)
       )
@@ -531,7 +531,7 @@ namespace: kubernetes-mixin
       sum by (namespace, k8s_cluster) (
           sum by (namespace, pod, k8s_cluster) (
               max by (namespace, pod, container, k8s_cluster) (
-                kube_pod_container_resource_limits{resource="memory",job="kube-state-metrics"}
+                kube_pod_container_resource_limits{resource="memory",job=~".*kube-state-metrics"}
               ) * on(namespace, pod, k8s_cluster) group_left() max by (namespace, pod, k8s_cluster) (
                 kube_pod_status_phase{phase=~"Pending|Running"} == 1
               )
@@ -541,7 +541,7 @@ namespace: kubernetes-mixin
 - "name": "k8s.rules.container_cpu_limits"
   "rules":
   - "expr": |
-      kube_pod_container_resource_limits{resource="cpu",job="kube-state-metrics"}  * on (namespace, pod, k8s_cluster)
+      kube_pod_container_resource_limits{resource="cpu",job=~".*kube-state-metrics"}  * on (namespace, pod, k8s_cluster)
       group_left() max by (namespace, pod, k8s_cluster) (
         (kube_pod_status_phase{phase=~"Pending|Running"} == 1)
       )
@@ -550,7 +550,7 @@ namespace: kubernetes-mixin
       sum by (namespace, k8s_cluster) (
           sum by (namespace, pod, k8s_cluster) (
               max by (namespace, pod, container, k8s_cluster) (
-                kube_pod_container_resource_limits{resource="cpu",job="kube-state-metrics"}
+                kube_pod_container_resource_limits{resource="cpu",job=~".*kube-state-metrics"}
               ) * on(namespace, pod, k8s_cluster) group_left() max by (namespace, pod, k8s_cluster) (
                 kube_pod_status_phase{phase=~"Pending|Running"} == 1
               )
@@ -563,11 +563,11 @@ namespace: kubernetes-mixin
       max by (k8s_cluster, namespace, workload, pod) (
         label_replace(
           label_replace(
-            kube_pod_owner{job="kube-state-metrics", owner_kind="ReplicaSet"},
+            kube_pod_owner{job=~".*kube-state-metrics", owner_kind="ReplicaSet"},
             "replicaset", "$1", "owner_name", "(.*)"
           ) * on (cluster, replicaset, namespace) group_left(owner_name) topk by(cluster, replicaset, namespace) (
             1, max by (k8s_cluster, replicaset, namespace, owner_name) (
-              kube_replicaset_owner{job="kube-state-metrics", owner_kind=""}
+              kube_replicaset_owner{job=~".*kube-state-metrics", owner_kind=""}
             )
           ),
           "workload", "$1", "replicaset", "(.*)"
@@ -580,11 +580,11 @@ namespace: kubernetes-mixin
       max by (k8s_cluster, namespace, workload, pod) (
         label_replace(
           label_replace(
-            kube_pod_owner{job="kube-state-metrics", owner_kind="ReplicaSet"},
+            kube_pod_owner{job=~".*kube-state-metrics", owner_kind="ReplicaSet"},
             "replicaset", "$1", "owner_name", "(.*)"
           ) * on(replicaset, namespace, k8s_cluster) group_left(owner_name) topk by(cluster, replicaset, namespace) (
             1, max by (k8s_cluster, replicaset, namespace, owner_name) (
-              kube_replicaset_owner{job="kube-state-metrics", owner_kind="Deployment"}
+              kube_replicaset_owner{job=~".*kube-state-metrics", owner_kind="Deployment"}
             )
           ),
           "workload", "$1", "owner_name", "(.*)"
@@ -596,7 +596,7 @@ namespace: kubernetes-mixin
   - "expr": |
       max by (k8s_cluster, namespace, workload, pod) (
         label_replace(
-          kube_pod_owner{job="kube-state-metrics", owner_kind="DaemonSet"},
+          kube_pod_owner{job=~".*kube-state-metrics", owner_kind="DaemonSet"},
           "workload", "$1", "owner_name", "(.*)"
         )
       )
@@ -606,7 +606,7 @@ namespace: kubernetes-mixin
   - "expr": |
       max by (k8s_cluster, namespace, workload, pod) (
         label_replace(
-          kube_pod_owner{job="kube-state-metrics", owner_kind="StatefulSet"},
+          kube_pod_owner{job=~".*kube-state-metrics", owner_kind="StatefulSet"},
         "workload", "$1", "owner_name", "(.*)")
       )
     "labels":
@@ -617,12 +617,12 @@ namespace: kubernetes-mixin
         label_join(
           group by (k8s_cluster, namespace, job_name, pod, owner_name) (
             label_join(
-              kube_pod_owner{job="kube-state-metrics", owner_kind="Job"}
+              kube_pod_owner{job=~".*kube-state-metrics", owner_kind="Job"}
             , "job_name", "", "owner_name")
           )
           * on (cluster, namespace, job_name) group_left()
           group by (k8s_cluster, namespace, job_name) (
-            kube_job_owner{job="kube-state-metrics", owner_kind=~"Pod|"}
+            kube_job_owner{job=~".*kube-state-metrics", owner_kind=~"Pod|"}
           )
         , "workload", "", "owner_name")
       )
@@ -632,7 +632,7 @@ namespace: kubernetes-mixin
   - "expr": |
       max by (k8s_cluster, namespace, workload, pod) (
         label_replace(
-          kube_pod_owner{job="kube-state-metrics", owner_kind="", owner_name=""},
+          kube_pod_owner{job=~".*kube-state-metrics", owner_kind="", owner_name=""},
         "workload", "$1", "pod", "(.+)")
       )
     "labels":
@@ -641,7 +641,7 @@ namespace: kubernetes-mixin
   - "expr": |
       max by (k8s_cluster, namespace, workload, pod) (
         label_replace(
-          kube_pod_owner{job="kube-state-metrics", owner_kind="Node"},
+          kube_pod_owner{job=~".*kube-state-metrics", owner_kind="Node"},
         "workload", "$1", "pod", "(.+)")
       )
     "labels":
@@ -653,12 +653,12 @@ namespace: kubernetes-mixin
           label_join(
             group by (k8s_cluster, namespace, job_name, pod) (
               label_join(
-                kube_pod_owner{job="kube-state-metrics", owner_kind="Job"}
+                kube_pod_owner{job=~".*kube-state-metrics", owner_kind="Job"}
               , "job_name", "", "owner_name")
             )
             * on (cluster, namespace, job_name) group_left(owner_kind, owner_name)
             group by (k8s_cluster, namespace, job_name, owner_kind, owner_name) (
-              kube_job_owner{job="kube-state-metrics", owner_kind!="Pod", owner_kind!=""}
+              kube_job_owner{job=~".*kube-state-metrics", owner_kind!="Pod", owner_kind!=""}
             )
           , "workload", "", "owner_name")
         , "workload_type", "", "owner_kind")
@@ -668,18 +668,18 @@ namespace: kubernetes-mixin
         label_replace(
           label_replace(
             label_replace(
-              kube_pod_owner{job="kube-state-metrics", owner_kind="ReplicaSet"}
+              kube_pod_owner{job=~".*kube-state-metrics", owner_kind="ReplicaSet"}
               , "replicaset", "$1", "owner_name", "(.+)"
             )
             * on(cluster, namespace, replicaset) group_left(owner_kind, owner_name)
             group by (k8s_cluster, namespace, replicaset, owner_kind, owner_name) (
-              kube_replicaset_owner{job="kube-state-metrics", owner_kind!="Deployment", owner_kind!=""}
+              kube_replicaset_owner{job=~".*kube-state-metrics", owner_kind!="Deployment", owner_kind!=""}
             )
           , "workload", "$1", "owner_name", "(.+)")
           OR
           label_replace(
             group by (k8s_cluster, namespace, pod, owner_name, owner_kind) (
-              kube_pod_owner{job="kube-state-metrics", owner_kind!="ReplicaSet", owner_kind!="DaemonSet", owner_kind!="StatefulSet", owner_kind!="Job", owner_kind!="Node", owner_kind!=""}
+              kube_pod_owner{job=~".*kube-state-metrics", owner_kind!="ReplicaSet", owner_kind!="DaemonSet", owner_kind!="StatefulSet", owner_kind!="Job", owner_kind!="Node", owner_kind!=""}
             )
             , "workload", "$1", "owner_name", "(.+)"
           )
@@ -738,31 +738,31 @@ namespace: kubernetes-mixin
   - "expr": |
       topk by(cluster, namespace, pod) (1,
         max by (k8s_cluster, node, namespace, pod) (
-          label_replace(kube_pod_info{job="kube-state-metrics",node!=""}, "pod", "$1", "pod", "(.*)")
+          label_replace(kube_pod_info{job=~".*kube-state-metrics",node!=""}, "pod", "$1", "pod", "(.*)")
       ))
     "record": "node_namespace_pod:kube_pod_info:"
   - "expr": |
       count by (k8s_cluster, node) (
-        node_cpu_seconds_total{mode="idle",job="node-exporter"}
+        node_cpu_seconds_total{mode="idle",job=~".*node-exporter"}
         * on (cluster, namespace, pod) group_left(node)
         topk by(cluster, namespace, pod) (1, node_namespace_pod:kube_pod_info:)
       )
     "record": "node:node_num_cpu:sum"
   - "expr": |
       sum(
-        node_memory_MemAvailable_bytes{job="node-exporter"} or
+        node_memory_MemAvailable_bytes{job=~".*node-exporter"} or
         (
-          node_memory_Buffers_bytes{job="node-exporter"} +
-          node_memory_Cached_bytes{job="node-exporter"} +
-          node_memory_MemFree_bytes{job="node-exporter"} +
-          node_memory_Slab_bytes{job="node-exporter"}
+          node_memory_Buffers_bytes{job=~".*node-exporter"} +
+          node_memory_Cached_bytes{job=~".*node-exporter"} +
+          node_memory_MemFree_bytes{job=~".*node-exporter"} +
+          node_memory_Slab_bytes{job=~".*node-exporter"}
         )
       ) by (k8s_cluster)
     "record": ":node_memory_MemAvailable_bytes:sum"
   - "expr": |
       avg by (k8s_cluster, node) (
         sum without (mode) (
-          rate(node_cpu_seconds_total{mode!="idle",mode!="iowait",mode!="steal",job="node-exporter"}[5m])
+          rate(node_cpu_seconds_total{mode!="idle",mode!="iowait",mode!="steal",job=~".*node-exporter"}[5m])
         )
       )
     "record": "node:node_cpu_utilization:ratio_rate5m"

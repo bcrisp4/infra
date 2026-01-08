@@ -117,7 +117,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(\n    kube_pod_container_resource_requests{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", pod=\"$pod\", resource=\"cpu\"}\n)\n",
+          "expr": "sum(\n    kube_pod_container_resource_requests{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", pod=\"$pod\", resource=\"cpu\"}\n)\n",
           "legendFormat": "requests"
         },
         {
@@ -125,7 +125,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(\n    kube_pod_container_resource_limits{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", pod=\"$pod\", resource=\"cpu\"}\n)\n",
+          "expr": "sum(\n    kube_pod_container_resource_limits{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", pod=\"$pod\", resource=\"cpu\"}\n)\n",
           "legendFormat": "limits"
         }
       ],
@@ -448,7 +448,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(\n    kube_pod_container_resource_requests{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", pod=\"$pod\", resource=\"memory\"}\n)\n",
+          "expr": "sum(\n    kube_pod_container_resource_requests{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", pod=\"$pod\", resource=\"memory\"}\n)\n",
           "legendFormat": "requests"
         },
         {
@@ -456,7 +456,7 @@
             "type": "prometheus",
             "uid": "${datasource}"
           },
-          "expr": "sum(\n    kube_pod_container_resource_limits{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", pod=\"$pod\", resource=\"memory\"}\n)\n",
+          "expr": "sum(\n    kube_pod_container_resource_limits{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\", pod=\"$pod\", resource=\"memory\"}\n)\n",
           "legendFormat": "limits"
         }
       ],
@@ -1329,7 +1329,7 @@
         "hide": 0,
         "label": "k8s_cluster",
         "name": "k8s_cluster",
-        "query": "label_values(up{job=\"kube-state-metrics\"}, k8s_cluster)",
+        "query": "label_values(up{job=~\".*kube-state-metrics\"}, k8s_cluster)",
         "refresh": 2,
         "sort": 1,
         "type": "query"
@@ -1342,7 +1342,7 @@
         "hide": 0,
         "label": "namespace",
         "name": "namespace",
-        "query": "label_values(kube_namespace_status_phase{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\"}, namespace)",
+        "query": "label_values(kube_namespace_status_phase{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\"}, namespace)",
         "refresh": 2,
         "sort": 1,
         "type": "query"
@@ -1355,7 +1355,7 @@
         "hide": 0,
         "label": "pod",
         "name": "pod",
-        "query": "label_values(kube_pod_info{job=\"kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\"}, pod)",
+        "query": "label_values(kube_pod_info{job=~\".*kube-state-metrics\", k8s_cluster=\"$k8s_cluster\", namespace=\"$namespace\"}, pod)",
         "refresh": 2,
         "sort": 1,
         "type": "query"
