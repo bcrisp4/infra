@@ -20,6 +20,17 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TMP_DIR=$(mktemp -d)
 trap "rm -rf $TMP_DIR" EXIT
 
+# Cross-platform MD5 hash function (works on macOS and Linux)
+md5hash() {
+  if command -v md5sum &> /dev/null; then
+    # Linux: md5sum outputs "hash  -"
+    md5sum | cut -d' ' -f1
+  else
+    # macOS: md5 -q outputs just the hash
+    md5 -q
+  fi
+}
+
 echo "==> Downloading kubernetes-mixin version $VERSION..."
 curl -sL "https://github.com/kubernetes-monitoring/kubernetes-mixin/releases/download/version-${VERSION}/kubernetes-mixin-version-${VERSION}.zip" \
   -o "$TMP_DIR/k8s-mixin.zip"
@@ -47,8 +58,8 @@ rm -f "$TMP_DIR/dashboards/controller-manager.json"
 echo "==> Adding stable UIDs to dashboards..."
 for f in "$TMP_DIR/dashboards/"*.json; do
   name=$(basename "$f" .json)
-  # Generate deterministic UID from dashboard name
-  uid=$(echo -n "k8s-mixin-$name" | md5 | cut -c1-12)
+  # Generate deterministic UID from dashboard name (first 12 chars of MD5)
+  uid=$(echo -n "k8s-mixin-$name" | md5hash | cut -c1-12)
   jq --arg uid "$uid" '.uid = $uid' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
 done
 

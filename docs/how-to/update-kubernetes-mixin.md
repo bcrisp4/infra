@@ -182,9 +182,9 @@ rm -f /tmp/dashboards/*windows*.json
 rm -f /tmp/dashboards/scheduler.json
 rm -f /tmp/dashboards/controller-manager.json
 
-# 5. Adds stable UIDs (hash of dashboard name)
+# 5. Adds stable UIDs (hash of dashboard name, cross-platform)
 for f in /tmp/dashboards/*.json; do
-  uid=$(echo -n "k8s-mixin-$(basename $f .json)" | md5 | cut -c1-12)
+  uid=$(echo -n "k8s-mixin-$(basename $f .json)" | md5hash | cut -c1-12)
   jq --arg uid "$uid" '.uid = $uid' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
 done
 
