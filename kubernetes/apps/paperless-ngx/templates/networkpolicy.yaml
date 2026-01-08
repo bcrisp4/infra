@@ -27,6 +27,7 @@ spec:
         - port: 53
           protocol: TCP
     # Allow PostgreSQL (CNPG cluster)
+    # Port 4143 is Linkerd's inbound proxy for mTLS
     - to:
         - podSelector:
             matchLabels:
@@ -34,13 +35,18 @@ spec:
       ports:
         - port: 5432
           protocol: TCP
+        - port: 4143
+          protocol: TCP
     # Allow Redis
+    # Port 4143 is Linkerd's inbound proxy for mTLS
     - to:
         - podSelector:
             matchLabels:
               app.kubernetes.io/name: paperless-ngx-redis
       ports:
         - port: 6379
+          protocol: TCP
+        - port: 4143
           protocol: TCP
     # Allow Linkerd control plane (identity, destination, policy)
     - to:

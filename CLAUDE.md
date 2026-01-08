@@ -436,6 +436,17 @@ kubectl rollout restart statefulset -n <namespace>
 - cert-manager namespace cannot have Linkerd injection (circular dependency - Linkerd excludes it automatically)
 - Tailscale operator proxies require Tailscale 1.94.0+ for Linkerd compatibility (see [docs/tasks/tailscale-operator-1.94-linkerd.md](docs/tasks/tailscale-operator-1.94-linkerd.md))
 - Strimzi Kafka requires special Linkerd annotations and a supplementary NetworkPolicy (see [docs/how-to/strimzi-kafka-linkerd.md](docs/how-to/strimzi-kafka-linkerd.md))
+- **NetworkPolicies must allow port 4143** for meshed pod-to-pod traffic. Linkerd's inbound proxy listens on port 4143 for mTLS connections. If your NetworkPolicy only allows the application port (e.g., 6379 for Redis, 5432 for PostgreSQL), the Linkerd proxy-to-proxy connection will fail with "connect timed out". Add port 4143 alongside each application port in egress rules:
+  ```yaml
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: my-redis
+      ports:
+        - port: 6379    # Application port
+        - port: 4143    # Linkerd inbound proxy
+  ```
 
 ### Linkerd Edge Releases
 
