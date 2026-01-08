@@ -170,6 +170,34 @@ opentelemetry-collector:
                   regex: prometheus-node-exporter;(.+)
                   replacement: $1
                   target_label: instance
+              metric_relabel_configs:
+                # Rename kube-state-metrics exported_* labels to standard names
+                # KSM uses exported_namespace/pod/etc for the monitored resource's labels
+                # while namespace/pod refer to the KSM pod itself
+                # Only applies when job contains kube-state-metrics and exported_* label exists
+                - source_labels: [job, exported_namespace]
+                  regex: ".*/kube-state-metrics;(.+)"
+                  target_label: namespace
+                  replacement: "$1"
+                  action: replace
+                - source_labels: [job, exported_pod]
+                  regex: ".*/kube-state-metrics;(.+)"
+                  target_label: pod
+                  replacement: "$1"
+                  action: replace
+                - source_labels: [job, exported_container]
+                  regex: ".*/kube-state-metrics;(.+)"
+                  target_label: container
+                  replacement: "$1"
+                  action: replace
+                - source_labels: [job, exported_node]
+                  regex: ".*/kube-state-metrics;(.+)"
+                  target_label: node
+                  replacement: "$1"
+                  action: replace
+                # Drop exported_* labels after copying
+                - regex: "exported_(namespace|pod|container|node)"
+                  action: labeldrop
 
       # Scrape pods with metrics-named ports (fallback discovery)
       prometheus/ports:
