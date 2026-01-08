@@ -40,7 +40,9 @@ echo "==> Extracting and converting rules for Mimir..."
 mkdir -p "$REPO_ROOT/kubernetes/apps/mimir/files"
 {
   echo "namespace: kubernetes-mixin"
-  unzip -p "$TMP_DIR/k8s-mixin.zip" prometheus_rules.yaml
+  # Rename 'cluster' label to 'k8s_cluster' to avoid collision with CNPG's cluster label
+  unzip -p "$TMP_DIR/k8s-mixin.zip" prometheus_rules.yaml | \
+    sed -E 's/cluster="/k8s_cluster="/g; s/cluster=~/k8s_cluster=~/g; s/cluster!~/k8s_cluster!~/g; s/by \(cluster\)/by (k8s_cluster)/g; s/by \(cluster,/by (k8s_cluster,/g; s/, cluster\)/, k8s_cluster)/g; s/, cluster,/, k8s_cluster,/g'
 } > "$REPO_ROOT/kubernetes/apps/mimir/files/kubernetes-mixin-rules.yaml"
 
 # --- Dashboards ---
@@ -54,6 +56,18 @@ rm -f "$TMP_DIR/dashboards/"*windows*.json
 # Control plane dashboards - managed by DigitalOcean, not accessible in DOKS
 rm -f "$TMP_DIR/dashboards/scheduler.json"
 rm -f "$TMP_DIR/dashboards/controller-manager.json"
+
+echo "==> Renaming cluster label to k8s_cluster in dashboards..."
+for f in "$TMP_DIR/dashboards/"*.json; do
+  # Rename 'cluster' label to 'k8s_cluster' to avoid collision with CNPG's cluster label
+  # In JSON, PromQL expressions have escaped quotes: cluster=\"value\"
+  # This handles: label matchers (cluster="), regex matchers (cluster=~, cluster!~),
+  # by() clauses, and $cluster variable references
+  sed -i.bak -E 's/cluster=\\"/k8s_cluster=\\"/g; s/cluster=~/k8s_cluster=~/g; s/cluster!~/k8s_cluster!~/g; s/by \(cluster\)/by (k8s_cluster)/g; s/by \(cluster,/by (k8s_cluster,/g; s/, cluster\)/, k8s_cluster)/g; s/, cluster,/, k8s_cluster,/g; s/\$cluster/\$k8s_cluster/g; s/\$\{cluster\}/\$\{k8s_cluster\}/g; s/var-cluster=/var-k8s_cluster=/g' "$f"
+  rm -f "$f.bak"
+  # Rename the template variable definition from "cluster" to "k8s_cluster"
+  jq '(.templating.list[] | select(.name == "cluster") | .name) = "k8s_cluster" | (.templating.list[] | select(.label == "cluster") | .label) = "k8s_cluster"' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+done
 
 echo "==> Adding stable UIDs to dashboards..."
 for f in "$TMP_DIR/dashboards/"*.json; do

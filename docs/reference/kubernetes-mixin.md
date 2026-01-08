@@ -103,6 +103,23 @@ The kubernetes-mixin provides pre-built Grafana dashboards and Prometheus record
 
 ### Metric Relabeling
 
+The otel-metrics collector applies two types of metric relabeling:
+
+#### 1. Cluster Label (`k8s_cluster`)
+
+All scraped metrics get a `k8s_cluster` label to identify the Kubernetes cluster. We use `k8s_cluster` instead of `cluster` to avoid collision with CloudNativePG's `cluster` label (which identifies database clusters).
+
+```yaml
+metric_relabel_configs:
+  - target_label: k8s_cluster
+    replacement: "do-nyc3-prod"
+    action: replace
+```
+
+The kubernetes-mixin dashboards and recording rules have been modified to use `k8s_cluster` instead of the standard `cluster` label.
+
+#### 2. kube-state-metrics Label Renaming
+
 kube-state-metrics uses `exported_*` prefix labels to distinguish between:
 - Labels describing the KSM pod itself (`namespace`, `pod`)
 - Labels describing the monitored resource (`exported_namespace`, `exported_pod`)

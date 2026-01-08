@@ -32,9 +32,11 @@ Review the changelog for any breaking changes or new dashboards.
 The script will:
 1. Download the specified release
 2. Extract and convert rules to Mimir format (adds `namespace: kubernetes-mixin`)
-3. Extract dashboards, remove Windows/inaccessible dashboards
-4. Add stable UIDs to dashboards (prevents duplicates)
-5. Copy files to the appropriate locations
+3. Rename `cluster` label to `k8s_cluster` in rules (avoids collision with CNPG)
+4. Extract dashboards, remove Windows/inaccessible dashboards
+5. Rename `cluster` label to `k8s_cluster` in dashboard queries and variables
+6. Add stable UIDs to dashboards (prevents duplicates)
+7. Copy files to the appropriate locations
 
 ### Step 3: Review Changes
 
@@ -168,10 +170,11 @@ The `scripts/update-kubernetes-mixin.sh` script:
 curl -sL "https://github.com/kubernetes-monitoring/kubernetes-mixin/releases/download/version-${VERSION}/..." \
   -o /tmp/k8s-mixin.zip
 
-# 2. Extracts rules and adds Mimir namespace key
+# 2. Extracts rules, adds Mimir namespace key, and renames cluster -> k8s_cluster
 {
   echo "namespace: kubernetes-mixin"
-  unzip -p /tmp/k8s-mixin.zip prometheus_rules.yaml
+  unzip -p /tmp/k8s-mixin.zip prometheus_rules.yaml | \
+    sed -E 's/cluster="/k8s_cluster="/g; ...'  # Renames cluster label
 } > kubernetes/apps/mimir/files/kubernetes-mixin-rules.yaml
 
 # 3. Extracts dashboards
@@ -182,15 +185,24 @@ rm -f /tmp/dashboards/*windows*.json
 rm -f /tmp/dashboards/scheduler.json
 rm -f /tmp/dashboards/controller-manager.json
 
-# 5. Adds stable UIDs (hash of dashboard name, cross-platform)
+# 5. Renames cluster label to k8s_cluster in dashboard queries
+# This avoids collision with CloudNativePG's "cluster" label
+for f in /tmp/dashboards/*.json; do
+  sed -i.bak -E 's/cluster=\\"/k8s_cluster=\\"/g; s/\$cluster/\$k8s_cluster/g; ...' "$f"
+  jq '(.templating.list[] | select(.name == "cluster") | .name) = "k8s_cluster"' "$f" ...
+done
+
+# 6. Adds stable UIDs (hash of dashboard name, cross-platform)
 for f in /tmp/dashboards/*.json; do
   uid=$(echo -n "k8s-mixin-$(basename $f .json)" | md5hash | cut -c1-12)
   jq --arg uid "$uid" '.uid = $uid' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
 done
 
-# 6. Copies to repo
+# 7. Copies to repo
 cp /tmp/dashboards/*.json kubernetes/apps/grafana/dashboards/kubernetes-mixin/
 ```
+
+**Note**: We use `k8s_cluster` instead of the standard `cluster` label to avoid collision with CloudNativePG, which uses `cluster` for database cluster names.
 
 ## Related Documentation
 
