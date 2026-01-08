@@ -57,7 +57,7 @@ resource "digitalocean_kubernetes_node_pool" "workers_8vcpu_16gb" {
   name       = "workers-8vcpu-16gb"
   size       = "s-8vcpu-16gb"
   auto_scale = true
-  min_nodes  = 3
+  min_nodes  = 4
   max_nodes  = 5
 
   labels = {
