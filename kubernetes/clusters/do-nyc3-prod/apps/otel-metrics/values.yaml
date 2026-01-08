@@ -170,7 +170,10 @@ opentelemetry-collector:
                   target_label: instance
               metric_relabel_configs:
                 # Add k8s_cluster label to all metrics (avoids collision with CNPG's "cluster" label)
-                - target_label: k8s_cluster
+                # Must use source_labels with __name__ - OTel prometheus receiver requires explicit source
+                - source_labels: [__name__]
+                  regex: ".+"
+                  target_label: k8s_cluster
                   replacement: "do-nyc3-prod"
                   action: replace
                 # Rename kube-state-metrics exported_* labels to standard names
@@ -291,7 +294,10 @@ opentelemetry-collector:
                   regex: (.+)
               metric_relabel_configs:
                 # Add k8s_cluster label to all metrics (avoids collision with CNPG's "cluster" label)
-                - target_label: k8s_cluster
+                # Must use source_labels with __name__ - OTel prometheus receiver requires explicit source
+                - source_labels: [__name__]
+                  regex: ".+"
+                  target_label: k8s_cluster
                   replacement: "do-nyc3-prod"
                   action: replace
 
@@ -336,7 +342,10 @@ opentelemetry-collector:
                   replacement: kubelet
               metric_relabel_configs:
                 # Add k8s_cluster label to all metrics (avoids collision with CNPG's "cluster" label)
-                - target_label: k8s_cluster
+                # Must use source_labels with __name__ - OTel prometheus receiver requires explicit source
+                - source_labels: [__name__]
+                  regex: ".+"
+                  target_label: k8s_cluster
                   replacement: "do-nyc3-prod"
                   action: replace
 
@@ -375,7 +384,10 @@ opentelemetry-collector:
                   replacement: kubelet
               metric_relabel_configs:
                 # Add k8s_cluster label to all metrics (avoids collision with CNPG's "cluster" label)
-                - target_label: k8s_cluster
+                # Must use source_labels with __name__ - OTel prometheus receiver requires explicit source
+                - source_labels: [__name__]
+                  regex: ".+"
+                  target_label: k8s_cluster
                   replacement: "do-nyc3-prod"
                   action: replace
 
@@ -440,7 +452,10 @@ opentelemetry-collector:
                   replacement: linkerd-proxy
               metric_relabel_configs:
                 # Add k8s_cluster label to all metrics (avoids collision with CNPG's "cluster" label)
-                - target_label: k8s_cluster
+                # Must use source_labels with __name__ - OTel prometheus receiver requires explicit source
+                - source_labels: [__name__]
+                  regex: ".+"
+                  target_label: k8s_cluster
                   replacement: "do-nyc3-prod"
                   action: replace
                 # Keep metrics required by linkerd-viz
@@ -476,7 +491,10 @@ opentelemetry-collector:
                   replacement: kube-apiserver
               metric_relabel_configs:
                 # Add k8s_cluster label to all metrics (avoids collision with CNPG's "cluster" label)
-                - target_label: k8s_cluster
+                # Must use source_labels with __name__ - OTel prometheus receiver requires explicit source
+                - source_labels: [__name__]
+                  regex: ".+"
+                  target_label: k8s_cluster
                   replacement: "do-nyc3-prod"
                   action: replace
 
