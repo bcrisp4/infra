@@ -175,3 +175,52 @@ output "onepassword_backup_items" {
     }
   }
 }
+
+# =============================================================================
+# MLflow Secrets
+# =============================================================================
+
+# MLflow artifact storage S3 credentials
+resource "onepassword_item" "mlflow_artifacts_s3" {
+  vault    = var.onepassword_vault
+  title    = "${var.cluster_name}-mlflow-artifacts-s3"
+  category = "login"
+
+  username = digitalocean_spaces_key.mlflow_artifacts.access_key
+  password = digitalocean_spaces_key.mlflow_artifacts.secret_key
+
+  section {
+    label = "S3 Configuration"
+
+    field {
+      label = "bucket"
+      type  = "STRING"
+      value = digitalocean_spaces_bucket.mlflow_artifacts.name
+    }
+
+    field {
+      label = "endpoint"
+      type  = "STRING"
+      value = "${local.spaces_region}.digitaloceanspaces.com"
+    }
+
+    field {
+      label = "scheme"
+      type  = "STRING"
+      value = "https"
+    }
+
+    field {
+      label = "region"
+      type  = "STRING"
+      value = local.spaces_region
+    }
+  }
+
+  tags = ["kubernetes", "s3", var.cluster_name, "mlflow"]
+
+  lifecycle {
+    ignore_changes = [password]
+  }
+}
+

@@ -1,0 +1,74 @@
+# Image configuration
+image:
+  repository: ghcr.io/bcrisp4/infra/mlflow
+  tag: "3.8.1"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# MLflow server configuration
+config:
+  # Artifact store path prefix within the S3 bucket
+  artifactPath: artifacts
+  # Workers for gunicorn (0 = sync mode, recommended for light use)
+  workers: 1
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+  containerPort: 5000
+
+# Resource limits
+resources:
+  requests:
+    cpu: 50m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: tailscale
+  host: mlflow
+  annotations: {}
+
+# CloudNativePG database settings
+database:
+  instances: 1
+  storage:
+    size: 5Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  # PostgreSQL tuning (sized for 512Mi memory)
+  postgresql:
+    shared_buffers: "128MB"
+    effective_cache_size: "384MB"
+    work_mem: "4MB"
+    maintenance_work_mem: "64MB"
+    checkpoint_timeout: "10min"
+    max_wal_size: "1GB"
+    checkpoint_completion_target: "0.9"
+
+# S3 artifact store credentials (from 1Password)
+artifactStore:
+  enabled: true
+  itemName: ""  # Set per-cluster
+  endpoint: ""  # Set per-cluster
+  bucket: ""    # Set per-cluster
+
+# Database backup configuration
+backup:
+  enabled: false
+  immediate: false
+  retentionPolicy: "28d"
+  s3:
+    itemName: ""
+    bucket: ""
+    endpoint: ""
+    path: mlflow-db

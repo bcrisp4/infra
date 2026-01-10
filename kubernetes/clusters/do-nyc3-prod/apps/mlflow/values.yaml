@@ -1,0 +1,34 @@
+image:
+  repository: ghcr.io/bcrisp4/infra/mlflow
+  tag: "3.8.1"
+
+ingress:
+  enabled: true
+  className: tailscale
+  host: mlflow
+  annotations:
+    tailscale.com/proxy-group: ingress-proxies
+    tailscale.com/tags: tag:k8s-services
+
+database:
+  instances: 1
+  storage:
+    size: 5Gi
+
+# S3 artifact store
+artifactStore:
+  enabled: true
+  itemName: do-nyc3-prod-mlflow-artifacts-s3
+  endpoint: nyc3.digitaloceanspaces.com
+  bucket: bc4-do-nyc3-prod-mlflow-artifacts
+
+# Database backups
+backup:
+  enabled: true
+  immediate: true
+  retentionPolicy: "28d"
+  s3:
+    itemName: do-nyc3-prod-mlflow-postgres-s3
+    bucket: bc4-do-nyc3-prod-mlflow-postgres-backups
+    endpoint: nyc3.digitaloceanspaces.com
+    path: mlflow-db

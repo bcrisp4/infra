@@ -31,6 +31,7 @@ Task-oriented recipes for specific goals.
 - [Configure Strimzi Kafka with Linkerd](how-to/strimzi-kafka-linkerd.md) - Run Kafka in the service mesh
 - [Query Logs](how-to/query-logs.md) - LogQL examples for querying pod logs
 - [Query Kubernetes Events](how-to/query-kubernetes-events.md) - LogQL examples for querying K8s events
+- [Update Terraform Providers](how-to/update-terraform-providers.md) - Check and update provider versions
 
 ## Reference
 

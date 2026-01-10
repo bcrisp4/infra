@@ -1,0 +1,17 @@
+{{- if .Values.backup.enabled }}
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: mlflow-db-daily
+spec:
+  schedule: "0 0 3 * * *"
+  immediate: {{ .Values.backup.immediate | default false }}
+  backupOwnerReference: self
+  cluster:
+    name: mlflow-db
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+    parameters:
+      barmanObjectName: mlflow-db-backup
+{{- end }}
