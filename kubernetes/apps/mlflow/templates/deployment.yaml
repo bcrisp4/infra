@@ -32,7 +32,7 @@ spec:
             - --default-artifact-root=s3://{{ .Values.artifactStore.bucket }}/{{ .Values.config.artifactPath }}
             - --workers={{ .Values.config.workers }}
             {{- if .Values.ingress.enabled }}
-            - --host-allowed={{ .Values.ingress.host }}.{{ .Values.ingress.tailnetDomain }}
+            - --allowed-hosts={{ .Values.ingress.host }}.{{ .Values.ingress.tailnetDomain }}
             {{- end }}
           ports:
             - name: http
