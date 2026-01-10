@@ -29,7 +29,9 @@ spec:
             - --host=0.0.0.0
             - --port={{ .Values.service.containerPort }}
             - --backend-store-uri=$(DATABASE_URL)
-            - --default-artifact-root=s3://{{ .Values.artifactStore.bucket }}/{{ .Values.config.artifactPath }}
+            - --default-artifact-root=mlflow-artifacts:/
+            - --serve-artifacts
+            - --artifacts-destination=s3://{{ .Values.artifactStore.bucket }}/{{ .Values.config.artifactPath }}
             - --workers={{ .Values.config.workers }}
             {{- if .Values.ingress.enabled }}
             - --allowed-hosts={{ .Values.ingress.host }}.{{ .Values.ingress.tailnetDomain }}
