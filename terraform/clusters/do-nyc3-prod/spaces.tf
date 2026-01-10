@@ -131,18 +131,14 @@ resource "digitalocean_spaces_bucket" "backups" {
   region = local.spaces_region
   acl    = "private"
 
+  # Versioning enabled for tampering detection - Barman Cloud only creates
+  # new files, never modifies existing ones. Multiple versions of the same
+  # file would indicate tampering or a bug.
   versioning {
     enabled = true
   }
 
-  lifecycle_rule {
-    id      = "expire-old-versions"
-    enabled = true
-
-    noncurrent_version_expiration {
-      days = 30
-    }
-  }
+  # No lifecycle rule - preserve all versions indefinitely for security
 }
 
 resource "digitalocean_spaces_key" "backups" {
