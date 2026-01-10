@@ -117,6 +117,10 @@ locals {
       name        = "${local.bucket_prefix}-paperless-ngx-files"
       description = "Paperless-ngx encrypted file backups (Restic)"
     }
+    mlflow-postgres = {
+      name        = "${local.bucket_prefix}-mlflow-postgres-backups"
+      description = "MLflow PostgreSQL database backups"
+    }
   }
 }
 
@@ -196,31 +200,3 @@ resource "digitalocean_spaces_key" "mlflow_artifacts" {
   }
 }
 
-# MLflow PostgreSQL backup bucket
-resource "digitalocean_spaces_bucket" "mlflow_postgres_backups" {
-  name   = "${local.bucket_prefix}-mlflow-postgres-backups"
-  region = local.spaces_region
-  acl    = "private"
-
-  versioning {
-    enabled = true
-  }
-
-  lifecycle_rule {
-    id      = "expire-old-versions"
-    enabled = true
-
-    noncurrent_version_expiration {
-      days = 30
-    }
-  }
-}
-
-resource "digitalocean_spaces_key" "mlflow_postgres_backups" {
-  name = "${var.cluster_name}-mlflow-postgres"
-
-  grant {
-    bucket     = digitalocean_spaces_bucket.mlflow_postgres_backups.name
-    permission = "readwrite"
-  }
-}

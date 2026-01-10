@@ -5,7 +5,7 @@ metadata:
   name: mlflow-db-daily
 spec:
   schedule: "0 0 3 * * *"
-  immediate: {{ .Values.backup.immediate }}
+  immediate: {{ .Values.backup.immediate | default false }}
   backupOwnerReference: self
   cluster:
     name: mlflow-db

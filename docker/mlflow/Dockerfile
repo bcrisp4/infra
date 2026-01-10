@@ -4,9 +4,10 @@ ARG MLFLOW_VERSION=3.8.1
 FROM ghcr.io/mlflow/mlflow:v${MLFLOW_VERSION}
 
 # Install PostgreSQL driver and S3 support
+# Versions pinned for reproducibility and security
 RUN pip install --no-cache-dir \
-    psycopg2-binary \
-    boto3
+    psycopg2-binary==2.9.11 \
+    boto3==1.42.25
 
 # MLflow server runs on port 5000 by default
 EXPOSE 5000

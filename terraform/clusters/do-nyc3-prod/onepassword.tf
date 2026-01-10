@@ -205,6 +205,12 @@ resource "onepassword_item" "mlflow_artifacts_s3" {
     }
 
     field {
+      label = "scheme"
+      type  = "STRING"
+      value = "https"
+    }
+
+    field {
       label = "region"
       type  = "STRING"
       value = local.spaces_region
@@ -218,34 +224,3 @@ resource "onepassword_item" "mlflow_artifacts_s3" {
   }
 }
 
-# MLflow PostgreSQL backup S3 credentials
-resource "onepassword_item" "mlflow_postgres_s3" {
-  vault    = var.onepassword_vault
-  title    = "${var.cluster_name}-mlflow-postgres-s3"
-  category = "login"
-
-  username = digitalocean_spaces_key.mlflow_postgres_backups.access_key
-  password = digitalocean_spaces_key.mlflow_postgres_backups.secret_key
-
-  section {
-    label = "S3 Configuration"
-
-    field {
-      label = "bucket"
-      type  = "STRING"
-      value = digitalocean_spaces_bucket.mlflow_postgres_backups.name
-    }
-
-    field {
-      label = "endpoint"
-      type  = "STRING"
-      value = "${local.spaces_region}.digitaloceanspaces.com"
-    }
-  }
-
-  tags = ["kubernetes", "s3", var.cluster_name, "mlflow", "backup"]
-
-  lifecycle {
-    ignore_changes = [password]
-  }
-}

@@ -2,7 +2,7 @@ name: Build MLflow Image
 
 on:
   push:
-    branches: [main, feature-mlflow]  # TODO: Remove feature-mlflow before merge
+    branches: [main]
     paths:
       - 'docker/mlflow/**'
       - '.github/workflows/build-mlflow.yml'
