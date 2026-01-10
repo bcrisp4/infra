@@ -6,6 +6,7 @@ ingress:
   enabled: true
   className: tailscale
   host: mlflow
+  tailnetDomain: marlin-tet.ts.net
   annotations:
     tailscale.com/proxy-group: ingress-proxies
     tailscale.com/tags: tag:k8s-services
