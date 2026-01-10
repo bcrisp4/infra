@@ -32,6 +32,7 @@ ingress:
   enabled: false
   className: tailscale
   host: mlflow
+  tailnetDomain: example.ts.net  # Set per-cluster
   annotations: {}
 
 # CloudNativePG database settings
