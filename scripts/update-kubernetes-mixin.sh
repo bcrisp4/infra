@@ -41,8 +41,12 @@ mkdir -p "$REPO_ROOT/kubernetes/apps/mimir/files"
 {
   echo "namespace: kubernetes-mixin"
   # Rename 'cluster' label to 'k8s_cluster' to avoid collision with CNPG's cluster label
+  # Change job exact matches to regex for jobs that include namespace prefix in our setup:
+  #   job="kube-state-metrics" -> job=~".*kube-state-metrics"
+  #   job="node-exporter" -> job=~".*node-exporter"
   unzip -p "$TMP_DIR/k8s-mixin.zip" prometheus_rules.yaml | \
-    sed -E 's/cluster="/k8s_cluster="/g; s/cluster=~/k8s_cluster=~/g; s/cluster!~/k8s_cluster!~/g; s/by \(cluster\)/by (k8s_cluster)/g; s/by \(cluster,/by (k8s_cluster,/g; s/, cluster\)/, k8s_cluster)/g; s/, cluster,/, k8s_cluster,/g'
+    sed -E 's/cluster="/k8s_cluster="/g; s/cluster=~/k8s_cluster=~/g; s/cluster!~/k8s_cluster!~/g; s/by \(cluster\)/by (k8s_cluster)/g; s/by \(cluster,/by (k8s_cluster,/g; s/, cluster\)/, k8s_cluster)/g; s/, cluster,/, k8s_cluster,/g' | \
+    sed -E 's/job="kube-state-metrics"/job=~".*kube-state-metrics"/g; s/job="node-exporter"/job=~".*node-exporter"/g'
 } > "$REPO_ROOT/kubernetes/apps/mimir/files/kubernetes-mixin-rules.yaml"
 
 # --- Dashboards ---
@@ -63,7 +67,8 @@ for f in "$TMP_DIR/dashboards/"*.json; do
   # In JSON, PromQL expressions have escaped quotes: cluster=\"value\"
   # This handles: label matchers (cluster="), regex matchers (cluster=~, cluster!~),
   # by() clauses, and $cluster variable references
-  sed -i.bak -E 's/cluster=\\"/k8s_cluster=\\"/g; s/cluster=~/k8s_cluster=~/g; s/cluster!~/k8s_cluster!~/g; s/by \(cluster\)/by (k8s_cluster)/g; s/by \(cluster,/by (k8s_cluster,/g; s/, cluster\)/, k8s_cluster)/g; s/, cluster,/, k8s_cluster,/g; s/\$cluster/\$k8s_cluster/g; s/\$\{cluster\}/\$\{k8s_cluster\}/g; s/var-cluster=/var-k8s_cluster=/g' "$f"
+  # Also fix job labels to use regex matching for our namespace-prefixed job names
+  sed -i.bak -E 's/cluster=\\"/k8s_cluster=\\"/g; s/cluster=~/k8s_cluster=~/g; s/cluster!~/k8s_cluster!~/g; s/by \(cluster\)/by (k8s_cluster)/g; s/by \(cluster,/by (k8s_cluster,/g; s/, cluster\)/, k8s_cluster)/g; s/, cluster,/, k8s_cluster,/g; s/\$cluster/\$k8s_cluster/g; s/\$\{cluster\}/\$\{k8s_cluster\}/g; s/var-cluster=/var-k8s_cluster=/g; s/job=\\"kube-state-metrics\\"/job=~\\".*kube-state-metrics\\"/g; s/job=\\"node-exporter\\"/job=~\\".*node-exporter\\"/g' "$f"
   rm -f "$f.bak"
   # Rename the template variable definition from "cluster" to "k8s_cluster"
   jq '(.templating.list[] | select(.name == "cluster") | .name) = "k8s_cluster" | (.templating.list[] | select(.label == "cluster") | .label) = "k8s_cluster"' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
