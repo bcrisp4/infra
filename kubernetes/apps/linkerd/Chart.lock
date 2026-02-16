@@ -1,9 +1,9 @@
 dependencies:
 - name: linkerd-crds
   repository: https://helm.linkerd.io/edge
-  version: 2025.12.3
+  version: 2026.1.4
 - name: linkerd-control-plane
   repository: https://helm.linkerd.io/edge
   version: 2025.12.3
-digest: sha256:ef14871b2ee4d1f6d65c666d92910749a1aafab58c371c8692a06002b55b9204
-generated: "2026-01-08T00:30:32.795249004Z"
+digest: sha256:80017142e89a59a8dcd2b91b802cfc4d920075b43c24495e932977da53bb06d3
+generated: "2026-02-16T14:13:50.72027804Z"
