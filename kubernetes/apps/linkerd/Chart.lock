@@ -4,6 +4,6 @@ dependencies:
   version: 2025.12.3
 - name: linkerd-control-plane
   repository: https://helm.linkerd.io/edge
-  version: 2025.12.3
-digest: sha256:ef14871b2ee4d1f6d65c666d92910749a1aafab58c371c8692a06002b55b9204
-generated: "2026-01-08T00:30:32.795249004Z"
+  version: 2026.1.4
+digest: sha256:e4297ed4d18a0e1a32028c76540bb0cc6901206fbb18e7475a9e566ef0250520
+generated: "2026-02-16T14:13:42.535252544Z"
