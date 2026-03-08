@@ -1,4 +1,0 @@
-# ArgoCD ApplicationSet config for paperless-ngx
-name: paperless-ngx
-namespaceAnnotations:
-  linkerd.io/inject: enabled

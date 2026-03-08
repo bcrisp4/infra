@@ -1,3 +1,0 @@
-name: kube-state-metrics
-namespaceAnnotations:
-  linkerd.io/inject: enabled

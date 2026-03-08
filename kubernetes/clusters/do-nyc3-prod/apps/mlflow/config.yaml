@@ -1,3 +1,0 @@
-name: mlflow
-namespaceAnnotations:
-  linkerd.io/inject: enabled

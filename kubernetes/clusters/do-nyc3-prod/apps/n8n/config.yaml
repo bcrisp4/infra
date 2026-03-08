@@ -1,3 +1,0 @@
-name: n8n
-namespaceAnnotations:
-  linkerd.io/inject: enabled

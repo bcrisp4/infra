@@ -1,3 +1,0 @@
-name: strimzi-kafka-operator
-namespaceAnnotations:
-  linkerd.io/inject: enabled

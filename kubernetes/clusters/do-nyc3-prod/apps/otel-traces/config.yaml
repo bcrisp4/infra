@@ -1,3 +1,0 @@
-name: otel-traces
-namespaceAnnotations:
-  linkerd.io/inject: enabled
