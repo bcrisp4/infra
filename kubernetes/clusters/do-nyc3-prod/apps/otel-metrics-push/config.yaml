@@ -1,3 +1,0 @@
-name: otel-metrics-push
-namespaceAnnotations:
-  linkerd.io/inject: enabled

@@ -1,3 +1,0 @@
-name: mimir
-namespaceAnnotations:
-  linkerd.io/inject: enabled

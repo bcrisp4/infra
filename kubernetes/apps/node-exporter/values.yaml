@@ -1,2 +1,0 @@
-# Base values for node-exporter
-# Cluster-specific overrides go in kubernetes/clusters/<cluster>/apps/node-exporter/values.yaml

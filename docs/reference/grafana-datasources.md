@@ -20,7 +20,7 @@ The `deleteDatasources` directive crashes Grafana if the datasource to delete do
 Datasource provisioning error: data source not found
 ```
 
-Avoid using it - manually delete old datasources via the UI instead.
+Avoid using it -- manually delete old datasources via the UI instead.
 
 ### 3. Don't use uid for existing datasources
 
@@ -30,7 +30,7 @@ If a datasource already exists without a uid (or with a different uid), adding `
 
 Even though provisioning is via ConfigMap, Grafana stores datasources in its database (PostgreSQL). The ConfigMap is only read on startup to sync state.
 
-## Example: Mimir/Prometheus Datasource
+## Example: Prometheus Datasource
 
 ```yaml
 grafana:
@@ -38,42 +38,22 @@ grafana:
     datasources.yaml:
       apiVersion: 1
       datasources:
-        - name: mimir-do-nyc3-prod
+        - name: prometheus-do-nyc3-prod
           type: prometheus
           access: proxy
-          url: http://mimir-gateway.mimir.svc.cluster.local/prometheus
+          url: http://prometheus-kube-prometheus-stack-prometheus.prometheus.svc.cluster.local:9090
           isDefault: true
           editable: false
           jsonData:
-            prometheusType: Mimir
-            prometheusVersion: 2.9.1
             timeInterval: 30s
-            cacheLevel: High
-            incrementalQuerying: true
-            incrementalQueryOverlapWindow: 10m
-            httpHeaderName1: X-Scope-OrgID
-          secureJsonData:
-            httpHeaderValue1: prod
 ```
-
-## prometheusVersion Values for Mimir
-
-The version dropdown uses specific values (from Grafana source code):
-- `2.0.0` through `2.9.0` for specific minor versions
-- `2.9.1` = "> 2.9.x" (use this for Mimir 3.0+)
-
-These are NOT actual Mimir versions - they're Grafana's internal version identifiers that enable specific API features.
 
 ## jsonData Fields
 
 | Field | Description |
 |-------|-------------|
 | `prometheusType` | `Prometheus`, `Mimir`, `Cortex`, or `Thanos` |
-| `prometheusVersion` | Version identifier (see above) |
-| `timeInterval` | Scrape interval (e.g., `30s`) - should match your scraper config |
-| `cacheLevel` | `Low`, `Medium`, `High`, or `None` - higher is better for high cardinality |
-| `incrementalQuerying` | `true` to cache query results and only fetch new data |
-| `incrementalQueryOverlapWindow` | Overlap window for incremental queries (e.g., `10m`) |
+| `timeInterval` | Scrape interval (e.g., `30s`) -- should match your scraper config |
 | `httpHeaderName1` / `httpHeaderValue1` | Custom headers (use `secureJsonData` for sensitive values) |
 
 ## Renaming a Datasource
@@ -87,5 +67,4 @@ If you need to rename a datasource:
 
 ## Related
 
-- [Mimir Tenancy](mimir-tenancy.md) - Multi-tenant configuration
-- [Metrics Architecture](metrics-architecture.md)
+- [Logging Architecture](logging-architecture.md)

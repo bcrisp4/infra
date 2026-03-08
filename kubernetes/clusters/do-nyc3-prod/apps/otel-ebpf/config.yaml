@@ -1,3 +1,0 @@
-name: otel-ebpf
-# Note: No Linkerd injection - privileged DaemonSet with eBPF
-# Traffic to collectors is already protected by Linkerd mesh

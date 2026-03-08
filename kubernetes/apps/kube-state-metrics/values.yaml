@@ -1,2 +1,0 @@
-# Base values for kube-state-metrics
-# Cluster-specific overrides go in kubernetes/clusters/<cluster>/apps/kube-state-metrics/values.yaml
