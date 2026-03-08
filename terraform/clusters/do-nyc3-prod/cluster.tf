@@ -6,7 +6,7 @@
 resource "digitalocean_kubernetes_cluster" "main" {
   name     = var.cluster_name
   region   = "nyc3"
-  version  = "1.34.1-do.2"
+  version  = "1.34.1-do.3"
   vpc_uuid = digitalocean_vpc.main.id
   ha       = false
 
@@ -37,6 +37,11 @@ resource "digitalocean_kubernetes_cluster" "main" {
     }
   }
 
+  # Ignore version drift - DOKS auto-upgrades the cluster
+  lifecycle {
+    ignore_changes = [version]
+  }
+
   # Automatic maintenance and upgrades
   maintenance_policy {
     day        = "sunday"
@@ -50,17 +55,17 @@ resource "digitalocean_kubernetes_cluster" "main" {
   destroy_all_associated_resources = true
 }
 
-# Primary worker node pool - larger, more cost-efficient instances
-resource "digitalocean_kubernetes_node_pool" "workers_8vcpu_16gb" {
+# Primary worker node pool
+resource "digitalocean_kubernetes_node_pool" "workers_4vcpu_8gb" {
   cluster_id = digitalocean_kubernetes_cluster.main.id
 
-  name       = "workers-8vcpu-16gb"
-  size       = "s-8vcpu-16gb"
+  name       = "workers-4vcpu-8gb"
+  size       = "s-4vcpu-8gb"
   auto_scale = true
-  min_nodes  = 4
-  max_nodes  = 5
+  min_nodes  = 3
+  max_nodes  = 4
 
   labels = {
-    pool = "workers-8vcpu-16gb"
+    pool = "workers-4vcpu-8gb"
   }
 }

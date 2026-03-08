@@ -2,9 +2,6 @@
 #
 # These S3-compatible buckets store long-term data for:
 # - Loki (logs)
-# - Mimir (metrics)
-# - Tempo (traces)
-# - Pyroscope (profiles)
 
 locals {
   spaces_region = "nyc3"
@@ -17,18 +14,6 @@ locals {
     loki = {
       name        = "${local.bucket_prefix}-loki"
       description = "Loki log storage"
-    }
-    mimir = {
-      name        = "${local.bucket_prefix}-mimir"
-      description = "Mimir metrics storage"
-    }
-    tempo = {
-      name        = "${local.bucket_prefix}-tempo"
-      description = "Tempo trace storage"
-    }
-    pyroscope = {
-      name        = "${local.bucket_prefix}-pyroscope"
-      description = "Pyroscope profile storage"
     }
   }
 }
@@ -105,22 +90,6 @@ locals {
       name        = "${local.bucket_prefix}-miniflux-postgres-backups"
       description = "Miniflux PostgreSQL database backups"
     }
-    n8n-postgres = {
-      name        = "${local.bucket_prefix}-n8n-postgres-backups"
-      description = "n8n PostgreSQL database backups"
-    }
-    paperless-ngx-postgres = {
-      name        = "${local.bucket_prefix}-paperless-ngx-postgres-backups"
-      description = "Paperless-ngx PostgreSQL database backups"
-    }
-    paperless-ngx-files = {
-      name        = "${local.bucket_prefix}-paperless-ngx-files"
-      description = "Paperless-ngx encrypted file backups (Restic)"
-    }
-    mlflow-postgres = {
-      name        = "${local.bucket_prefix}-mlflow-postgres-backups"
-      description = "MLflow PostgreSQL database backups"
-    }
   }
 }
 
@@ -163,36 +132,4 @@ output "backup_buckets" {
   }
 }
 
-# =============================================================================
-# MLflow Storage
-# =============================================================================
-
-# MLflow artifact storage bucket for ML model files, datasets, etc.
-resource "digitalocean_spaces_bucket" "mlflow_artifacts" {
-  name   = "${local.bucket_prefix}-mlflow-artifacts"
-  region = local.spaces_region
-  acl    = "private"
-
-  versioning {
-    enabled = true
-  }
-
-  lifecycle_rule {
-    id      = "expire-old-versions"
-    enabled = true
-
-    noncurrent_version_expiration {
-      days = 30
-    }
-  }
-}
-
-resource "digitalocean_spaces_key" "mlflow_artifacts" {
-  name = "${var.cluster_name}-mlflow-artifacts"
-
-  grant {
-    bucket     = digitalocean_spaces_bucket.mlflow_artifacts.name
-    permission = "readwrite"
-  }
-}
 
