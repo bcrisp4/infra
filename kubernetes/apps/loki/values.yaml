@@ -7,7 +7,7 @@ externalSecret:
 
 # Loki chart values
 loki:
-  deploymentMode: Distributed
+  deploymentMode: SimpleScalable
   global:
     extraArgs:
       - -config.expand-env=true
