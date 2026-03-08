@@ -52,6 +52,8 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 
 ## Implementation Notes
 
+- kube-prometheus-stack uses `kube-prometheus` (not `kube-prometheus-stack`) in resource names: `{release}-kube-prometheus-{component}`
+- Tailscale ProxyGroup ingress requires custom templates with `defaultBackend` (charts' built-in ingress uses `rules` which doesn't work)
 - Do not use em dashes in generated content
 - Keep configurations minimal
 - Prefer explicit configuration over clever automation
@@ -63,6 +65,14 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 |------|------|
 | `prometheus-do-nyc3-prod` | prometheus |
 | `loki-do-nyc3-prod` | loki |
+
+## Service URLs (do-nyc3-prod)
+
+| Service | URL |
+|---------|-----|
+| Prometheus | `http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090` |
+| Alertmanager | `http://prometheus-kube-prometheus-alertmanager.prometheus.svc.cluster.local:9093` |
+| Loki Gateway | `http://loki-gateway.loki.svc.cluster.local` |
 
 ## Quick Reference
 

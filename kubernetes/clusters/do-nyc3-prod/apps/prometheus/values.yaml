@@ -1,2 +1,20 @@
 # Cluster-specific values for do-nyc3-prod
 # Base values are inherited from kubernetes/apps/prometheus/values.yaml
+
+# Tailscale ingress for Prometheus
+prometheusIngress:
+  enabled: true
+  className: tailscale
+  host: prometheus
+  annotations:
+    tailscale.com/proxy-group: ingress-proxies
+    tailscale.com/tags: tag:k8s-services
+
+# Tailscale ingress for Alertmanager
+alertmanagerIngress:
+  enabled: true
+  className: tailscale
+  host: alertmanager
+  annotations:
+    tailscale.com/proxy-group: ingress-proxies
+    tailscale.com/tags: tag:k8s-services

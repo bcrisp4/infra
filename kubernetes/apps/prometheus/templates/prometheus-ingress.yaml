@@ -1,0 +1,23 @@
+{{- if .Values.prometheusIngress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prometheus
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  {{- with .Values.prometheusIngress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.prometheusIngress.className }}
+  defaultBackend:
+    service:
+      name: prometheus-kube-prometheus-prometheus
+      port:
+        number: 9090
+  tls:
+    - hosts:
+        - {{ .Values.prometheusIngress.host }}
+{{- end }}
