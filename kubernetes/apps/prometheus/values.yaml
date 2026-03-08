@@ -1,0 +1,107 @@
+# Base values for kube-prometheus-stack
+kube-prometheus-stack:
+  # Disable built-in Grafana - we have our own
+  grafana:
+    enabled: false
+
+  # Alertmanager - single replica, minimal resources
+  alertmanager:
+    alertmanagerSpec:
+      replicas: 1
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          memory: 128Mi
+
+  # Prometheus server configuration
+  prometheus:
+    prometheusSpec:
+      replicas: 1
+      retention: 15d
+      resources:
+        requests:
+          cpu: 500m
+          memory: 1Gi
+        limits:
+          memory: 2Gi
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 50Gi
+      # Scrape all ServiceMonitors/PodMonitors regardless of labels
+      serviceMonitorSelectorNilUsesHelmValues: false
+      podMonitorSelectorNilUsesHelmValues: false
+      ruleSelectorNilUsesHelmValues: false
+      # Additional scrape configs for annotation-based discovery and Linkerd
+      additionalScrapeConfigs:
+        # Scrape pods with prometheus.io/scrape: "true" annotation
+        - job_name: kubernetes-pods
+          kubernetes_sd_configs:
+            - role: pod
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+              action: keep
+              regex: "true"
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scheme]
+              action: replace
+              target_label: __scheme__
+              regex: (https?)
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+              action: replace
+              target_label: __metrics_path__
+              regex: (.+)
+            - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+              action: replace
+              regex: (.+?)(?::\d+)?;(\d+)
+              replacement: $1:$2
+              target_label: __address__
+            - action: labelmap
+              regex: __meta_kubernetes_pod_label_(.+)
+            - source_labels: [__meta_kubernetes_namespace]
+              action: replace
+              target_label: namespace
+            - source_labels: [__meta_kubernetes_pod_name]
+              action: replace
+              target_label: pod
+        # Scrape Linkerd proxy metrics on port 4191
+        - job_name: linkerd-proxy
+          kubernetes_sd_configs:
+            - role: pod
+          relabel_configs:
+            - source_labels: [__meta_kubernetes_pod_container_name]
+              action: keep
+              regex: linkerd-proxy
+            - source_labels: [__meta_kubernetes_pod_container_port_name]
+              action: keep
+              regex: linkerd-admin
+            - source_labels: [__meta_kubernetes_namespace]
+              action: replace
+              target_label: namespace
+            - source_labels: [__meta_kubernetes_pod_name]
+              action: replace
+              target_label: pod
+          # Linkerd proxies expose metrics on the admin port
+          metrics_path: /metrics
+
+  # kube-state-metrics - replaces our standalone app
+  kube-state-metrics:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+
+  # node-exporter - replaces our standalone app
+  prometheus-node-exporter:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 32Mi
+      limits:
+        memory: 64Mi
