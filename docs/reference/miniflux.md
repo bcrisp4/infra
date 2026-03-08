@@ -20,7 +20,7 @@ Miniflux is a minimalist, self-hosted RSS reader deployed on do-nyc3-prod.
                                  +--------------------+
                                  |   CloudNativePG    |
                                  |   miniflux-db      |
-                                 | (Primary+Standby)  |
+                                 |   (Single Instance)|
                                  +--------------------+
                                             |
                                             v
@@ -32,7 +32,7 @@ Miniflux is a minimalist, self-hosted RSS reader deployed on do-nyc3-prod.
 
 **Components:**
 - **Miniflux**: Single deployment pod handling HTTP and background feed polling
-- **CloudNativePG**: PostgreSQL cluster with streaming replication (2 instances)
+- **CloudNativePG**: PostgreSQL single instance
 - **Tailscale Ingress**: Private access via `miniflux.marlin-tet.ts.net`
 - **Linkerd**: Service mesh for mTLS between pods
 - **Barman Cloud**: Daily backups to DigitalOcean Spaces
@@ -64,7 +64,7 @@ config:
   logLevel: info
 
 database:
-  instances: 2            # Primary + standby for HA
+  instances: 1            # Single instance
   storage:
     size: 5Gi
 
@@ -137,30 +137,7 @@ Keep single instance unless you need:
 - Zero-downtime HTTP during pod restarts
 - High concurrent user load
 
-Database HA (2 CNPG instances) provides more valuable resilience for a personal RSS reader.
-
-## Database HA
-
-The PostgreSQL cluster runs with 2 instances for high availability.
-
-### How It Works
-
-- **miniflux-db-1**: Primary (read-write)
-- **miniflux-db-2**: Standby with async streaming replication
-- **miniflux-db-rw** Service: Always routes to current primary
-- CNPG handles automatic failover if primary fails
-- Pod anti-affinity spreads instances across nodes
-
-### Verify Replication
-
-```bash
-kubectl cnpg status miniflux-db -n miniflux
-```
-
-Look for:
-- `Status: Cluster in healthy state`
-- `Ready instances: 2`
-- `Streaming Replication status` showing both instances with 0 lag
+Database backups to DO Spaces provide data protection for a personal RSS reader.
 
 ## Backups
 

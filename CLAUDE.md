@@ -48,7 +48,7 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 
 - Active cluster: `do-nyc3-prod` (DigitalOcean NYC3)
 - Tailnet: `marlin-tet.ts.net`
-- Object storage: Spaces buckets for Loki, Mimir, Tempo, Pyroscope
+- Object storage: Spaces buckets for Loki
 
 ## Implementation Notes
 
@@ -59,11 +59,10 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 
 ## Grafana Datasources
 
-| Name | UID | Type |
-|------|-----|------|
-| `mimir-do-nyc3-prod` | `PDFDDA34E6E7D2823` | prometheus |
-| `loki-do-nyc3-prod` | `PF99E8F4CDB5B6FB2` | loki |
-| `tempo-do-nyc3-prod` | `P3FE448E25097FAF8` | tempo |
+| Name | Type |
+|------|------|
+| `prometheus-do-nyc3-prod` | prometheus |
+| `loki-do-nyc3-prod` | loki |
 
 ## Quick Reference
 
@@ -85,12 +84,8 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 | ArgoCD manifests | [docs/reference/argocd-manifests.md](docs/reference/argocd-manifests.md) |
 | CloudNativePG backups | [docs/reference/cloudnative-pg-backup.md](docs/reference/cloudnative-pg-backup.md) |
 | Grafana datasources | [docs/reference/grafana-datasources.md](docs/reference/grafana-datasources.md) |
-| Mimir tenancy | [docs/reference/mimir-tenancy.md](docs/reference/mimir-tenancy.md) |
 | Logging architecture | [docs/reference/logging-architecture.md](docs/reference/logging-architecture.md) |
-| Tracing architecture | [docs/reference/tracing-architecture.md](docs/reference/tracing-architecture.md) |
-| Metrics architecture | [docs/reference/metrics-architecture.md](docs/reference/metrics-architecture.md) |
 | Miniflux | [docs/reference/miniflux.md](docs/reference/miniflux.md) |
-| n8n | [docs/reference/n8n.md](docs/reference/n8n.md) |
 
 ## Documentation
 

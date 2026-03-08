@@ -59,11 +59,11 @@ Apps deploy by creating `config.yaml` + `values.yaml` in `kubernetes/clusters/{c
 
 - **Active cluster:** `do-nyc3-prod` (DigitalOcean NYC3)
 - **Tailnet:** `marlin-tet.ts.net`
-- **Object storage:** Spaces buckets for Loki, Mimir, Tempo, Pyroscope
+- **Object storage:** Spaces buckets for Loki
 
 ## Component Architecture
 
-See [Metrics Architecture](metrics-architecture.md) for the observability stack details.
+Metrics are collected by kube-prometheus-stack (Prometheus, Alertmanager, kube-state-metrics, node-exporter). Logs are collected by Loki in SimpleScalable mode with S3 storage.
 
 ## Related
 
