@@ -76,6 +76,17 @@ kube-prometheus-stack:
               target_label: __address__
             - action: labelmap
               regex: __meta_kubernetes_pod_label_(.+)
+            # Set job label from prometheus.io/job annotation if present
+            - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_job]
+              action: replace
+              target_label: job
+              regex: (.+)
+            # Fall back to app.kubernetes.io/name label if no annotation
+            - source_labels: [job, __meta_kubernetes_pod_label_app_kubernetes_io_name]
+              action: replace
+              target_label: job
+              regex: ;(.+)
+              replacement: $1
             - source_labels: [__meta_kubernetes_namespace]
               action: replace
               target_label: namespace
