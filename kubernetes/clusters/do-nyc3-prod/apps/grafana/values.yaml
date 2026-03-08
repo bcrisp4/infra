@@ -10,9 +10,9 @@ ingress:
     tailscale.com/proxy-group: ingress-proxies
     tailscale.com/tags: tag:k8s-services
 
-# Database HA configuration
+# Database configuration (single instance)
 database:
-  instances: 2
+  instances: 1
 
 # Database backup to DigitalOcean Spaces via Barman Cloud Plugin
 backup:
@@ -31,7 +31,6 @@ externalSecret:
 
 grafana:
   # Dashboard sidecar - watches for ConfigMaps with grafana_dashboard label
-  # Picks up Mimir dashboards from mimir namespace
   sidecar:
     dashboards:
       enabled: true
@@ -40,25 +39,6 @@ grafana:
       provider:
         foldersFromFilesStructure: true
 
-  # HA configuration - 2 replicas with headless service for alerting peer discovery
-  replicas: 2
-  headlessService: true
-
-  # Rolling update for zero-downtime deployments
-  deploymentStrategy:
-    type: RollingUpdate
-
-  # Pod disruption budget - always keep at least 1 replica available
-  podDisruptionBudget:
-    minAvailable: 1
-
-  # Pod IP for alerting HA peer discovery
-  extraEnvs:
-    - name: POD_IP
-      valueFrom:
-        fieldRef:
-          fieldPath: status.podIP
-
   grafana.ini:
     server:
       domain: grafana.marlin-tet.ts.net
@@ -66,25 +46,12 @@ grafana:
     feature_toggles:
       provisioning: true
       kubernetesDashboards: true
-    # Alerting HA configuration
-    # Uses headless service for peer discovery via memberlist gossip
     unified_alerting:
       enabled: true
-      ha_listen_address: "${POD_IP}:9094"
-      ha_advertise_address: "${POD_IP}:9094"
-      ha_peers: grafana-headless.grafana.svc.cluster.local:9094
     # Image rendering configuration
     rendering:
       server_url: http://grafana-image-renderer.grafana.svc.cluster.local:8081/render
       callback_url: http://grafana.grafana.svc.cluster.local/
-    # OpenTelemetry tracing
-    tracing.opentelemetry:
-      custom_attributes: "cluster:do-nyc3-prod,service.name:grafana"
-      sampler_type: const
-      sampler_param: 1
-    tracing.opentelemetry.otlp:
-      address: otel-traces.otel-traces.svc.cluster.local:4317
-      propagation: w3c
 
   # Disable chart's ingress - using custom template with ProxyGroup format
   ingress:
@@ -107,21 +74,14 @@ grafana:
     datasources.yaml:
       apiVersion: 1
       datasources:
-        - name: mimir-do-nyc3-prod
+        - name: prometheus-do-nyc3-prod
           type: prometheus
           access: proxy
-          url: http://mimir-gateway.mimir.svc.cluster.local/prometheus
+          url: http://prometheus-kube-prometheus-stack-prometheus.prometheus.svc.cluster.local:9090
           editable: false
+          isDefault: true
           jsonData:
-            prometheusType: Mimir
-            prometheusVersion: 2.9.1
             timeInterval: 30s
-            cacheLevel: High
-            incrementalQuerying: true
-            incrementalQueryOverlapWindow: 10m
-            httpHeaderName1: X-Scope-OrgID
-          secureJsonData:
-            httpHeaderValue1: prod
 
         - name: loki-do-nyc3-prod
           type: loki
@@ -135,33 +95,7 @@ grafana:
           secureJsonData:
             httpHeaderValue1: prod
 
-        - name: tempo-do-nyc3-prod
-          type: tempo
-          access: proxy
-          url: http://tempo-gateway.tempo.svc.cluster.local
-          editable: false
-          jsonData:
-            httpHeaderName1: X-Scope-OrgID
-            # Enable streaming for TraceQL queries over HTTP
-            streamingEnabled:
-              search: true
-              metrics: true
-            # Link to Mimir for service graph visualization
-            serviceMap:
-              datasourceUid: PDFDDA34E6E7D2823
-            # Link to Loki for logs correlation
-            tracesToLogs:
-              datasourceUid: PF99E8F4CDB5B6FB2
-              filterByTraceID: true
-              filterBySpanID: true
-            # Enable trace to metrics linking
-            tracesToMetrics:
-              datasourceUid: PDFDDA34E6E7D2823
-          secureJsonData:
-            httpHeaderValue1: prod
-
   # Image renderer for PNG export, alerts, and reporting
-  # Enables dashboard/panel image export and alert notification images
   imageRenderer:
     enabled: true
     resources:
