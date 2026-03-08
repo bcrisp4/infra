@@ -9,6 +9,8 @@ loki:
   deploymentMode: SimpleScalable
 
   loki:
+    commonConfig:
+      replication_factor: 1
     pattern_ingester:
       enabled: true
     compactor:
