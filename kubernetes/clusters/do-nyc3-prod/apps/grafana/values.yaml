@@ -73,11 +73,16 @@ grafana:
   datasources:
     datasources.yaml:
       apiVersion: 1
+      deleteDatasources:
+        - name: tempo-do-nyc3-prod
+          orgId: 1
+        - name: mimir-do-nyc3-prod
+          orgId: 1
       datasources:
         - name: prometheus-do-nyc3-prod
           type: prometheus
           access: proxy
-          url: http://prometheus-kube-prometheus-stack-prometheus.prometheus.svc.cluster.local:9090
+          url: http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090
           editable: false
           isDefault: true
           jsonData:

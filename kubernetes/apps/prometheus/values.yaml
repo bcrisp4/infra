@@ -1,3 +1,17 @@
+# Tailscale ingress for Prometheus
+prometheusIngress:
+  enabled: false
+  className: tailscale
+  host: ""
+  annotations: {}
+
+# Tailscale ingress for Alertmanager
+alertmanagerIngress:
+  enabled: false
+  className: tailscale
+  host: ""
+  annotations: {}
+
 # Base values for kube-prometheus-stack
 kube-prometheus-stack:
   # Disable built-in Grafana - we have our own
@@ -19,7 +33,7 @@ kube-prometheus-stack:
   prometheus:
     prometheusSpec:
       replicas: 1
-      retention: 15d
+      retention: 31d
       resources:
         requests:
           cpu: 500m
