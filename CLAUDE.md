@@ -48,7 +48,7 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 
 - Active cluster: `do-nyc3-prod` (DigitalOcean NYC3)
 - Tailnet: `marlin-tet.ts.net`
-- Object storage: Spaces buckets for Loki
+- Object storage: Spaces buckets for Loki, Thanos
 
 ## Implementation Notes
 
@@ -65,6 +65,7 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 |------|------|
 | `prometheus-do-nyc3-prod` | prometheus |
 | `loki-do-nyc3-prod` | loki |
+| `thanos-do-nyc3-prod` | prometheus (Thanos) |
 
 ## Service URLs (do-nyc3-prod)
 
@@ -73,6 +74,7 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 | Prometheus | `http://prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:9090` |
 | Alertmanager | `http://prometheus-kube-prometheus-alertmanager.prometheus.svc.cluster.local:9093` |
 | Loki Gateway | `http://loki-gateway.loki.svc.cluster.local` |
+| Thanos Query | `http://thanos-query.thanos.svc.cluster.local:10902` |
 
 ## Quick Reference
 
@@ -92,6 +94,7 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 | CloudNativePG backups | [docs/reference/cloudnative-pg-backup.md](docs/reference/cloudnative-pg-backup.md) |
 | Grafana datasources | [docs/reference/grafana-datasources.md](docs/reference/grafana-datasources.md) |
 | Logging architecture | [docs/reference/logging-architecture.md](docs/reference/logging-architecture.md) |
+| Metrics architecture | [docs/reference/metrics-architecture.md](docs/reference/metrics-architecture.md) |
 | Miniflux | [docs/reference/miniflux.md](docs/reference/miniflux.md) |
 
 ## Documentation

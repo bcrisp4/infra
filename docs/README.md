@@ -59,7 +59,7 @@ Technical descriptions and specifications.
 
 Debugging guides for common issues.
 
-- [Metrics Issues](troubleshooting/metrics.md) - Prometheus, Mimir, and scraping problems
+- [Metrics Issues](troubleshooting/metrics.md) - Prometheus, Thanos, and scraping problems
 - [ArgoCD Issues](troubleshooting/argocd.md) - Sync failures and webhook problems
 
 ## Tasks

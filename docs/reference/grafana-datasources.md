@@ -48,12 +48,38 @@ grafana:
             timeInterval: 30s
 ```
 
+## Example: Thanos Datasource
+
+```yaml
+grafana:
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: thanos-do-nyc3-prod
+          type: prometheus
+          access: proxy
+          url: http://thanos-query.thanos.svc.cluster.local:10902
+          editable: false
+          jsonData:
+            prometheusType: Thanos
+            httpMethod: POST
+            customQueryParameters: max_source_resolution=auto
+```
+
+Key settings:
+- `prometheusType: Thanos` enables Thanos-specific query features in Grafana
+- `httpMethod: POST` avoids URL length limits on large queries
+- `customQueryParameters: max_source_resolution=auto` lets Thanos select the best resolution (raw/5m/1h) based on query time range
+
 ## jsonData Fields
 
 | Field | Description |
 |-------|-------------|
 | `prometheusType` | `Prometheus`, `Mimir`, `Cortex`, or `Thanos` |
 | `timeInterval` | Scrape interval (e.g., `30s`) -- should match your scraper config |
+| `httpMethod` | `GET` or `POST` -- use `POST` for large queries |
+| `customQueryParameters` | Extra query parameters (e.g., `max_source_resolution=auto` for Thanos) |
 | `httpHeaderName1` / `httpHeaderValue1` | Custom headers (use `secureJsonData` for sensitive values) |
 
 ## Renaming a Datasource
@@ -67,4 +93,5 @@ If you need to rename a datasource:
 
 ## Related
 
+- [Metrics Architecture](metrics-architecture.md)
 - [Logging Architecture](logging-architecture.md)
