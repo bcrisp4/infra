@@ -51,6 +51,9 @@ kube-prometheus-stack:
           existingSecret:
             name: thanos-objstore-config
             key: objstore.yml
+    # Expose Thanos sidecar gRPC for Thanos Query to connect
+    thanosService:
+      enabled: true
       storageSpec:
         volumeClaimTemplate:
           spec:
