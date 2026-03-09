@@ -1,0 +1,8 @@
+externalSecret:
+  enabled: true
+  itemName: do-nyc3-prod-thanos-s3
+
+# Connect Thanos Query to the Prometheus sidecar
+query:
+  extraEndpoints:
+    - prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:10901

@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "thanos.fullname" . }}-compact
+  labels:
+    {{- include "thanos.labels" . | nindent 4 }}
+    app.kubernetes.io/component: compact
+spec:
+  replicas: 1
+  serviceName: {{ include "thanos.fullname" . }}-compact
+  selector:
+    matchLabels:
+      {{- include "thanos.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: compact
+  template:
+    metadata:
+      labels:
+        {{- include "thanos.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: compact
+    spec:
+      serviceAccountName: {{ include "thanos.fullname" . }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+      containers:
+        - name: compact
+          image: {{ include "thanos.image" . }}
+          args:
+            - compact
+            - --objstore.config-file=/etc/thanos/objstore.yml
+            - --data-dir=/var/thanos/compact
+            - --http-address=0.0.0.0:10902
+            - --retention.resolution-raw={{ .Values.compact.retention.raw }}
+            - --retention.resolution-5m={{ .Values.compact.retention.fiveMinutes }}
+            - --retention.resolution-1h={{ .Values.compact.retention.oneHour }}
+            - --compact.concurrency=1
+            - --downsample.concurrency=1
+            - --wait
+          ports:
+            - name: http
+              containerPort: 10902
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            initialDelaySeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+            initialDelaySeconds: 30
+          resources:
+            {{- toYaml .Values.compact.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: objstore-config
+              mountPath: /etc/thanos
+              readOnly: true
+            - name: data
+              mountPath: /var/thanos/compact
+      volumes:
+        - name: objstore-config
+          secret:
+            secretName: thanos-objstore-config
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: {{ .Values.compact.persistence.size }}

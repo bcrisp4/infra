@@ -1,0 +1,46 @@
+image:
+  repository: quay.io/thanos/thanos
+  tag: ""  # Defaults to Chart.appVersion
+
+# ExternalSecret for S3 object storage credentials
+externalSecret:
+  enabled: false
+  itemName: ""
+
+# Thanos Store Gateway -- serves historical metrics from object storage
+store:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  persistence:
+    size: 5Gi
+
+# Thanos Query -- unified PromQL query layer
+query:
+  # Endpoints to connect to (Store API gRPC addresses)
+  # The store gateway is automatically included
+  extraEndpoints: []
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+
+# Thanos Compactor -- compacts, downsamples, enforces retention
+compact:
+  retention:
+    raw: 90d
+    fiveMinutes: 365d
+    oneHour: 1095d
+  persistence:
+    size: 20Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+    limits:
+      memory: 1Gi

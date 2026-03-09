@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "thanos.fullname" . }}-store
+  labels:
+    {{- include "thanos.labels" . | nindent 4 }}
+    app.kubernetes.io/component: store
+spec:
+  replicas: 1
+  serviceName: {{ include "thanos.fullname" . }}-store
+  selector:
+    matchLabels:
+      {{- include "thanos.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: store
+  template:
+    metadata:
+      labels:
+        {{- include "thanos.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: store
+    spec:
+      serviceAccountName: {{ include "thanos.fullname" . }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+      containers:
+        - name: store
+          image: {{ include "thanos.image" . }}
+          args:
+            - store
+            - --objstore.config-file=/etc/thanos/objstore.yml
+            - --data-dir=/var/thanos/store
+            - --grpc-address=0.0.0.0:10901
+            - --http-address=0.0.0.0:10902
+          ports:
+            - name: grpc
+              containerPort: 10901
+            - name: http
+              containerPort: 10902
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            initialDelaySeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+            initialDelaySeconds: 30
+          resources:
+            {{- toYaml .Values.store.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+            readOnlyRootFilesystem: true
+          volumeMounts:
+            - name: objstore-config
+              mountPath: /etc/thanos
+              readOnly: true
+            - name: data
+              mountPath: /var/thanos/store
+      volumes:
+        - name: objstore-config
+          secret:
+            secretName: thanos-objstore-config
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: {{ .Values.store.persistence.size }}
