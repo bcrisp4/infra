@@ -18,3 +18,8 @@ alertmanagerIngress:
   annotations:
     tailscale.com/proxy-group: ingress-proxies
     tailscale.com/tags: tag:k8s-services
+
+# Thanos sidecar S3 credentials
+externalSecret:
+  enabled: true
+  itemName: do-nyc3-prod-thanos-s3

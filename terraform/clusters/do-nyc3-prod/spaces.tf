@@ -2,6 +2,7 @@
 #
 # These S3-compatible buckets store long-term data for:
 # - Loki (logs)
+# - Thanos (long-term metrics)
 
 locals {
   spaces_region = "nyc3"
@@ -14,6 +15,10 @@ locals {
     loki = {
       name        = "${local.bucket_prefix}-loki"
       description = "Loki log storage"
+    }
+    thanos = {
+      name        = "${local.bucket_prefix}-thanos"
+      description = "Thanos long-term metric storage"
     }
   }
 }

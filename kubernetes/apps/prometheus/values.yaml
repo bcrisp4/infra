@@ -12,6 +12,11 @@ alertmanagerIngress:
   host: ""
   annotations: {}
 
+# ExternalSecret for Thanos S3 credentials from 1Password
+externalSecret:
+  enabled: false
+  itemName: ""
+
 # Base values for kube-prometheus-stack
 kube-prometheus-stack:
   # Disable built-in Grafana - we have our own
@@ -40,6 +45,12 @@ kube-prometheus-stack:
           memory: 1Gi
         limits:
           memory: 2Gi
+      # Thanos sidecar for long-term metric storage
+      thanos:
+        objectStorageConfig:
+          existingSecret:
+            name: thanos-objstore-config
+            key: objstore.yml
       storageSpec:
         volumeClaimTemplate:
           spec:
