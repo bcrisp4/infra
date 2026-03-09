@@ -12,6 +12,10 @@ spec:
     matchLabels:
       {{- include "thanos.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: store
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      partition: 0
   template:
     metadata:
       labels:
@@ -66,7 +70,9 @@ spec:
           secret:
             secretName: thanos-objstore-config
   volumeClaimTemplates:
-    - metadata:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
         name: data
       spec:
         accessModes: [ReadWriteOnce]

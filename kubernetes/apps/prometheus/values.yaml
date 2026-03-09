@@ -51,13 +51,11 @@ kube-prometheus-stack:
           existingSecret:
             name: thanos-objstore-config
             key: objstore.yml
-    # Expose Thanos sidecar gRPC for Thanos Query to connect
-    thanosService:
-      enabled: true
       storageSpec:
         volumeClaimTemplate:
           spec:
             accessModes: ["ReadWriteOnce"]
+            volumeName: pvc-7ddc6d84-068c-4197-ba16-e82aa1c3f73c-1773042939851
             resources:
               requests:
                 storage: 50Gi
@@ -107,6 +105,9 @@ kube-prometheus-stack:
             - source_labels: [__meta_kubernetes_pod_name]
               action: replace
               target_label: pod
+    # Expose Thanos sidecar gRPC for Thanos Query to connect
+    thanosService:
+      enabled: true
 
   # kube-state-metrics - replaces our standalone app
   kube-state-metrics:
