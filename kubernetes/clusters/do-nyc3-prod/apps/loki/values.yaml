@@ -82,6 +82,9 @@ loki:
   lokiCanary:
     enabled: false
 
+  test:
+    enabled: false
+
   # Disable caches (accept S3 reads for cache misses)
   resultsCache:
     enabled: false
