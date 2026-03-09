@@ -57,7 +57,9 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 ## Implementation Notes
 
 - ExternalSecret `remoteRef` entries must include explicit `conversionStrategy: Default`, `decodingStrategy: None`, `metadataPolicy: None` to prevent ArgoCD sync drift from ESO webhook-injected defaults
+- StatefulSet `volumeClaimTemplates` must include explicit `volumeMode: Filesystem` to prevent ArgoCD sync drift from Kubernetes-injected defaults
 - kube-prometheus-stack uses `kube-prometheus` (not `kube-prometheus-stack`) in resource names: `{release}-kube-prometheus-{component}`
+- kube-prometheus-stack Thanos sidecar needs `thanosService.enabled: true` to expose gRPC port 10901; service name: `{release}-kube-prometheus-thanos-discovery`
 - Tailscale ProxyGroup ingress requires custom templates with `defaultBackend` (charts' built-in ingress uses `rules` which doesn't work)
 - Do not use em dashes in generated content
 - Keep configurations minimal
@@ -80,6 +82,7 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 | Alertmanager | `http://prometheus-kube-prometheus-alertmanager.prometheus.svc.cluster.local:9093` |
 | Loki Gateway | `http://loki-gateway.loki.svc.cluster.local` |
 | Thanos Query | `http://thanos-query.thanos.svc.cluster.local:10902` |
+| Thanos Sidecar (gRPC) | `prometheus-kube-prometheus-thanos-discovery.prometheus.svc.cluster.local:10901` |
 
 ## Quick Reference
 
