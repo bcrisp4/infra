@@ -5,4 +5,4 @@ externalSecret:
 # Connect Thanos Query to the Prometheus sidecar
 query:
   extraEndpoints:
-    - prometheus-kube-prometheus-prometheus.prometheus.svc.cluster.local:10901
+    - prometheus-kube-prometheus-thanos-discovery.prometheus.svc.cluster.local:10901
