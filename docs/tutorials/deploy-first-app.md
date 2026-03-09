@@ -165,7 +165,6 @@ You should see Prometheus-format metrics about your Kubernetes objects.
 
 ## Next Steps
 
-- Add Linkerd to the app: [Add Namespace to Mesh](../how-to/add-namespace-to-mesh.md)
 - Deploy a more complex app with custom templates
 - Configure secrets using External Secrets Operator
 

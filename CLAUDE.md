@@ -79,8 +79,6 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 | Topic | Documentation |
 |-------|---------------|
 | Deploy new app | [docs/how-to/deploy-new-app.md](docs/how-to/deploy-new-app.md) |
-| Add namespace to Linkerd mesh | [docs/how-to/add-namespace-to-mesh.md](docs/how-to/add-namespace-to-mesh.md) |
-| Update Linkerd | [docs/how-to/update-linkerd-edge.md](docs/how-to/update-linkerd-edge.md) |
 | Update Terraform providers | [docs/how-to/update-terraform-providers.md](docs/how-to/update-terraform-providers.md) |
 | ArgoCD webhooks | [docs/how-to/argocd-webhook-tailscale-funnel.md](docs/how-to/argocd-webhook-tailscale-funnel.md) |
 | Tailscale ProxyGroup ingress | [docs/how-to/tailscale-proxygroup-ingress.md](docs/how-to/tailscale-proxygroup-ingress.md) |
@@ -90,7 +88,6 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 |-----------|-----------|
 | External Secrets / 1Password | [docs/reference/external-secrets.md](docs/reference/external-secrets.md) |
 | Tailscale Operator | [docs/reference/tailscale-operator.md](docs/reference/tailscale-operator.md) |
-| Linkerd | [docs/reference/linkerd.md](docs/reference/linkerd.md) |
 | ArgoCD manifests | [docs/reference/argocd-manifests.md](docs/reference/argocd-manifests.md) |
 | CloudNativePG backups | [docs/reference/cloudnative-pg-backup.md](docs/reference/cloudnative-pg-backup.md) |
 | Grafana datasources | [docs/reference/grafana-datasources.md](docs/reference/grafana-datasources.md) |

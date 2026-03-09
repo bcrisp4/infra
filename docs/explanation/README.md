@@ -4,6 +4,4 @@ Background information and conceptual guides. These help you understand why thin
 
 ## Available Topics
 
-| Topic | Description |
-|-------|-------------|
-| [Linkerd Edge Releases](linkerd-edge-releases.md) | Why we use edge releases instead of stable |
+No topics yet.

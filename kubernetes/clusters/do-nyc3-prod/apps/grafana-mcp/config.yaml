@@ -1,3 +1,1 @@
 name: grafana-mcp
-namespaceAnnotations:
-  linkerd.io/inject: enabled

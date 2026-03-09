@@ -70,18 +70,6 @@ loki:
 
 The `${VAR}` syntax works because Loki is started with `-config.expand-env=true`.
 
-## Linkerd Integration
-
-To add Loki to the service mesh, set the namespace annotation in `config.yaml`:
-
-```yaml
-name: loki
-namespaceAnnotations:
-  linkerd.io/inject: enabled
-```
-
-All Loki pods will receive Linkerd sidecar proxies with automatic mTLS.
-
 ## Retention
 
 Default retention is 28 days (672h), configured via:

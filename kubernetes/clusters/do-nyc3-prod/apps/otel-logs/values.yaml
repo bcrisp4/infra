@@ -13,7 +13,7 @@ opentelemetry-collector:
   image:
     repository: otel/opentelemetry-collector-contrib
 
-  # Pod network (in Linkerd mesh) - no hostNetwork needed for log collection
+  # Pod network - no hostNetwork needed for log collection
   hostNetwork: false
 
   resources:

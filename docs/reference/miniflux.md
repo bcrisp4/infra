@@ -34,7 +34,6 @@ Miniflux is a minimalist, self-hosted RSS reader deployed on do-nyc3-prod.
 - **Miniflux**: Single deployment pod handling HTTP and background feed polling
 - **CloudNativePG**: PostgreSQL single instance
 - **Tailscale Ingress**: Private access via `miniflux.marlin-tet.ts.net`
-- **Linkerd**: Service mesh for mTLS between pods
 - **Barman Cloud**: Daily backups to DigitalOcean Spaces
 
 ## Files
@@ -208,16 +207,6 @@ kubectl cnpg psql miniflux-db -n miniflux
 
 # Note: cnpg psql with -c flag may fail due to TTY issues
 # Use kubectl exec directly for non-interactive queries
-```
-
-### Linkerd Mesh
-
-The namespace has `linkerd.io/inject: enabled` annotation. All pods get Linkerd sidecar proxies automatically.
-
-Verify pods are meshed (should show 2/2 or 3/3 containers):
-
-```bash
-kubectl get pods -n miniflux
 ```
 
 ## Useful Commands

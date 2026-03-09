@@ -1,3 +1,1 @@
 name: otel-logs
-namespaceAnnotations:
-  linkerd.io/inject: enabled
