@@ -36,7 +36,7 @@ name: my-app
 namespaceLabels:
   example.com/team: platform  # Optional: adds labels to app namespace
 namespaceAnnotations:
-  linkerd.io/inject: enabled  # Optional: adds annotations to app namespace
+  example.com/managed-by: argocd  # Optional: adds annotations to app namespace
 ```
 
 The `templatePatch` conditionally applies these to `managedNamespaceMetadata`. This works because `templatePatch` is a string field that gets Go template processing before being applied as a patch.

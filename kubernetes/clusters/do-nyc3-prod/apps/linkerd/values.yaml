@@ -1,3 +1,0 @@
-# Cluster-specific Linkerd overrides for do-nyc3-prod
-linkerd-control-plane:
-  webhookFailurePolicy: Fail

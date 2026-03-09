@@ -35,7 +35,6 @@ Paperless-ngx is a document management system that scans, indexes, and archives 
 - **CloudNativePG**: PostgreSQL cluster for document metadata
 - **Redis**: Task broker for Celery background jobs (OCR, classification)
 - **Tailscale Ingress**: Private access via `paperless-ngx.marlin-tet.ts.net`
-- **Linkerd**: Service mesh for mTLS between pods
 - **Barman Cloud**: Daily PostgreSQL backups to DigitalOcean Spaces
 - **Restic CronJob**: Encrypted file backups to separate S3 bucket
 

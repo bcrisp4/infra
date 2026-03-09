@@ -76,8 +76,7 @@ Create the config for each cluster that should run this app:
 name: <app-name>
 namespace: <app-name>  # Optional: defaults to name
 namespaceLabels: {}    # Optional
-namespaceAnnotations:  # Optional
-  linkerd.io/inject: enabled  # Add to mesh
+namespaceAnnotations: {}  # Optional
 ```
 
 ```yaml
@@ -142,4 +141,3 @@ data:
 ## Related
 
 - [Architecture Overview](../reference/architecture.md)
-- [Add Namespace to Mesh](add-namespace-to-mesh.md) - Enable Linkerd for the app

@@ -260,16 +260,6 @@ See [ArgoCD Webhooks via Tailscale Funnel](../how-to/argocd-webhook-tailscale-fu
 
 ## Known Issues
 
-### Pod-Level Resources Bug (Operator 1.92.x)
-
-Tailscale operator v1.92.x sets pod-level resources to 1m/1Mi. On Kubernetes 1.34+ with `PodLevelResources` feature gate enabled, this causes validation failures when:
-- Using custom container resources in ProxyClass
-- Enabling Linkerd sidecar injection
-
-**Workaround:** Don't set custom resources in ProxyClass until operator 1.94+.
-
-See [Re-enable Linkerd for Tailscale Operator](../tasks/tailscale-operator-1.94-linkerd.md) for tracking.
-
 ## Files
 
 | File | Purpose |
@@ -278,12 +268,10 @@ See [Re-enable Linkerd for Tailscale Operator](../tasks/tailscale-operator-1.94-
 | `kubernetes/apps/tailscale-operator/` | Operator Helm chart wrapper |
 | `kubernetes/apps/tailscale-operator/templates/proxygroup.yaml` | ProxyGroup resource |
 | `kubernetes/apps/tailscale-operator/templates/proxyclass-ha.yaml` | HA ProxyClass with topology spread |
-| `kubernetes/apps/tailscale-operator/templates/proxyclass.yaml` | Linkerd-enabled ProxyClass (blocked until 1.94) |
 
 ## Related
 
 - [Migrate Ingress to ProxyGroup](../how-to/tailscale-proxygroup-ingress.md)
 - [ArgoCD Webhooks via Tailscale Funnel](../how-to/argocd-webhook-tailscale-funnel.md)
-- [Re-enable Linkerd for Tailscale Operator](../tasks/tailscale-operator-1.94-linkerd.md)
 - [Tailscale Kubernetes Operator Docs](https://tailscale.com/kb/1236/kubernetes-operator)
 - [ProxyGroup HA Ingress Docs](https://tailscale.com/kb/1439/kubernetes-operator-cluster-ingress)

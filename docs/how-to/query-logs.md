@@ -16,7 +16,7 @@ This guide shows common LogQL queries for exploring logs in Grafana.
 {k8s_namespace_name="argocd"}
 
 # Multiple namespaces
-{k8s_namespace_name=~"argocd|linkerd"}
+{k8s_namespace_name=~"argocd|loki"}
 ```
 
 ### By Pod or Deployment
@@ -38,8 +38,8 @@ This guide shows common LogQL queries for exploring logs in Grafana.
 # Specific container in multi-container pods
 {k8s_namespace_name="argocd", k8s_container_name="application-controller"}
 
-# Exclude linkerd-proxy sidecar logs
-{k8s_namespace_name="mimir"} != "linkerd-proxy"
+# Exclude specific container logs
+{k8s_namespace_name="mimir"} != "nginx"
 ```
 
 ## Filtering Content
@@ -119,12 +119,6 @@ topk(10, sum by (k8s_pod_name) (count_over_time({log_source="pods"}[1h])))
 
 ```logql
 {k8s_namespace_name="loki", k8s_container_name="distributor"} |= "error"
-```
-
-### Linkerd Proxy Errors
-
-```logql
-{k8s_container_name="linkerd-proxy"} |= "error"
 ```
 
 ### Pod Crashes (OOMKilled, CrashLoopBackOff)

@@ -25,10 +25,7 @@ Step-by-step guides for learning the system.
 Task-oriented recipes for specific goals.
 
 - [Deploy a New App](how-to/deploy-new-app.md) - Create umbrella charts and cluster configs
-- [Add Namespace to Mesh](how-to/add-namespace-to-mesh.md) - Enable Linkerd mTLS for an app
-- [Update Linkerd Edge](how-to/update-linkerd-edge.md) - Upgrade to a new Linkerd edge release
 - [Configure ArgoCD Webhook with Tailscale Funnel](how-to/argocd-webhook-tailscale-funnel.md) - Enable instant GitOps sync
-- [Configure Strimzi Kafka with Linkerd](how-to/strimzi-kafka-linkerd.md) - Run Kafka in the service mesh
 - [Query Logs](how-to/query-logs.md) - LogQL examples for querying pod logs
 - [Query Kubernetes Events](how-to/query-kubernetes-events.md) - LogQL examples for querying K8s events
 - [Update Terraform Providers](how-to/update-terraform-providers.md) - Check and update provider versions
@@ -46,7 +43,6 @@ Technical descriptions and specifications.
 - [External Secrets Operator](reference/external-secrets.md) - ESO configuration with 1Password
 - [1Password Terraform Provider](reference/onepassword-terraform.md) - Terraform provider notes
 - [Tailscale Operator](reference/tailscale-operator.md) - Kubernetes operator configuration
-- [Linkerd](reference/linkerd.md) - Service mesh architecture and configuration
 - [ArgoCD Manifests](reference/argocd-manifests.md) - ApplicationSet and Go template patterns
 - [CloudNativePG Backup](reference/cloudnative-pg-backup.md) - Barman plugin for PostgreSQL backups
 - [Grafana Datasources](reference/grafana-datasources.md) - Datasource provisioning pitfalls
@@ -59,25 +55,16 @@ Technical descriptions and specifications.
 - [Logging Architecture](reference/logging-architecture.md) - Log collection and storage design
 - [Tracing Architecture](reference/tracing-architecture.md) - Distributed tracing storage design
 
-## Explanation
-
-Background and conceptual information.
-
-- [Why Linkerd Edge Releases](explanation/linkerd-edge-releases.md) - Rationale for using edge releases
-
 ## Troubleshooting
 
 Debugging guides for common issues.
 
 - [Metrics Issues](troubleshooting/metrics.md) - Prometheus, Mimir, and scraping problems
-- [Linkerd Issues](troubleshooting/linkerd.md) - Service mesh connectivity problems
 - [ArgoCD Issues](troubleshooting/argocd.md) - Sync failures and webhook problems
 
 ## Tasks
 
 Pending work and future improvements.
-
-- [Tailscale Operator 1.94 Linkerd](tasks/tailscale-operator-1.94-linkerd.md) - Upgrade for Linkerd compatibility
 
 ## In-tree Documentation
 

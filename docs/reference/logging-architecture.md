@@ -13,7 +13,7 @@ Node
 │                                    │
 │                               [processors]
 │                                    │
-│                                    ▼ (mTLS via Linkerd)
+│                                    ▼
 │                            loki-gateway.loki/otlp
 │                                    │
 │                                    ▼
@@ -25,7 +25,7 @@ Kubernetes API
                                        │
                                   [processors]
                                        │
-                                       ▼ (mTLS via Linkerd)
+                                       ▼
                                loki-gateway.loki/otlp
 ```
 
@@ -46,7 +46,6 @@ OpenTelemetry Collector configured for log collection:
 - Enriches logs with Kubernetes metadata (namespace, pod, container, deployment, etc.)
 - Adds custom labels: `cluster`, `log_source`
 - Checkpoints file positions for reliable collection
-- In Linkerd service mesh for mTLS
 
 ### otel-events (Deployment)
 
@@ -65,7 +64,6 @@ OpenTelemetry Collector configured for Kubernetes events collection:
 - Sets severity from event type (Normal/Warning)
 - Adds `log_source: events` label to distinguish from pod logs
 - Captures all cluster events (scheduling, scaling, failures, etc.)
-- In Linkerd service mesh for mTLS
 
 ### Loki (Distributed Mode)
 

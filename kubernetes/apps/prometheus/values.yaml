@@ -51,7 +51,7 @@ kube-prometheus-stack:
       serviceMonitorSelectorNilUsesHelmValues: false
       podMonitorSelectorNilUsesHelmValues: false
       ruleSelectorNilUsesHelmValues: false
-      # Additional scrape configs for annotation-based discovery and Linkerd
+      # Additional scrape configs for annotation-based discovery
       additionalScrapeConfigs:
         # Scrape pods with prometheus.io/scrape: "true" annotation
         - job_name: kubernetes-pods
@@ -93,25 +93,6 @@ kube-prometheus-stack:
             - source_labels: [__meta_kubernetes_pod_name]
               action: replace
               target_label: pod
-        # Scrape Linkerd proxy metrics on port 4191
-        - job_name: linkerd-proxy
-          kubernetes_sd_configs:
-            - role: pod
-          relabel_configs:
-            - source_labels: [__meta_kubernetes_pod_container_name]
-              action: keep
-              regex: linkerd-proxy
-            - source_labels: [__meta_kubernetes_pod_container_port_name]
-              action: keep
-              regex: linkerd-admin
-            - source_labels: [__meta_kubernetes_namespace]
-              action: replace
-              target_label: namespace
-            - source_labels: [__meta_kubernetes_pod_name]
-              action: replace
-              target_label: pod
-          # Linkerd proxies expose metrics on the admin port
-          metrics_path: /metrics
 
   # kube-state-metrics - replaces our standalone app
   kube-state-metrics:

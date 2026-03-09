@@ -1,3 +1,1 @@
 name: external-secrets
-namespaceAnnotations:
-  linkerd.io/inject: enabled
