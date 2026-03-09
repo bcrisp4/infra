@@ -20,3 +20,12 @@ spec:
           labelSelector:
             matchLabels:
               app.kubernetes.io/name: tailscale
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: tailscale
