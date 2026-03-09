@@ -43,10 +43,12 @@ spec:
             httpGet:
               path: /-/healthy
               port: http
+            initialDelaySeconds: 30
           readinessProbe:
             httpGet:
               path: /-/ready
               port: http
+            initialDelaySeconds: 30
           resources:
             {{- toYaml .Values.query.resources | nindent 12 }}
           securityContext:
