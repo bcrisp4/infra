@@ -61,6 +61,7 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 - StatefulSet `spec` must include explicit `updateStrategy: {type: RollingUpdate, rollingUpdate: {partition: 0}}` to prevent ArgoCD sync drift
 - kube-prometheus-stack uses `kube-prometheus` (not `kube-prometheus-stack`) in resource names: `{release}-kube-prometheus-{component}`
 - kube-prometheus-stack Thanos sidecar needs `thanosService.enabled: true` to expose gRPC port 10901; service name: `{release}-kube-prometheus-thanos-discovery`
+- When editing umbrella chart values (e.g. kube-prometheus-stack), verify YAML nesting with `helm template --show-only` after inserting new sibling keys -- indentation errors silently move config to the wrong parent
 - Tailscale ProxyGroup ingress requires custom templates with `defaultBackend` (charts' built-in ingress uses `rules` which doesn't work)
 - Do not use em dashes in generated content
 - Keep configurations minimal
@@ -69,11 +70,11 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 
 ## Grafana Datasources
 
-| Name | Type |
-|------|------|
-| `prometheus-do-nyc3-prod` | prometheus |
-| `loki-do-nyc3-prod` | loki |
-| `thanos-do-nyc3-prod` | prometheus (Thanos) |
+| Name | UID | Type |
+|------|-----|------|
+| `prometheus-do-nyc3-prod` | `PC10E5D72BE95A5D2` | prometheus |
+| `loki-do-nyc3-prod` | `PF99E8F4CDB5B6FB2` | loki |
+| `thanos-do-nyc3-prod` | `P8C36202C1551FB13` | prometheus (Thanos) |
 
 ## Service URLs (do-nyc3-prod)
 

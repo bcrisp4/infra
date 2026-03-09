@@ -55,7 +55,6 @@ kube-prometheus-stack:
         volumeClaimTemplate:
           spec:
             accessModes: ["ReadWriteOnce"]
-            volumeName: pvc-7ddc6d84-068c-4197-ba16-e82aa1c3f73c-1773042939851
             resources:
               requests:
                 storage: 50Gi
