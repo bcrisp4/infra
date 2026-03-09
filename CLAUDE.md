@@ -57,7 +57,8 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 ## Implementation Notes
 
 - ExternalSecret `remoteRef` entries must include explicit `conversionStrategy: Default`, `decodingStrategy: None`, `metadataPolicy: None` to prevent ArgoCD sync drift from ESO webhook-injected defaults
-- StatefulSet `volumeClaimTemplates` must include explicit `volumeMode: Filesystem` to prevent ArgoCD sync drift from Kubernetes-injected defaults
+- StatefulSet `volumeClaimTemplates` must include explicit `volumeMode: Filesystem`, `apiVersion: v1`, `kind: PersistentVolumeClaim` to prevent ArgoCD sync drift from Kubernetes-injected defaults
+- StatefulSet `spec` must include explicit `updateStrategy: {type: RollingUpdate, rollingUpdate: {partition: 0}}` to prevent ArgoCD sync drift
 - kube-prometheus-stack uses `kube-prometheus` (not `kube-prometheus-stack`) in resource names: `{release}-kube-prometheus-{component}`
 - kube-prometheus-stack Thanos sidecar needs `thanosService.enabled: true` to expose gRPC port 10901; service name: `{release}-kube-prometheus-thanos-discovery`
 - Tailscale ProxyGroup ingress requires custom templates with `defaultBackend` (charts' built-in ingress uses `rules` which doesn't work)
