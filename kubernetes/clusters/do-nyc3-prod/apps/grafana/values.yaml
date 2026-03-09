@@ -130,6 +130,16 @@ grafana:
           secureJsonData:
             httpHeaderValue1: prod
 
+        - name: thanos-do-nyc3-prod
+          type: prometheus
+          access: proxy
+          url: http://thanos-query.thanos.svc.cluster.local:10902
+          editable: false
+          jsonData:
+            prometheusType: Thanos
+            httpMethod: POST
+            customQueryParameters: max_source_resolution=auto
+
   # Image renderer for PNG export, alerts, and reporting
   imageRenderer:
     enabled: true

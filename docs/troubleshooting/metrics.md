@@ -1,17 +1,19 @@
 # Metrics Troubleshooting
 
-Common issues with metrics collection, Mimir storage, and otel-metrics collectors.
+Common issues with Prometheus metrics collection, Thanos long-term storage, and scraping.
 
 ## No metrics from a pod
 
-1. Check pod has scrape annotation:
+1. Check pod has scrape annotation or a ServiceMonitor/PodMonitor:
    ```bash
    kubectl get pod <pod> -o jsonpath='{.metadata.annotations}'
+   kubectl get servicemonitors -A
    ```
 
-2. Check otel-metrics logs:
+2. Check Prometheus targets:
    ```bash
-   kubectl logs -n otel-metrics -l app.kubernetes.io/name=opentelemetry-collector --tail=100
+   kubectl port-forward -n prometheus svc/prometheus-kube-prometheus-prometheus 9090
+   # Visit http://localhost:9090/targets
    ```
 
 3. Verify pod exposes /metrics endpoint:
@@ -20,41 +22,57 @@ Common issues with metrics collection, Mimir storage, and otel-metrics collector
    curl localhost:8080/metrics
    ```
 
-## Missing kubelet/cAdvisor metrics
+## Thanos Store Gateway not serving historical data
 
-1. Check otel-metrics has RBAC permissions:
+1. Check store gateway logs for block sync errors:
    ```bash
-   kubectl auth can-i get nodes/metrics --as=system:serviceaccount:otel-metrics:otel-metrics-opentelemetry-collector
+   kubectl logs -n thanos thanos-store-0 --tail=100
    ```
 
-2. Check kubelet is accessible:
+2. Verify the objstore secret exists and is synced:
    ```bash
-   kubectl get --raw /api/v1/nodes/<node>/proxy/metrics
+   kubectl get externalsecret -n thanos thanos-objstore-config
+   kubectl get secret -n thanos thanos-objstore-config
    ```
 
-## Mimir not receiving data
-
-1. Check Kafka cluster health:
+3. Check blocks exist in object storage:
    ```bash
-   kubectl get kafka -n mimir
-   kubectl get pods -n mimir -l strimzi.io/cluster=mimir-kafka
+   # The Thanos sidecar on Prometheus uploads 2-hour TSDB blocks
+   kubectl logs -n prometheus prometheus-kube-prometheus-prometheus-0 -c thanos-sidecar --tail=50
    ```
 
-2. Check Mimir distributor logs:
+## Thanos Compactor issues
+
+1. Check compactor logs for errors:
    ```bash
-   kubectl logs -n mimir -l app.kubernetes.io/component=distributor --tail=100
+   kubectl logs -n thanos thanos-compact-0 --tail=100
    ```
 
-3. Check Mimir gateway is reachable:
+2. Check compactor is running (not crash-looping):
    ```bash
-   kubectl run curl --rm -it --image=curlimages/curl -- \
-     curl -v http://mimir-gateway.mimir.svc.cluster.local/ready
+   kubectl get pods -n thanos -l app.kubernetes.io/component=compact
    ```
 
-4. Check Mimir-Kafka connectivity:
+3. Common issues:
+   - **Overlapping blocks**: The compactor will halt if it detects overlapping blocks. Check logs for `overlapping blocks` errors.
+   - **Bucket permission errors**: Verify the S3 credentials in the ExternalSecret are correct.
+
+## Thanos Query returning no data
+
+1. Check query can reach its endpoints:
    ```bash
-   # Check for connection errors in distributor/ingester logs
-   kubectl logs -n mimir -l app.kubernetes.io/component=ingester --tail=100 | grep -i "kafka\|reset\|timeout"
+   kubectl logs -n thanos -l app.kubernetes.io/component=query --tail=100
+   ```
+
+2. Verify endpoints are registered:
+   ```bash
+   kubectl port-forward -n thanos svc/thanos-query 10902
+   # Visit http://localhost:10902/stores to see connected stores
+   ```
+
+3. Check the Prometheus sidecar is exposing the Store API:
+   ```bash
+   kubectl logs -n prometheus prometheus-kube-prometheus-prometheus-0 -c thanos-sidecar --tail=50
    ```
 
 ## Related

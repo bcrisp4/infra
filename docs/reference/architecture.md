@@ -59,11 +59,13 @@ Apps deploy by creating `config.yaml` + `values.yaml` in `kubernetes/clusters/{c
 
 - **Active cluster:** `do-nyc3-prod` (DigitalOcean NYC3)
 - **Tailnet:** `marlin-tet.ts.net`
-- **Object storage:** Spaces buckets for Loki
+- **Object storage:** Spaces buckets for Loki, Thanos
 
 ## Component Architecture
 
-Metrics are collected by kube-prometheus-stack (Prometheus, Alertmanager, kube-state-metrics, node-exporter). Logs are collected by Loki in SimpleScalable mode with S3 storage.
+Metrics are collected by kube-prometheus-stack (Prometheus, Alertmanager, kube-state-metrics, node-exporter). A Thanos sidecar on Prometheus uploads TSDB blocks to S3 object storage. Thanos Store Gateway, Query, and Compactor provide long-term metric queries with automatic downsampling. See [Metrics Architecture](metrics-architecture.md).
+
+Logs are collected by Loki in SimpleScalable mode with S3 storage. See [Logging Architecture](logging-architecture.md).
 
 ## Related
 
