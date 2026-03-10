@@ -23,3 +23,52 @@ alertmanagerIngress:
 externalSecret:
   enabled: true
   itemName: do-nyc3-prod-thanos-s3
+
+kube-prometheus-stack:
+  prometheus:
+    prometheusSpec:
+      externalLabels:
+        cluster: do-nyc3-prod
+
+  # Add cluster label to kubelet and cAdvisor metrics
+  kubelet:
+    serviceMonitor:
+      relabelings:
+        - targetLabel: cluster
+          replacement: do-nyc3-prod
+      cAdvisorRelabelings:
+        # Preserve chart default: set metrics_path label
+        - action: replace
+          sourceLabels: [__metrics_path__]
+          targetLabel: metrics_path
+        - targetLabel: cluster
+          replacement: do-nyc3-prod
+      probesRelabelings:
+        - targetLabel: cluster
+          replacement: do-nyc3-prod
+      resourceRelabelings:
+        - targetLabel: cluster
+          replacement: do-nyc3-prod
+
+  # Add cluster label to kube-apiserver metrics
+  kubeApiServer:
+    serviceMonitor:
+      relabelings:
+        - targetLabel: cluster
+          replacement: do-nyc3-prod
+
+  # Add cluster label to kube-state-metrics
+  kube-state-metrics:
+    prometheus:
+      monitor:
+        relabelings:
+          - targetLabel: cluster
+            replacement: do-nyc3-prod
+
+  # Add cluster label to node-exporter metrics
+  prometheus-node-exporter:
+    prometheus:
+      monitor:
+        relabelings:
+          - targetLabel: cluster
+            replacement: do-nyc3-prod

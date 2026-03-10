@@ -20,8 +20,14 @@ externalSecret:
 # Base values for kube-prometheus-stack
 kube-prometheus-stack:
   # Disable built-in Grafana - we have our own
+  # Deploy dashboard ConfigMaps for Grafana sidecar to pick up
   grafana:
     enabled: false
+    forceDeployDashboards: true
+    sidecar:
+      dashboards:
+        annotations:
+          k8s-sidecar-target-directory: /tmp/dashboards/Kubernetes
 
   # Alertmanager - single replica, minimal resources
   alertmanager:
