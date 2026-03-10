@@ -11,5 +11,4 @@ Task-oriented guides that show you how to achieve a specific goal. These assume 
 | [ArgoCD Webhooks via Tailscale Funnel](argocd-webhook-tailscale-funnel.md) | Set up GitHub webhooks for private ArgoCD |
 | [Query Logs](query-logs.md) | LogQL query examples for Grafana/Loki |
 | [Query Kubernetes Events](query-kubernetes-events.md) | Query K8s events stored in Loki |
-| [Update kubernetes-mixin](update-kubernetes-mixin.md) | Update Kubernetes dashboards and recording rules |
 | [Update Terraform Providers](update-terraform-providers.md) | Check and update Terraform provider versions |

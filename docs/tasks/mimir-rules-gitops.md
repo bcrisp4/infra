@@ -144,5 +144,4 @@ The Job can be made idempotent by using `mimirtool rules sync` which only update
 
 ## Related
 
-- [kubernetes-mixin-dashboards.md](kubernetes-mixin-dashboards.md) - Original task that introduced rules
-- `scripts/update-kubernetes-mixin.sh` - Script to update mixin rules and dashboards
+- [Metrics Architecture](../reference/metrics-architecture.md) - Metrics infrastructure overview
