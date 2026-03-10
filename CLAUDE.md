@@ -61,7 +61,9 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 - StatefulSet `spec` must include explicit `updateStrategy: {type: RollingUpdate, rollingUpdate: {partition: 0}}` to prevent ArgoCD sync drift
 - kube-prometheus-stack uses `kube-prometheus` (not `kube-prometheus-stack`) in resource names: `{release}-kube-prometheus-{component}`
 - kube-prometheus-stack Thanos sidecar needs `thanosService.enabled: true` to expose gRPC port 10901; service name: `{release}-kube-prometheus-thanos-discovery`
+- kube-prometheus-stack provides Kubernetes dashboards via `grafana.forceDeployDashboards: true` (needed because `grafana.enabled: false`); dashboards use `cluster` label and `job="kubelet"` -- do not reintroduce custom kubernetes-mixin dashboards
 - When editing umbrella chart values (e.g. kube-prometheus-stack), verify YAML nesting with `helm template --show-only` after inserting new sibling keys -- indentation errors silently move config to the wrong parent
+- `helm template --show-only` does not work for subchart templates in umbrella charts; grep the full `helm template` output instead
 - Tailscale ProxyGroup ingress requires custom templates with `defaultBackend` (charts' built-in ingress uses `rules` which doesn't work)
 - Do not use em dashes in generated content
 - Keep configurations minimal
