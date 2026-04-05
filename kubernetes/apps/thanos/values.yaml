@@ -1,6 +1,6 @@
 image:
   repository: quay.io/thanos/thanos
-  tag: ""  # Defaults to Chart.appVersion
+  tag: "" # Defaults to Chart.appVersion
 
 # ExternalSecret for S3 object storage credentials
 externalSecret:
@@ -12,9 +12,9 @@ store:
   resources:
     requests:
       cpu: 100m
-      memory: 256Mi
-    limits:
       memory: 512Mi
+    limits:
+      memory: 1024Mi
   persistence:
     size: 5Gi
 
@@ -26,9 +26,9 @@ query:
   resources:
     requests:
       cpu: 100m
-      memory: 256Mi
-    limits:
       memory: 512Mi
+    limits:
+      memory: 1024Mi
 
 # Thanos Compactor -- compacts, downsamples, enforces retention
 compact:
