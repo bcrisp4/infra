@@ -13,6 +13,10 @@ updates:
     labels:
       - "dependencies"
       - "helm"
+    groups:
+      umbrella-chart:
+        patterns:
+          - "*"
 
   # Terraform providers (auto-discovers all directories)
   - package-ecosystem: "terraform"
