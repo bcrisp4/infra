@@ -54,6 +54,13 @@ externalSecret:
   enabled: false
   itemName: ""
 
+# ExternalSecret for image renderer auth token (1Password)
+# Required so ArgoCD doesn't regenerate the chart's auto-token each sync.
+# 1Password item must contain a `credential` field with a random string.
+rendererSecret:
+  enabled: false
+  itemName: ""
+
 grafana:
   # Use admin credentials from external secret
   admin:

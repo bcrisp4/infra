@@ -29,6 +29,11 @@ externalSecret:
   enabled: true
   itemName: do-nyc3-prod-grafana-admin
 
+# ExternalSecret for image renderer auth token from 1Password
+rendererSecret:
+  enabled: true
+  itemName: do-nyc3-prod-grafana-renderer-token
+
 grafana:
   # Prefer scheduling on same node as the database, spread replicas across nodes
   affinity:
@@ -143,6 +148,9 @@ grafana:
   # Image renderer for PNG export, alerts, and reporting
   imageRenderer:
     enabled: true
+    # Use ExternalSecret-managed token to prevent ArgoCD sync drift
+    # (chart's auto-generated token regenerates each render without lookup support)
+    existingSecret: grafana-renderer-token
     resources:
       requests:
         cpu: 50m
