@@ -34,7 +34,7 @@ version: 1.0.0
 dependencies:
   - name: grafana
     version: "8.x.x"
-    repository: "https://grafana.github.io/helm-charts"
+    repository: "https://grafana-community.github.io/helm-charts"
 ```
 
 ### 3. Configure Base Values
@@ -82,7 +82,7 @@ helm show values {{chart_repo}}/{{chart_name}}
 Example:
 ```bash
 helm show values oci://registry-1.docker.io/bitnamicharts/postgresql
-helm show values https://grafana.github.io/helm-charts/grafana
+helm show values https://grafana-community.github.io/helm-charts/grafana
 ```
 
 ## Custom Templates

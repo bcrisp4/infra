@@ -34,7 +34,7 @@ Dependabot scans `Chart.yaml` files in `/kubernetes/apps/` for dependencies:
 dependencies:
   - name: grafana
     version: ~10.4
-    repository: https://grafana.github.io/helm-charts
+    repository: https://grafana-community.github.io/helm-charts
 ```
 
 When a new version is available, Dependabot creates a PR updating the version constraint.

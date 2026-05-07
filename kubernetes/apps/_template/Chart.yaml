@@ -16,7 +16,7 @@ version: 1.0.0
 # dependencies:
 #   - name: grafana
 #     version: "8.x.x"
-#     repository: "https://grafana.github.io/helm-charts"
+#     repository: "https://grafana-community.github.io/helm-charts"
 #
 # Example for cert-manager:
 # dependencies:
