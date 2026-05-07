@@ -56,6 +56,8 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps. See [docs/refe
 
 ## Implementation Notes
 
+- Importing Cloudflare zones: `cf-terraforming generate` + `cf-terraforming import --modern-import-block` (after `terraform init`). Pass `--terraform-binary-path "$(which terraform)"` to prevent stray `terraform` binary download into working dir
+- Cloudflare provider v5: resource is `cloudflare_dns_record` (renamed from `cloudflare_record` in v4)
 - ExternalSecret `remoteRef` entries must include explicit `conversionStrategy: Default`, `decodingStrategy: None`, `metadataPolicy: None` to prevent ArgoCD sync drift from ESO webhook-injected defaults
 - StatefulSet `volumeClaimTemplates` must include explicit `volumeMode: Filesystem`, `apiVersion: v1`, `kind: PersistentVolumeClaim` to prevent ArgoCD sync drift from Kubernetes-injected defaults
 - StatefulSet `spec` must include explicit `updateStrategy: {type: RollingUpdate, rollingUpdate: {partition: 0}}` to prevent ArgoCD sync drift
