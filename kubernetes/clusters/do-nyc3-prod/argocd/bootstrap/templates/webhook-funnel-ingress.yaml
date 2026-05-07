@@ -9,6 +9,7 @@ metadata:
   annotations:
     tailscale.com/funnel: "true"
     tailscale.com/proxy-class: standalone-metrics
+    tailscale.com/tags: tag:k8s-funnel
 spec:
   ingressClassName: tailscale
   tls:
