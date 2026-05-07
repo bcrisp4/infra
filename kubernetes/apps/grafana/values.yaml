@@ -93,6 +93,12 @@ grafana:
     limits:
       memory: 256Mi
 
+  # Trim ReplicaSet history (rollbacks come from git/ArgoCD, not kubectl)
+  revisionHistoryLimit: 2
+
+  imageRenderer:
+    revisionHistoryLimit: 2
+
   # Prometheus metrics
   podAnnotations:
     prometheus.io/scrape: "true"
