@@ -44,6 +44,18 @@ resource "tailscale_acl" "this" {
         src = ["group:admins"]
         dst = ["autogroup:self"]
         ip  = ["*"]
+      },
+      # Exit node egress (use any approved exit node on tailnet)
+      {
+        src = ["group:admins"]
+        dst = ["autogroup:internet"]
+        ip  = ["*"]
+      },
+      # Home LAN subnet route
+      {
+        src = ["group:admins"]
+        dst = ["192.168.1.0/24"]
+        ip  = ["*"]
       }
     ]
 
@@ -57,9 +69,14 @@ resource "tailscale_acl" "this" {
     ]
 
     # Auto-approve Tailscale Services for ProxyGroup HA ingress
+    # Auto-approve exit node routes and home LAN subnet from owner's devices
     autoApprovers = {
       services = {
         "tag:k8s-services" = ["tag:k8s-ingress"]
+      }
+      exitNode = ["group:admins"]
+      routes = {
+        "192.168.1.0/24" = ["group:admins"]
       }
     }
 
