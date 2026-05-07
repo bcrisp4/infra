@@ -16,8 +16,6 @@ resource "tailscale_acl" "this" {
         "tag:k8s-services" = concat(["tag:k8s-operator"], [for name, _ in var.clusters : "tag:k8s-operator-${name}"])
         # Dedicated tag for Funnel-eligible standalone proxies
         "tag:k8s-funnel" = concat(["tag:k8s-operator"], [for name, _ in var.clusters : "tag:k8s-operator-${name}"])
-        # User-owned tag for marking untrusted devices
-        "tag:untrusted" = ["ben@thecrisp.io"]
       },
       # Per-cluster operator tags: tag:k8s-operator-{cluster} owns tag:k8s-{cluster}
       merge(
@@ -29,13 +27,30 @@ resource "tailscale_acl" "this" {
     acls = []
 
     grants = [
-      { src = ["ben@thecrisp.io"], dst = ["*"], ip = ["*"] }
+      # Web UIs over tailnet (ProxyGroup HA ingress)
+      {
+        src = ["group:admins"]
+        dst = ["tag:k8s-services", "tag:k8s-ingress"]
+        ip  = ["tcp:443"]
+      },
+      # Funnel proxy device (admin debugging via tailnet hostname)
+      {
+        src = ["group:admins"]
+        dst = ["tag:k8s-funnel"]
+        ip  = ["tcp:443"]
+      },
+      # Personal user-owned devices (laptops, phones, etc.)
+      {
+        src = ["group:admins"]
+        dst = ["autogroup:self"]
+        ip  = ["*"]
+      }
     ]
 
     ssh = [
       {
         action = "check"
-        src    = ["autogroup:member"]
+        src    = ["group:admins"]
         dst    = ["autogroup:self"]
         users  = ["autogroup:nonroot", "root"]
       }
@@ -50,11 +65,7 @@ resource "tailscale_acl" "this" {
 
     nodeAttrs = [
       {
-        target = ["autogroup:member"]
-        attr   = ["funnel"]
-      },
-      {
-        target = ["tag:k8s"]
+        target = ["group:admins"]
         attr   = ["funnel"]
       },
       {
