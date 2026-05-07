@@ -10,11 +10,8 @@ resource "tailscale_acl" "this" {
         # ProxyGroup HA ingress tags
         "tag:k8s-ingress"  = concat(["tag:k8s-operator"], [for name, _ in var.clusters : "tag:k8s-operator-${name}"])
         "tag:k8s-services" = concat(["tag:k8s-operator"], [for name, _ in var.clusters : "tag:k8s-operator-${name}"])
-      },
-      # Legacy cluster tags (nbg1-prod1)
-      {
-        "tag:k8s-operator-nbg1-prod1" = []
-        "tag:k8s-nbg1-prod1"          = ["tag:k8s-operator-nbg1-prod1"]
+        # User-owned tag for marking untrusted devices
+        "tag:untrusted" = ["ben@thecrisp.io"]
       },
       # Per-cluster operator tags: tag:k8s-operator-{cluster} owns tag:k8s-{cluster}
       merge(
@@ -23,9 +20,10 @@ resource "tailscale_acl" "this" {
       )
     )
 
-    acls = [
-      # Allow all connections (existing policy)
-      { action = "accept", src = ["*"], dst = ["*:*"] }
+    acls = []
+
+    grants = [
+      { src = ["ben@thecrisp.io"], dst = ["*"], ip = ["*"] }
     ]
 
     ssh = [
@@ -57,19 +55,7 @@ resource "tailscale_acl" "this" {
   })
 }
 
-# Generate auth keys for each cluster (legacy - kept for compatibility)
-resource "tailscale_tailnet_key" "cluster" {
-  for_each   = var.clusters
-  depends_on = [tailscale_acl.this]
-
-  reusable      = true
-  preauthorized = true
-  tags          = ["tag:k8s-operator-${each.key}"]
-  description   = "k8s-operator ${each.key}"
-}
-
 # OAuth clients for Tailscale Kubernetes operator
-# These are the preferred auth method for the operator
 resource "tailscale_oauth_client" "k8s_operator" {
   for_each   = var.clusters
   depends_on = [tailscale_acl.this]

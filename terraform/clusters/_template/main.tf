@@ -19,27 +19,11 @@ terraform {
   # }
 }
 
-# Fetch Tailscale auth key from global state
-data "terraform_remote_state" "global" {
-  backend = "remote"
-  config = {
-    organization = "bc4"
-    workspaces = {
-      name = "global"
-    }
-  }
-}
-
-locals {
-  tailscale_auth_key = data.terraform_remote_state.global.outputs.tailscale_auth_keys[var.cluster_name]
-}
-
 # Uncomment and configure for your provider
 # module "cluster" {
 #   source = "../../modules/k8s-cluster/<provider>"
 #
-#   cluster_name       = var.cluster_name
-#   tailscale_auth_key = local.tailscale_auth_key
+#   cluster_name = var.cluster_name
 #
 #   # Add provider-specific configuration here
 # }
