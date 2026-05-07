@@ -1,6 +1,10 @@
 # Tailscale ACL configuration
 resource "tailscale_acl" "this" {
   acl = jsonencode({
+    groups = {
+      "group:admins" = ["ben@thecrisp.io"]
+    }
+
     tagOwners = merge(
       # Global k8s operator tags (shared across all clusters)
       # Each per-cluster operator tag also owns tag:k8s for default ingress behavior
@@ -10,6 +14,8 @@ resource "tailscale_acl" "this" {
         # ProxyGroup HA ingress tags
         "tag:k8s-ingress"  = concat(["tag:k8s-operator"], [for name, _ in var.clusters : "tag:k8s-operator-${name}"])
         "tag:k8s-services" = concat(["tag:k8s-operator"], [for name, _ in var.clusters : "tag:k8s-operator-${name}"])
+        # Dedicated tag for Funnel-eligible standalone proxies
+        "tag:k8s-funnel" = concat(["tag:k8s-operator"], [for name, _ in var.clusters : "tag:k8s-operator-${name}"])
         # User-owned tag for marking untrusted devices
         "tag:untrusted" = ["ben@thecrisp.io"]
       },
@@ -49,6 +55,10 @@ resource "tailscale_acl" "this" {
       },
       {
         target = ["tag:k8s"]
+        attr   = ["funnel"]
+      },
+      {
+        target = ["tag:k8s-funnel"]
         attr   = ["funnel"]
       }
     ]
