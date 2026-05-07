@@ -21,15 +21,16 @@ Tailscale Funnel exposes a specific path from your private cluster to the public
 
 ## Step 1: Update Tailscale ACLs
 
-Add the `funnel` attribute to the tag used by your Kubernetes operator proxies. By default, this is `tag:k8s`.
-
-In your Tailscale admin console, go to **Access Controls** and add or update the `nodeAttrs` section:
+Define a dedicated `tag:k8s-funnel` for Funnel-eligible standalone proxies and scope the `funnel` nodeAttr to it. This keeps Funnel access narrowly attached to the ingresses that need it rather than every k8s-tagged device.
 
 ```json
 {
+  "tagOwners": {
+    "tag:k8s-funnel": ["tag:k8s-operator"]
+  },
   "nodeAttrs": [
     {
-      "target": ["tag:k8s"],
+      "target": ["tag:k8s-funnel"],
       "attr": ["funnel"]
     }
   ]
@@ -83,6 +84,7 @@ metadata:
   namespace: argocd
   annotations:
     tailscale.com/funnel: "true"
+    tailscale.com/tags: tag:k8s-funnel
 spec:
   ingressClassName: tailscale
   tls:
@@ -109,9 +111,12 @@ kubectl apply -f argocd-webhook-ingress.yaml
 ### Notes on the Ingress configuration
 
 - **`tailscale.com/funnel: "true"`** - This annotation is what makes the Ingress publicly accessible via Funnel rather than just within your tailnet.
+- **`tailscale.com/tags: tag:k8s-funnel`** - Tags the proxy device with the Funnel-only tag so the `funnel` nodeAttr does not have to apply to every other Tailscale-managed proxy. Required if your ACLs scope Funnel to a dedicated tag (recommended).
 - **`tls.hosts[0]`** - This becomes the hostname: `argocd-webhook.<your-tailnet>.ts.net`
 - **`pathType: Prefix`** - This is the only path type the Tailscale operator supports. Requests to `/api/webhook` and any subpaths will match.
 - **`port: 80`** - Use 80 if argocd-server handles TLS termination externally, or 443 if it terminates TLS itself.
+
+> **Tag rotation gotcha:** Changing `tailscale.com/tags` on an existing Ingress does not retag the live proxy device — the operator only sets tags at device creation time via the auth key it issues. To rotate tags, delete the existing device(s) (and any `-N` suffixed duplicate created during a previous rotation attempt) from the Tailscale admin console and delete the Ingress so ArgoCD/Helm recreates it. The operator then issues a new auth key with the updated tag and the proxy registers fresh under the original hostname.
 
 ## Step 4: Verify the Ingress
 
