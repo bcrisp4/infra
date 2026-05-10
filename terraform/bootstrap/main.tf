@@ -48,11 +48,6 @@ variable "workspaces" {
       description       = "Cross-cluster resources (Tailscale)"
       auto_apply        = false
     }
-    "do-nyc3-prod" = {
-      working_directory = "terraform/clusters/do-nyc3-prod"
-      description       = "DigitalOcean NYC3 production cluster"
-      auto_apply        = false
-    }
   }
 }
 
@@ -193,14 +188,6 @@ resource "tfe_variable" "spaces_secret_key" {
   }
 }
 
-# Attach DigitalOcean variable set to do-nyc3-prod workspace
-resource "tfe_workspace_variable_set" "do_nyc3_prod_digitalocean" {
-  count           = contains(keys(var.workspaces), "do-nyc3-prod") ? 1 : 0
-  variable_set_id = tfe_variable_set.digitalocean.id
-  workspace_id    = tfe_workspace.this["do-nyc3-prod"].id
-}
-
-
 # Variable set for 1Password credentials
 resource "tfe_variable_set" "onepassword" {
   organization = data.tfe_organization.this.name
@@ -238,13 +225,6 @@ resource "tfe_variable" "onepassword_vault" {
 resource "tfe_workspace_variable_set" "global_onepassword" {
   variable_set_id = tfe_variable_set.onepassword.id
   workspace_id    = tfe_workspace.this["global"].id
-}
-
-# Attach 1Password variable set to do-nyc3-prod workspace
-resource "tfe_workspace_variable_set" "do_nyc3_prod_onepassword" {
-  count           = contains(keys(var.workspaces), "do-nyc3-prod") ? 1 : 0
-  variable_set_id = tfe_variable_set.onepassword.id
-  workspace_id    = tfe_workspace.this["do-nyc3-prod"].id
 }
 
 # Outputs
