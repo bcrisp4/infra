@@ -78,5 +78,4 @@ After deployment, the cluster outputs:
 After Terraform apply:
 
 1. Export kubeconfig: `terraform output -raw kubeconfig > ~/.kube/{{cluster_name}}`
-2. Create Kubernetes cluster config: `cp -r ../../kubernetes/clusters/_template ../../kubernetes/clusters/{{cluster_name}}`
-3. Bootstrap ArgoCD (see kubernetes cluster README)
+2. Bootstrap your Kubernetes GitOps tooling under `kubernetes/clusters/{{cluster_name}}/`

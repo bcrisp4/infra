@@ -224,19 +224,19 @@ Funnel ingresses (public endpoints via Tailscale infrastructure) cannot use Prox
 
 3. **Different proxy configuration**: Funnel proxies need the `tailscale.com/funnel: "true"` annotation, which isn't compatible with ProxyGroup.
 
-**Example: ArgoCD webhook Funnel ingress** (stays on standalone proxy):
+**Example: webhook Funnel ingress** (stays on standalone proxy):
 ```yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: argocd-webhook-funnel
+  name: webhook-funnel
   annotations:
     tailscale.com/funnel: "true"  # This makes it standalone, not ProxyGroup
 spec:
   ingressClassName: tailscale
   tls:
     - hosts:
-        - argocd-webhook-do-nyc3-prod
+        - webhook-funnel
   rules:
     - http:
         paths:
@@ -244,15 +244,12 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: argocd-server
+                name: webhook-target
                 port:
                   number: 80
 ```
 
-See [ArgoCD Webhooks via Tailscale Funnel](argocd-webhook-tailscale-funnel.md) for the full setup.
-
 ## Related
 
 - [Tailscale Operator Reference](../reference/tailscale-operator.md)
-- [ArgoCD Webhooks via Tailscale Funnel](argocd-webhook-tailscale-funnel.md)
 - [ProxyGroup HA Ingress Docs](https://tailscale.com/kb/1439/kubernetes-operator-cluster-ingress)

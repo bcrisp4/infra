@@ -1,5 +1,0 @@
-# Cluster metadata
-name: do-nyc3-prod
-provider: digitalocean
-region: nyc3
-environment: prod

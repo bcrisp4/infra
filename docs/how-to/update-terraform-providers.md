@@ -28,9 +28,8 @@ For Terraform core releases: https://releases.hashicorp.com/terraform/
 |------|----------------|
 | `.terraform-version` | tfenv version (should match required_version) |
 | `terraform/bootstrap/main.tf` | tfe provider |
-| `terraform/global/main.tf` | tailscale provider |
-| `terraform/clusters/do-nyc3-prod/main.tf` | digitalocean, onepassword providers |
-| `terraform/clusters/_template/main.tf` | required_version only |
+| `terraform/global/main.tf` | tailscale, onepassword, cloudflare providers |
+| `terraform/clusters/{cluster}/main.tf` | per-cluster providers |
 | `README.md` | Prerequisites section |
 
 ## Update Procedure

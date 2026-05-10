@@ -1,6 +1,0 @@
-apiVersion: v2
-name: miniflux
-description: Miniflux RSS reader with CloudNativePG PostgreSQL
-type: application
-version: 1.0.0
-appVersion: "2.2.17"

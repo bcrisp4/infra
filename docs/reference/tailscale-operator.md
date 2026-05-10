@@ -234,9 +234,6 @@ Funnel allows exposing specific paths publicly through Tailscale's infrastructur
 2. Funnel ingresses should be isolated from other services for security
 3. The public-facing nature of Funnel benefits from dedicated proxy resources
 
-**Current Funnel ingresses (do-nyc3-prod):**
-- `argocd-webhook-funnel` - Exposes `/api/webhook` for GitHub webhooks
-
 To enable Funnel:
 
 1. Add a dedicated `tag:k8s-funnel` to `tagOwners` (owned by `tag:k8s-operator`) and scope the `funnel` nodeAttr to it:
@@ -253,41 +250,23 @@ To enable Funnel:
 
 2. Create the Ingress with both `tailscale.com/funnel: "true"` and `tailscale.com/tags: tag:k8s-funnel` annotations. The dedicated tag keeps Funnel scoped to this ingress only — every other ProxyGroup ingress runs under `tag:k8s-services` / `tag:k8s-ingress` and is unaffected.
 
-See [ArgoCD Webhooks via Tailscale Funnel](../how-to/argocd-webhook-tailscale-funnel.md) for a complete example.
-
 ### Rotating tags on an existing Funnel ingress
 
 Changing `tailscale.com/tags` on an Ingress does not retag the existing proxy device — the operator only sets tags at device creation time, via the auth key it issues. To force a fresh registration with the new tag:
 
 1. Delete the underlying device(s) from the Tailscale admin console (`https://login.tailscale.com/admin/machines`). Both the existing device and any `-N` suffixed duplicate created during a previous rotation must go.
-2. Delete the Kubernetes Ingress (`kubectl -n {ns} delete ingress {name}`) and let ArgoCD recreate it from the chart.
+2. Delete the Kubernetes Ingress (`kubectl -n {ns} delete ingress {name}`) and let the GitOps controller recreate it from the chart.
 
 The operator then issues a new auth key with the updated tag and the proxy registers with the original hostname.
-
-## Current Ingress Configuration (do-nyc3-prod)
-
-| Ingress | Hostname | Type | Notes |
-|---------|----------|------|-------|
-| miniflux | `miniflux.marlin-tet.ts.net` | ProxyGroup | `tag:k8s-services` |
-| grafana | `grafana.marlin-tet.ts.net` | ProxyGroup | `tag:k8s-services` |
-| grafana-mcp | `grafana-mcp-do-nyc3-prod.marlin-tet.ts.net` | ProxyGroup | `tag:k8s-services` |
-| argocd-server | `argocd-do-nyc3-prod.marlin-tet.ts.net` | ProxyGroup | `tag:k8s-services` |
-| argocd-webhook-funnel | `argocd-webhook-do-nyc3-prod.marlin-tet.ts.net` | Standalone | Funnel for GitHub webhooks; `tag:k8s-funnel` |
-
-## Known Issues
 
 ## Files
 
 | File | Purpose |
 |------|---------|
 | `terraform/global/tailscale.tf` | ACLs, OAuth clients, auth keys |
-| `kubernetes/apps/tailscale-operator/` | Operator Helm chart wrapper |
-| `kubernetes/apps/tailscale-operator/templates/proxygroup.yaml` | ProxyGroup resource |
-| `kubernetes/apps/tailscale-operator/templates/proxyclass-ha.yaml` | HA ProxyClass with topology spread |
 
 ## Related
 
 - [Migrate Ingress to ProxyGroup](../how-to/tailscale-proxygroup-ingress.md)
-- [ArgoCD Webhooks via Tailscale Funnel](../how-to/argocd-webhook-tailscale-funnel.md)
 - [Tailscale Kubernetes Operator Docs](https://tailscale.com/kb/1236/kubernetes-operator)
 - [ProxyGroup HA Ingress Docs](https://tailscale.com/kb/1439/kubernetes-operator-cluster-ingress)

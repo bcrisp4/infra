@@ -51,17 +51,13 @@ After bootstrap, set credentials in the TFC variable sets:
 
 ### 4. Add More Workspaces
 
-To add cluster workspaces, edit `terraform.tfvars`:
+To add cluster workspaces, edit `main.tf` `var.workspaces` map:
 
 ```hcl
 workspaces = {
   "global" = {
     working_directory = "terraform/global"
     description       = "Cross-cluster resources (Tailscale)"
-  }
-  "do-nyc3-prod" = {
-    working_directory = "terraform/clusters/do-nyc3-prod"
-    description       = "DigitalOcean NYC3 production cluster"
   }
   "htz-fsn1-prod" = {
     working_directory = "terraform/clusters/htz-fsn1-prod"
@@ -90,7 +86,6 @@ This bootstrap config uses local state by default. Options:
 | Workspace | Purpose |
 |-----------|---------|
 | `global` | Cross-cluster resources (Tailscale ACLs, auth keys) |
-| `do-nyc3-prod` | DigitalOcean NYC3 production cluster |
 
 ### Variable Sets
 
