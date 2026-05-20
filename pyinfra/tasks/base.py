@@ -2,6 +2,8 @@
 
 Reads `timezone` and `base_packages` from host/group data. Override per host
 in inventory.py or per group in group_data/<group>.py.
+
+Package upgrades are handled async by unattended-upgrades, not here.
 """
 
 from pyinfra import host
@@ -14,17 +16,6 @@ from pyinfra.operations import apt, server
 def base() -> None:
     timezone = host.data.get("timezone", "UTC")
     packages = host.data.get("base_packages", [])
-
-    apt.update(
-        name="Update apt cache",
-        cache_time=3600,
-        _sudo=True,
-    )
-
-    apt.upgrade(
-        name="Upgrade installed packages",
-        _sudo=True,
-    )
 
     if packages:
         apt.packages(
