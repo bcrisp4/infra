@@ -29,9 +29,12 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps.
 **Kubernetes:**
 - Currently empty. Future GitOps tooling (Flux) and per-cluster manifests will land here.
 
+**pyinfra:**
+- `pyinfra/` holds imperative host provisioning (apt, OS settings, services) for hosts outside Terraform/Kubernetes. See `pyinfra/README.md` for quick start and `pyinfra/CLAUDE.md` for conventions.
+
 ## Current State
 
-No active Kubernetes clusters. Terraform manages only cross-cluster resources (Tailscale tailnet `marlin-tet.ts.net`, Cloudflare DNS, 1Password items).
+No active Kubernetes clusters. Terraform manages only cross-cluster resources (Tailscale tailnet `marlin-tet.ts.net`, Cloudflare DNS, 1Password items). pyinfra manages homelab host provisioning (currently `rpi5-4cpu-16gb-home`).
 
 ## Conventions
 

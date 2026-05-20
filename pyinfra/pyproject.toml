@@ -1,0 +1,8 @@
+[project]
+name = "infra-pyinfra"
+version = "0.1.0"
+description = "pyinfra deploys for homelab hosts"
+requires-python = ">=3.11"
+dependencies = [
+    "pyinfra>=3.0",
+]
