@@ -108,11 +108,19 @@ def test_quadlet_pins_image_with_tag() -> None:
     assert "Image=ghcr.io/bcrisp4/bns:v0.1.0" in out
 
 
-def test_quadlet_publishes_dns_udp_tcp_and_admin() -> None:
+def test_quadlet_publishes_dns_udp_tcp_and_admin_v4() -> None:
     out = _render_quadlet(BASE_DATA)
     assert f"PublishPort=53:{CONTAINER_DNS_PORT}/udp" in out
     assert f"PublishPort=53:{CONTAINER_DNS_PORT}/tcp" in out
     assert f"PublishPort=9090:{CONTAINER_ADMIN_PORT}/tcp" in out
+
+
+def test_quadlet_publishes_dns_udp_tcp_and_admin_v6() -> None:
+    """Dual-stack: explicit [::] lines required (IPV6_V6ONLY=1 default)."""
+    out = _render_quadlet(BASE_DATA)
+    assert f"PublishPort=[::]:53:{CONTAINER_DNS_PORT}/udp" in out
+    assert f"PublishPort=[::]:53:{CONTAINER_DNS_PORT}/tcp" in out
+    assert f"PublishPort=[::]:9090:{CONTAINER_ADMIN_PORT}/tcp" in out
 
 
 def test_quadlet_publishes_custom_host_ports() -> None:
@@ -120,6 +128,8 @@ def test_quadlet_publishes_custom_host_ports() -> None:
     assert f"PublishPort=5353:{CONTAINER_DNS_PORT}/udp" in out
     assert f"PublishPort=5353:{CONTAINER_DNS_PORT}/tcp" in out
     assert f"PublishPort=19090:{CONTAINER_ADMIN_PORT}/tcp" in out
+    assert f"PublishPort=[::]:5353:{CONTAINER_DNS_PORT}/udp" in out
+    assert f"PublishPort=[::]:19090:{CONTAINER_ADMIN_PORT}/tcp" in out
 
 
 def test_quadlet_bind_mounts_config_readonly() -> None:

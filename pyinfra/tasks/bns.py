@@ -96,9 +96,15 @@ def _render_quadlet(data: Mapping) -> str:
         "[Container]",
         f"Image={image}",
         "ContainerName=bns",
+        # Dual-stack bind: linux defaults IPV6_V6ONLY=1 on AF_INET6 sockets, so
+        # a single PublishPort=53:... only catches IPv4. Add explicit [::]
+        # lines to also listen on IPv6 (LAN + Tailscale v6).
         f"PublishPort={dns_port}:{CONTAINER_DNS_PORT}/udp",
         f"PublishPort={dns_port}:{CONTAINER_DNS_PORT}/tcp",
         f"PublishPort={admin_port}:{CONTAINER_ADMIN_PORT}/tcp",
+        f"PublishPort=[::]:{dns_port}:{CONTAINER_DNS_PORT}/udp",
+        f"PublishPort=[::]:{dns_port}:{CONTAINER_DNS_PORT}/tcp",
+        f"PublishPort=[::]:{admin_port}:{CONTAINER_ADMIN_PORT}/tcp",
         f"Volume={CONFIG_PATH}:{CONFIG_PATH}:ro",
         "",
         "[Service]",
