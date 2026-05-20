@@ -16,7 +16,10 @@ pyinfra/
 │   └── homelab.py           # shared data for the `homelab` group
 ├── tasks/
 │   ├── base.py              # apt update/upgrade, packages, timezone
+│   ├── podman.py            # install podman + Pi cmdline patch
 │   └── unattended_upgrades.py
+├── tests/
+│   └── test_podman.py       # pytest unit tests for cmdline rewrite logic
 └── files/
     └── 20auto-upgrades      # static config files copied to hosts
 ```
@@ -89,12 +92,23 @@ uv run pyinfra inventory.py exec -- uptime
 
 ## What gets applied
 
-Currently `deploy.py` runs two task modules against every host in the inventory:
+Currently `deploy.py` runs these task modules against every host in the inventory:
 
 - **`tasks/base.py`** — refresh apt cache, upgrade installed packages, install `base_packages`, set timezone (idempotent via a `timedatectl show` fact check).
 - **`tasks/unattended_upgrades.py`** — install `unattended-upgrades`, drop `/etc/apt/apt.conf.d/20auto-upgrades` to enable periodic security updates.
+- **`tasks/podman.py`** — install Podman (rootful) and its container runtime deps; on Raspberry Pi hosts, patch `/boot/firmware/cmdline.txt` to append `cgroup_enable=memory` (a Pi downstream-only kernel param that overrides the firmware-injected `cgroup_disable=memory`) so the memory cgroup controller is available to containers. Gated on `install_podman = True` in host/group data. Cmdline changes require a manual reboot.
 
 All operations are idempotent: a re-run on an unchanged host should report zero changes.
+
+## Tests
+
+Pure-Python helpers (e.g. cmdline rewrite logic in `tasks/podman.py`) have pytest coverage.
+
+```bash
+cd pyinfra
+uv sync --dev
+uv run pytest -v
+```
 
 ## Adding a host
 

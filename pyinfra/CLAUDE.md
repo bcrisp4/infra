@@ -110,6 +110,14 @@ Common CLI flags:
 - **Reuse helpers** in `pyinfra.operations.util.file_utils` + friends before adding new utilities.
 - **Test operations + facts via fixtures**, not Python unit tests. Fixtures live under `tests/operations/<module>.<op>/` + `tests/facts/<module>.<Fact>/` in upstream repo, auto-discovered.
 
+## Gotchas
+
+- `host.data["key"]` raises `TypeError` — `HostData` is not subscriptable. Use `host.data.get("key")` (or materialize a plain dict at the `@deploy` boundary) before passing to pure renderers.
+- Apply a deploy: `cd pyinfra && uv run pyinfra -y inventory.py deploy.py --limit <fqdn>`. `-y` skips the interactive change-confirm prompt (required in non-TTY runs; otherwise pyinfra raises `EOFError`).
+- Podman quadlet: `Memory=` / `CPUS=` / `PidsLimit=` in `[Container]` need podman ≥5.5 (quadlet rejects them with "unsupported key" on 5.4.x — Debian 13 ships 5.4.2). For portability put cgroup ceilings in `[Service]` as `MemoryMax=` / `CPUQuota=` / `TasksMax=` — quadlet passes `[Service]` through unchanged.
+- Quadlet boot start = `[Install] WantedBy=multi-user.target` in the `.container`. Do NOT pass `enabled=True` to `systemd.service` — generator-produced units cannot be `systemctl enable`d ("Unit file does not exist").
+- `podman stats` LIMIT column reports host RAM (not the cgroup max) under `--cgroups=split` (quadlet default). Authoritative sources: `systemctl status <unit>` and `/sys/fs/cgroup/system.slice/<unit>/memory.{current,peak,max,events}`.
+
 ## When extending pyinfra
 
 Missing operation or fact:
