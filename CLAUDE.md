@@ -36,6 +36,10 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps.
 
 No active Kubernetes clusters. Terraform manages only cross-cluster resources (Tailscale tailnet `marlin-tet.ts.net`, Cloudflare DNS, 1Password items). pyinfra manages homelab host provisioning (currently `rpi5-4cpu-16gb-home`).
 
+On `rpi5-4cpu-16gb-home`: bns (caching DNS forwarder + adblock, image `ghcr.io/bcrisp4/bns`) runs as a rootful podman quadlet via `pyinfra/tasks/bns.py`. Listens on host `:53` (UDP+TCP) and admin `:9090`. The Pi itself MUST NOT use bns as its resolver — circular dep on image pull + upstream forwarding. Pi resolver stays at Tailscale MagicDNS (`100.100.100.100`).
+
+`docker/metadata-action {{version}}` strips the leading `v` from semver tags, so git tag `vX.Y.Z` publishes image tag `X.Y.Z` (not `vX.Y.Z`). Pin accordingly in host data.
+
 ## Conventions
 
 - Cluster naming: `{provider}-{region}-{env}` (e.g. `htz-fsn1-prod`, `do-nyc1-dev`).
