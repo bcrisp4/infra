@@ -16,6 +16,9 @@ resource "tailscale_acl" "this" {
         "tag:k8s-services" = concat(["tag:k8s-operator"], [for name, _ in var.clusters : "tag:k8s-operator-${name}"])
         # Dedicated tag for Funnel-eligible standalone proxies
         "tag:k8s-funnel" = concat(["tag:k8s-operator"], [for name, _ in var.clusters : "tag:k8s-operator-${name}"])
+        # Home network infrastructure (Raspberry Pi, etc.)
+        "tag:home" = ["group:admins"]
+        "tag:dns"  = ["group:admins"]
       },
       # Per-cluster operator tags: tag:k8s-operator-{cluster} owns tag:k8s-{cluster}
       merge(
@@ -56,6 +59,18 @@ resource "tailscale_acl" "this" {
         src = ["group:admins"]
         dst = ["192.168.1.0/24"]
         ip  = ["*"]
+      },
+      # Admin full reach to home infra hosts
+      {
+        src = ["group:admins"]
+        dst = ["tag:home"]
+        ip  = ["*"]
+      },
+      # DNS resolution from any tailnet device
+      {
+        src = ["*"]
+        dst = ["tag:dns"]
+        ip  = ["udp:53", "tcp:53"]
       }
     ]
 
@@ -63,7 +78,7 @@ resource "tailscale_acl" "this" {
       {
         action = "check"
         src    = ["group:admins"]
-        dst    = ["autogroup:self"]
+        dst    = ["autogroup:self", "tag:home"]
         users  = ["autogroup:nonroot", "root"]
       }
     ]
