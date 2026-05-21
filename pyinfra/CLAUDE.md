@@ -117,6 +117,9 @@ Common CLI flags:
 - Podman quadlet: `Memory=` / `CPUS=` / `PidsLimit=` in `[Container]` need podman ≥5.5 (quadlet rejects them with "unsupported key" on 5.4.x — Debian 13 ships 5.4.2). For portability put cgroup ceilings in `[Service]` as `MemoryMax=` / `CPUQuota=` / `TasksMax=` — quadlet passes `[Service]` through unchanged.
 - Quadlet boot start = `[Install] WantedBy=multi-user.target` in the `.container`. Do NOT pass `enabled=True` to `systemd.service` — generator-produced units cannot be `systemctl enable`d ("Unit file does not exist").
 - `podman stats` LIMIT column reports host RAM (not the cgroup max) under `--cgroups=split` (quadlet default). Authoritative sources: `systemctl status <unit>` and `/sys/fs/cgroup/system.slice/<unit>/memory.{current,peak,max,events}`.
+- `pyinfra -y` skips the "Detected changes:" diff preview entirely. Run `--dry` *without* `-y` to see the diff; add `-y` back for the apply (non-TTY runs still need it).
+- Homelab Pi (`ben@rpi5-4cpu-16gb-home`) has no passwordless sudo. `pyinfra` apply needs an interactive TTY for the sudo prompt, or set `PYINFRA_SUDO_PASSWORD` before invocation. Claude Code Bash tool has no TTY → user must run apply via `!` prefix.
+- NetworkManager keyfile renders (`tasks/network.py`): the `uuid=` value must match the existing in-memory connection's UUID, or NM creates a duplicate connection alongside it and two profiles fight for the interface. Read existing UUID via `nmcli -t -f connection.uuid con show '<id>'` and pin in host data.
 
 ## When extending pyinfra
 
