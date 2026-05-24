@@ -17,12 +17,22 @@ install_podman = True
 
 bns_enabled = True
 bns_image = "ghcr.io/bcrisp4/bns"
-bns_image_tag = "0.2.0"
+bns_image_tag = "0.4.0"
 bns_host_port_dns = 53
 bns_host_port_admin = 9090
 bns_upstreams = [
-    {"addr": "1.1.1.1:53", "timeout": "2s"},
-    {"addr": "9.9.9.9:53", "timeout": "2s"},
+    {
+        "type": "doh",
+        "url": "https://cloudflare-dns.com/dns-query",
+        "endpoint_ips": ["1.1.1.1", "1.0.0.1"],
+        "timeout": "5s",
+    },
+    {
+        "type": "doh",
+        "url": "https://dns.quad9.net/dns-query",
+        "endpoint_ips": ["9.9.9.9", "149.112.112.112"],
+        "timeout": "5s",
+    },
 ]
 bns_log_level = "info"
 bns_query_log_enabled = True

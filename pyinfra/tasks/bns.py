@@ -23,11 +23,23 @@ CONFIG_DIR = "/etc/bns"
 CONFIG_PATH = f"{CONFIG_DIR}/config.yaml"
 UNIT_PATH = "/etc/containers/systemd/bns.container"
 
+# Persistent blocklist cache. Backed by a podman named volume so first-run
+# init copies the image's pre-chowned /var/cache/bns (nonroot:nonroot) into
+# the volume — no host-side uid wrangling needed. Volume survives quadlet
+# recreate (lives in /var/lib/containers/storage/volumes/).
+CACHE_DIR = "/var/cache/bns"
+CACHE_BLOCKLISTS_DIR = f"{CACHE_DIR}/blocklists"
+CACHE_VOLUME = "bns-cache"
+
 # Nonroot uid inside the distroless image cannot bind privileged ports, so the
 # binary always listens on these non-privileged ports inside the container.
 # Host-side port mapping is set per-host via bns_host_port_*.
 CONTAINER_DNS_PORT = 5354
 CONTAINER_ADMIN_PORT = 9090
+
+# Canonical hagezi pro blocklist (http source). Refreshed on the cadence below.
+BLOCKLIST_URL = "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/pro.txt"
+BLOCKLIST_REFRESH = "24h"
 
 
 def _render_config(data: Mapping) -> str:
@@ -38,7 +50,13 @@ def _render_config(data: Mapping) -> str:
     """
     upstream_lines: list[str] = []
     for u in data["bns_upstreams"]:
-        upstream_lines.append(f'  - addr: "{u["addr"]}"')
+        upstream_lines.append(f"  - type: {u['type']}")
+        if u["type"] == "doh":
+            upstream_lines.append(f"    url: {u['url']}")
+            ips = ", ".join(u["endpoint_ips"])
+            upstream_lines.append(f"    endpoint_ips: [{ips}]")
+        else:
+            upstream_lines.append(f'    addr: "{u["addr"]}"')
         upstream_lines.append(f"    timeout: {u['timeout']}")
 
     lines = [
@@ -58,9 +76,12 @@ def _render_config(data: Mapping) -> str:
         "  negative_ttl_max: 900s",
         "",
         "blocklists:",
+        f"  refresh_interval: {BLOCKLIST_REFRESH}",
+        f"  cache_dir: {CACHE_BLOCKLISTS_DIR}",
         "  sources:",
-        "    - type: file",
-        "      path: /etc/bns/blocklists/pro.txt",
+        "    - type: http",
+        "      name: hagezi-pro",
+        f"      url: {BLOCKLIST_URL}",
         "",
         "admin:",
         f'  listen: ":{CONTAINER_ADMIN_PORT}"',
@@ -106,6 +127,10 @@ def _render_quadlet(data: Mapping) -> str:
         f"PublishPort=[::]:{dns_port}:{CONTAINER_DNS_PORT}/tcp",
         f"PublishPort=[::]:{admin_port}:{CONTAINER_ADMIN_PORT}/tcp",
         f"Volume={CONFIG_PATH}:{CONFIG_PATH}:ro",
+        # Named volume for blocklist cache. Podman auto-creates on first run
+        # and seeds it from the image's /var/cache/bns (already chowned to
+        # nonroot:nonroot at build time), so the bns process can write.
+        f"Volume={CACHE_VOLUME}:{CACHE_DIR}",
         "",
         "[Service]",
         # Always restart: covers non-zero exits, panics, OOM-kill (SIGKILL from

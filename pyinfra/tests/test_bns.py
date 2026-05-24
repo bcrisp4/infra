@@ -3,6 +3,11 @@
 import pytest
 
 from tasks.bns import (
+    BLOCKLIST_REFRESH,
+    BLOCKLIST_URL,
+    CACHE_BLOCKLISTS_DIR,
+    CACHE_DIR,
+    CACHE_VOLUME,
     CONFIG_PATH,
     CONTAINER_ADMIN_PORT,
     CONTAINER_DNS_PORT,
@@ -16,8 +21,18 @@ BASE_DATA: dict = {
     "bns_host_port_dns": 53,
     "bns_host_port_admin": 9090,
     "bns_upstreams": [
-        {"addr": "1.1.1.1:53", "timeout": "2s"},
-        {"addr": "9.9.9.9:53", "timeout": "2s"},
+        {
+            "type": "doh",
+            "url": "https://cloudflare-dns.com/dns-query",
+            "endpoint_ips": ["1.1.1.1", "1.0.0.1"],
+            "timeout": "5s",
+        },
+        {
+            "type": "doh",
+            "url": "https://dns.quad9.net/dns-query",
+            "endpoint_ips": ["9.9.9.9", "149.112.112.112"],
+            "timeout": "5s",
+        },
     ],
     "bns_log_level": "info",
     "bns_query_log_enabled": True,
@@ -46,25 +61,63 @@ def test_config_admin_block_uses_container_admin_port() -> None:
     assert f'  listen: ":{CONTAINER_ADMIN_PORT}"' in out
 
 
-def test_config_expands_upstream_list() -> None:
+def test_config_expands_doh_upstream_list() -> None:
     out = _render_config(BASE_DATA)
-    assert '  - addr: "1.1.1.1:53"' in out
-    assert "    timeout: 2s" in out
-    assert '  - addr: "9.9.9.9:53"' in out
+    assert "  - type: doh" in out
+    assert "    url: https://cloudflare-dns.com/dns-query" in out
+    assert "    endpoint_ips: [1.1.1.1, 1.0.0.1]" in out
+    assert "    url: https://dns.quad9.net/dns-query" in out
+    assert "    endpoint_ips: [9.9.9.9, 149.112.112.112]" in out
+    assert "    timeout: 5s" in out
 
 
 def test_config_supports_single_upstream() -> None:
-    out = _render_config({**BASE_DATA, "bns_upstreams": [{"addr": "8.8.8.8:53", "timeout": "1s"}]})
-    assert '  - addr: "8.8.8.8:53"' in out
+    out = _render_config(
+        {
+            **BASE_DATA,
+            "bns_upstreams": [
+                {
+                    "type": "doh",
+                    "url": "https://dns.google/dns-query",
+                    "endpoint_ips": ["8.8.8.8", "8.8.4.4"],
+                    "timeout": "1s",
+                },
+            ],
+        }
+    )
+    assert "    url: https://dns.google/dns-query" in out
+    assert "    endpoint_ips: [8.8.8.8, 8.8.4.4]" in out
     assert "    timeout: 1s" in out
-    assert "9.9.9.9" not in out
+    assert "cloudflare-dns.com" not in out
 
 
 def test_config_supports_many_upstreams() -> None:
-    upstreams = [{"addr": f"10.0.0.{i}:53", "timeout": "2s"} for i in range(1, 6)]
+    upstreams = [
+        {
+            "type": "doh",
+            "url": f"https://ns{i}.example/dns-query",
+            "endpoint_ips": [f"10.0.0.{i}"],
+            "timeout": "2s",
+        }
+        for i in range(1, 6)
+    ]
     out = _render_config({**BASE_DATA, "bns_upstreams": upstreams})
     for u in upstreams:
-        assert f'  - addr: "{u["addr"]}"' in out
+        assert f"    url: {u['url']}" in out
+        assert f"    endpoint_ips: [{u['endpoint_ips'][0]}]" in out
+
+
+def test_config_supports_udp_upstream() -> None:
+    out = _render_config(
+        {
+            **BASE_DATA,
+            "bns_upstreams": [{"type": "udp", "addr": "1.1.1.1:53", "timeout": "2s"}],
+        }
+    )
+    assert "  - type: udp" in out
+    assert '    addr: "1.1.1.1:53"' in out
+    assert "    timeout: 2s" in out
+    assert "endpoint_ips" not in out
 
 
 @pytest.mark.parametrize("level", ["debug", "info", "warn", "error"])
@@ -85,9 +138,20 @@ def test_config_terminates_with_single_newline() -> None:
     assert not out.endswith("\n\n")
 
 
-def test_config_contains_blocklist_path() -> None:
+def test_config_uses_hagezi_pro_http_source() -> None:
+    """Default blocklist = hagezi pro fetched via http source."""
     out = _render_config(BASE_DATA)
-    assert "      path: /etc/bns/blocklists/pro.txt" in out
+    assert "    - type: http" in out
+    assert "      name: hagezi-pro" in out
+    assert f"      url: {BLOCKLIST_URL}" in out
+    # File source must not leak back in.
+    assert "    - type: file" not in out
+
+
+def test_config_blocklists_refresh_and_cache_dir() -> None:
+    out = _render_config(BASE_DATA)
+    assert f"  refresh_interval: {BLOCKLIST_REFRESH}" in out
+    assert f"  cache_dir: {CACHE_BLOCKLISTS_DIR}" in out
 
 
 def test_config_is_deterministic() -> None:
@@ -135,6 +199,15 @@ def test_quadlet_publishes_custom_host_ports() -> None:
 def test_quadlet_bind_mounts_config_readonly() -> None:
     out = _render_quadlet(BASE_DATA)
     assert f"Volume={CONFIG_PATH}:{CONFIG_PATH}:ro" in out
+
+
+def test_quadlet_mounts_named_volume_for_blocklist_cache() -> None:
+    """Named volume (not bind mount) so podman seeds it from the image's
+    pre-chowned /var/cache/bns on first run."""
+    out = _render_quadlet(BASE_DATA)
+    assert f"Volume={CACHE_VOLUME}:{CACHE_DIR}" in out
+    # Bind-mount form must not leak back in.
+    assert f"Volume={CACHE_DIR}:{CACHE_DIR}" not in out
 
 
 def test_quadlet_emits_resource_caps_in_service_section() -> None:
