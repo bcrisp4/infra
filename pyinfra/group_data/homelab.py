@@ -17,7 +17,7 @@ install_podman = True
 
 bns_enabled = True
 bns_image = "ghcr.io/bcrisp4/bns"
-bns_image_tag = "0.4.0"
+bns_image_tag = "0.5.0"
 bns_host_port_dns = 53
 bns_host_port_admin = 9090
 bns_upstreams = [
