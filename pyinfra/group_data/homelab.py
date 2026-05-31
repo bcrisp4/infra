@@ -64,6 +64,15 @@ prometheus_memory_high = "768M"
 prometheus_cpu_quota = "200%"
 prometheus_tasks_max = 4096
 
+# Expose Prometheus as a Tailscale Service (tasks/tailscale_service.py). The Pi
+# advertises svc:prometheus via `tailscale serve`; tailscaled terminates TLS on
+# :443 and reverse-proxies to the loopback-bound container (prometheus_host_port).
+# MagicDNS: prometheus.marlin-tet.ts.net. Service object + ACL grant +
+# auto-approval live in terraform/global/tailscale.tf.
+tailscale_serve_enabled = True
+tailscale_serve_service_name = "svc:prometheus"
+tailscale_serve_https_port = 443
+
 # Static network config rendered into a NetworkManager keyfile. The Pi
 # moves off router-issued DHCP because it now runs its own DHCP server
 # (dnsmasq below); a host cannot safely lease from itself.
