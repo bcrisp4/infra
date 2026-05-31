@@ -66,3 +66,58 @@ def _render_config(data: Mapping) -> str:
         f"      - targets: ['{bns_target}']",
     ]
     return "\n".join(lines) + "\n"
+
+
+def _render_quadlet(data: Mapping) -> str:
+    """Render the systemd quadlet .container unit for Prometheus from host data."""
+    image = f"{data['prometheus_image']}:{data['prometheus_image_tag']}"
+    host_port = data["prometheus_host_port"]
+    exec_args = " ".join(
+        [
+            f"--config.file={CONFIG_PATH}",
+            f"--storage.tsdb.path={CONTAINER_DATA_DIR}",
+            f"--storage.tsdb.retention.time={data['prometheus_retention_time']}",
+            f"--storage.tsdb.retention.size={data['prometheus_retention_size']}",
+            f"--web.listen-address=0.0.0.0:{CONTAINER_PORT}",
+        ]
+    )
+    lines = [
+        "# Rendered by pyinfra tasks/prometheus.py. Do not edit by hand.",
+        "[Unit]",
+        "Description=Prometheus monitoring server",
+        "Wants=network-online.target",
+        "After=network-online.target",
+        # Tolerate a startup loop without permanent give-up: 10 starts per 60s.
+        "StartLimitIntervalSec=60s",
+        "StartLimitBurst=10",
+        "",
+        "[Container]",
+        f"Image={image}",
+        "ContainerName=prometheus",
+        # [::] line is for Tailscale IPv6 (eth0 IPv6 is disabled, so no LAN v6).
+        f"PublishPort={host_port}:{CONTAINER_PORT}/tcp",
+        f"PublishPort=[::]:{host_port}:{CONTAINER_PORT}/tcp",
+        f"Volume={CONFIG_PATH}:{CONFIG_PATH}:ro",
+        f"Volume={DATA_DIR}:{CONTAINER_DATA_DIR}",
+        # Exec= overrides the image CMD only; entrypoint /bin/prometheus stays,
+        # so these flags are appended to it.
+        f"Exec={exec_args}",
+        "",
+        "[Service]",
+        # Always restart: covers non-zero exits, panics, OOM-kill (SIGKILL from
+        # the cgroup memory ceiling), and uncaught signals.
+        "Restart=always",
+        "RestartSec=5s",
+        "ExecReload=/usr/bin/podman kill --signal HUP %N",
+        # Cgroup ceilings at the systemd unit level. Quadlet passes [Service]
+        # through unchanged, so these work across podman versions (vs Memory=/
+        # CPUS= in [Container] which require podman >= 5.5).
+        f"MemoryMax={data['prometheus_memory_max']}",
+        f"MemoryHigh={data['prometheus_memory_high']}",
+        f"CPUQuota={data['prometheus_cpu_quota']}",
+        f"TasksMax={data['prometheus_tasks_max']}",
+        "",
+        "[Install]",
+        "WantedBy=multi-user.target",
+    ]
+    return "\n".join(lines) + "\n"
