@@ -7,6 +7,7 @@ from tasks.network import static_network
 from tasks.podman import install_podman
 from tasks.prometheus import prometheus
 from tasks.storage import storage
+from tasks.tailscale_service import tailscale_service
 from tasks.unattended_upgrades import unattended_upgrades
 
 base()
@@ -16,4 +17,5 @@ storage()
 install_podman()
 bns()
 prometheus()
+tailscale_service()
 dnsmasq()

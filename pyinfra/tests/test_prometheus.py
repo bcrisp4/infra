@@ -92,16 +92,18 @@ def test_quadlet_pins_image_with_tag() -> None:
     assert "Image=quay.io/prometheus/prometheus:v3.12.0-distroless" in out
 
 
-def test_quadlet_publishes_host_port_v4_and_v6() -> None:
+def test_quadlet_publishes_host_port_loopback_only() -> None:
+    """Bound to 127.0.0.1 only: reachable solely via the Tailscale service.
+    No LAN (0.0.0.0) or raw-Tailscale-IP ([::]) exposure."""
     out = _render_quadlet(BASE_DATA)
-    assert f"PublishPort=9090:{CONTAINER_PORT}/tcp" in out
-    assert f"PublishPort=[::]:9090:{CONTAINER_PORT}/tcp" in out
+    assert f"PublishPort=127.0.0.1:9090:{CONTAINER_PORT}/tcp" in out
+    assert f"PublishPort=9090:{CONTAINER_PORT}/tcp" not in out
+    assert f"PublishPort=[::]:9090:{CONTAINER_PORT}/tcp" not in out
 
 
 def test_quadlet_publishes_custom_host_port() -> None:
     out = _render_quadlet({**BASE_DATA, "prometheus_host_port": 19090})
-    assert f"PublishPort=19090:{CONTAINER_PORT}/tcp" in out
-    assert f"PublishPort=[::]:19090:{CONTAINER_PORT}/tcp" in out
+    assert f"PublishPort=127.0.0.1:19090:{CONTAINER_PORT}/tcp" in out
 
 
 def test_quadlet_bind_mounts_config_readonly() -> None:

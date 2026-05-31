@@ -94,9 +94,11 @@ def _render_quadlet(data: Mapping) -> str:
         "[Container]",
         f"Image={image}",
         "ContainerName=prometheus",
-        # [::] line is for Tailscale IPv6 (eth0 IPv6 is disabled, so no LAN v6).
-        f"PublishPort={host_port}:{CONTAINER_PORT}/tcp",
-        f"PublishPort=[::]:{host_port}:{CONTAINER_PORT}/tcp",
+        # Loopback-only: Prometheus is reached solely via the Tailscale service
+        # (HTTPS at prometheus.marlin-tet.ts.net), whose proxy on the host hits
+        # 127.0.0.1. No LAN or raw-Tailscale-IP exposure. See
+        # tasks/tailscale_service.py.
+        f"PublishPort=127.0.0.1:{host_port}:{CONTAINER_PORT}/tcp",
         f"Volume={CONFIG_PATH}:{CONFIG_PATH}:ro",
         f"Volume={DATA_DIR}:{CONTAINER_DATA_DIR}",
         # Exec= overrides the image CMD only; entrypoint /bin/prometheus stays,

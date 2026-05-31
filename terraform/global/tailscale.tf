@@ -71,6 +71,12 @@ resource "tailscale_acl" "this" {
         src = ["*"]
         dst = ["tag:dns"]
         ip  = ["udp:53", "tcp:53"]
+      },
+      # Prometheus tailnet service (HTTPS UI)
+      {
+        src = ["group:admins"]
+        dst = ["svc:prometheus"]
+        ip  = ["tcp:443"]
       }
     ]
 
@@ -88,6 +94,9 @@ resource "tailscale_acl" "this" {
     autoApprovers = {
       services = {
         "tag:k8s-services" = ["tag:k8s-ingress"]
+        # tag:home (the homelab Pi) may advertise svc:prometheus without
+        # manual admin approval.
+        "svc:prometheus" = ["tag:home"]
       }
       exitNode = ["group:admins"]
       routes = {
@@ -120,4 +129,17 @@ resource "tailscale_oauth_client" "k8s_operator" {
   # See: https://tailscale.com/kb/1236/kubernetes-operator#prerequisites
   # Services scope required for ProxyGroup HA ingress
   scopes = ["devices", "auth_keys", "routes", "dns", "services"]
+}
+
+# Tailscale Service for the homelab Prometheus UI. Advertised by the Pi
+# (tag:home) via `tailscale serve` (see pyinfra/tasks/tailscale_service.py),
+# auto-approved by the autoApprovers.services entry above. Gets its own
+# MagicDNS name (prometheus.marlin-tet.ts.net) + VIP; access gated by the
+# svc:prometheus grant to group:admins.
+resource "tailscale_service" "prometheus" {
+  depends_on = [tailscale_acl.this]
+
+  name    = "svc:prometheus"
+  comment = "Prometheus monitoring UI on rpi5-4cpu-16gb-home"
+  ports   = ["tcp:443"]
 }
