@@ -19,7 +19,7 @@ bns_enabled = True
 bns_image = "ghcr.io/bcrisp4/bns"
 bns_image_tag = "0.5.0"
 bns_host_port_dns = 53
-bns_host_port_admin = 9090
+bns_host_port_admin = 9053  # moved off 9090; Prometheus owns the standard port
 bns_upstreams = [
     {
         "type": "doh",
@@ -46,6 +46,23 @@ bns_memory_max = "512M"
 bns_memory_high = "256M"
 bns_cpu_quota = "200%"
 bns_tasks_max = 4096
+
+# Prometheus runs as a rootful podman quadlet (tasks/prometheus.py). Scrapes
+# itself + bns (via host.containers.internal:bns_host_port_admin). TSDB on a
+# dedicated LV at /var/lib/prometheus (see inventory.py storage). Distroless
+# image runs as uid 65532.
+prometheus_enabled = True
+prometheus_image = "quay.io/prometheus/prometheus"
+prometheus_image_tag = "v3.12.0-distroless"
+prometheus_host_port = 9090
+prometheus_scrape_interval = "15s"
+prometheus_retention_time = "30d"
+prometheus_retention_size = "8GB"
+# systemd-native cgroup ceilings (applied in [Service] of the quadlet).
+prometheus_memory_max = "1G"
+prometheus_memory_high = "768M"
+prometheus_cpu_quota = "200%"
+prometheus_tasks_max = 4096
 
 # Static network config rendered into a NetworkManager keyfile. The Pi
 # moves off router-issued DHCP because it now runs its own DHCP server
