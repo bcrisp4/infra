@@ -4,7 +4,7 @@ terraform {
   required_providers {
     tailscale = {
       source  = "tailscale/tailscale"
-      version = "~> 0.24"
+      version = "~> 0.29" # >= 0.29 for the tailscale_service resource
     }
     onepassword = {
       source  = "1Password/onepassword"
