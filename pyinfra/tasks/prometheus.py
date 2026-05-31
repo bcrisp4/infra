@@ -121,3 +121,100 @@ def _render_quadlet(data: Mapping) -> str:
         "WantedBy=multi-user.target",
     ]
     return "\n".join(lines) + "\n"
+
+
+_DATA_KEYS = (
+    "prometheus_image",
+    "prometheus_image_tag",
+    "prometheus_host_port",
+    "prometheus_scrape_interval",
+    "prometheus_retention_time",
+    "prometheus_retention_size",
+    "prometheus_memory_max",
+    "prometheus_memory_high",
+    "prometheus_cpu_quota",
+    "prometheus_tasks_max",
+    "bns_host_port_admin",
+)
+
+
+@deploy("Deploy Prometheus")
+def prometheus() -> None:
+    if not host.data.get("prometheus_enabled", False):
+        return
+
+    # HostData is not subscriptable; materialize into a plain dict so the pure
+    # renderers stay test-friendly with `data["key"]` access.
+    data = {k: host.data.get(k) for k in _DATA_KEYS}
+
+    # Set ownership on the mounted LV root before the container starts. storage()
+    # runs earlier in deploy.py and mounts the LV here (0700 root); chown to the
+    # container uid so the distroless prometheus process can write the TSDB.
+    files.directory(
+        name="Ensure /var/lib/prometheus owned by container uid",
+        path=DATA_DIR,
+        present=True,
+        user=DATA_UID,
+        group=DATA_GID,
+        mode="0700",
+        _sudo=True,
+    )
+
+    files.directory(
+        name="Ensure /etc/prometheus config dir",
+        path=CONFIG_DIR,
+        present=True,
+        user="root",
+        group="root",
+        mode="0755",
+        _sudo=True,
+    )
+
+    config = files.put(
+        name="Render /etc/prometheus/prometheus.yml",
+        src=StringIO(_render_config(data)),
+        dest=CONFIG_PATH,
+        user="root",
+        group="root",
+        mode="0644",
+        _sudo=True,
+    )
+
+    unit = files.put(
+        name="Render /etc/containers/systemd/prometheus.container",
+        src=StringIO(_render_quadlet(data)),
+        dest=UNIT_PATH,
+        user="root",
+        group="root",
+        mode="0644",
+        _sudo=True,
+    )
+
+    # Boot-time start is handled by `[Install] WantedBy=multi-user.target` in the
+    # quadlet file. systemctl enable does not apply to generator-produced units,
+    # so we only manage running state here.
+
+    systemd.service(
+        name="Restart prometheus.service on quadlet change",
+        service="prometheus.service",
+        running=True,
+        restarted=True,
+        daemon_reload=True,
+        _if=unit.did_change,
+        _sudo=True,
+    )
+
+    systemd.service(
+        name="SIGHUP prometheus.service on config-only change",
+        service="prometheus.service",
+        reloaded=True,
+        _if=lambda: config.did_change() and not unit.did_change(),
+        _sudo=True,
+    )
+
+    systemd.service(
+        name="Ensure prometheus.service running",
+        service="prometheus.service",
+        running=True,
+        _sudo=True,
+    )
