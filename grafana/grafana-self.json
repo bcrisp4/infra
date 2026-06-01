@@ -1677,13 +1677,6 @@
               ],
               "transformations": [
                 {
-                  "kind": "merge",
-                  "spec": {
-                    "id": "merge",
-                    "options": {}
-                  }
-                },
-                {
                   "kind": "organize",
                   "spec": {
                     "id": "organize",
@@ -1697,6 +1690,7 @@
                       "indexByName": {},
                       "renameByName": {
                         "handler": "Handler",
+                        "Value": "req/s",
                         "Value #A": "req/s"
                       }
                     }
@@ -1809,13 +1803,6 @@
               ],
               "transformations": [
                 {
-                  "kind": "merge",
-                  "spec": {
-                    "id": "merge",
-                    "options": {}
-                  }
-                },
-                {
                   "kind": "organize",
                   "spec": {
                     "id": "organize",
@@ -1829,6 +1816,7 @@
                       "indexByName": {},
                       "renameByName": {
                         "handler": "Handler",
+                        "Value": "p95",
                         "Value #A": "p95"
                       }
                     }
