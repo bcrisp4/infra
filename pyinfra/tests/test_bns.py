@@ -18,6 +18,7 @@ from tasks.bns import (
 BASE_DATA: dict = {
     "bns_image": "ghcr.io/bcrisp4/bns",
     "bns_image_tag": "v0.1.0",
+    "bns_listen_address": "192.168.1.2",
     "bns_host_port_dns": 53,
     "bns_host_port_admin": 9090,
     "bns_upstreams": [
@@ -172,28 +173,36 @@ def test_quadlet_pins_image_with_tag() -> None:
     assert "Image=ghcr.io/bcrisp4/bns:v0.1.0" in out
 
 
-def test_quadlet_publishes_dns_udp_tcp_and_admin_v4() -> None:
+def test_quadlet_publishes_dns_and_admin_on_lan_ip_only() -> None:
+    """Bound to the LAN IP only: not the wildcard (would collide with
+    aardvark-dns on :53 of the bridge gateways) and not Tailscale."""
     out = _render_quadlet(BASE_DATA)
-    assert f"PublishPort=53:{CONTAINER_DNS_PORT}/udp" in out
-    assert f"PublishPort=53:{CONTAINER_DNS_PORT}/tcp" in out
-    assert f"PublishPort=9090:{CONTAINER_ADMIN_PORT}/tcp" in out
+    assert f"PublishPort=192.168.1.2:53:{CONTAINER_DNS_PORT}/udp" in out
+    assert f"PublishPort=192.168.1.2:53:{CONTAINER_DNS_PORT}/tcp" in out
+    assert f"PublishPort=192.168.1.2:9090:{CONTAINER_ADMIN_PORT}/tcp" in out
+    # Wildcard (host-IP-less) publishes must NOT appear.
+    assert f"PublishPort=53:{CONTAINER_DNS_PORT}/udp" not in out
+    assert f"PublishPort=9090:{CONTAINER_ADMIN_PORT}/tcp" not in out
 
 
-def test_quadlet_publishes_dns_udp_tcp_and_admin_v6() -> None:
-    """Dual-stack: explicit [::] lines required (IPV6_V6ONLY=1 default)."""
+def test_quadlet_does_not_publish_ipv6() -> None:
+    """IPv6 is disabled host-wide; no [::] publishes."""
     out = _render_quadlet(BASE_DATA)
-    assert f"PublishPort=[::]:53:{CONTAINER_DNS_PORT}/udp" in out
-    assert f"PublishPort=[::]:53:{CONTAINER_DNS_PORT}/tcp" in out
-    assert f"PublishPort=[::]:9090:{CONTAINER_ADMIN_PORT}/tcp" in out
+    assert "[::]" not in out
+
+
+@pytest.mark.parametrize("address", ["192.168.1.2", "10.0.0.5"])
+def test_quadlet_publish_address_tracks_data(address: str) -> None:
+    out = _render_quadlet({**BASE_DATA, "bns_listen_address": address})
+    assert f"PublishPort={address}:53:{CONTAINER_DNS_PORT}/udp" in out
+    assert f"PublishPort={address}:9090:{CONTAINER_ADMIN_PORT}/tcp" in out
 
 
 def test_quadlet_publishes_custom_host_ports() -> None:
     out = _render_quadlet({**BASE_DATA, "bns_host_port_dns": 5353, "bns_host_port_admin": 19090})
-    assert f"PublishPort=5353:{CONTAINER_DNS_PORT}/udp" in out
-    assert f"PublishPort=5353:{CONTAINER_DNS_PORT}/tcp" in out
-    assert f"PublishPort=19090:{CONTAINER_ADMIN_PORT}/tcp" in out
-    assert f"PublishPort=[::]:5353:{CONTAINER_DNS_PORT}/udp" in out
-    assert f"PublishPort=[::]:19090:{CONTAINER_ADMIN_PORT}/tcp" in out
+    assert f"PublishPort=192.168.1.2:5353:{CONTAINER_DNS_PORT}/udp" in out
+    assert f"PublishPort=192.168.1.2:5353:{CONTAINER_DNS_PORT}/tcp" in out
+    assert f"PublishPort=192.168.1.2:19090:{CONTAINER_ADMIN_PORT}/tcp" in out
 
 
 def test_quadlet_bind_mounts_config_readonly() -> None:
