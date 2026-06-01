@@ -1564,25 +1564,31 @@
               ],
               "transformations": [
                 {
-                  "id": "merge",
-                  "options": {}
+                  "kind": "merge",
+                  "spec": {
+                    "id": "merge",
+                    "options": {}
+                  }
                 },
                 {
-                  "id": "organize",
-                  "options": {
-                    "excludeByName": {
-                      "Time": true,
-                      "job": true,
-                      "__name__": true
-                    },
-                    "indexByName": {},
-                    "renameByName": {
-                      "instance": "Instance",
-                      "Value #A": "CPU %",
-                      "Value #B": "Mem %",
-                      "Value #C": "Root FS %",
-                      "Value #D": "Load1",
-                      "Value #E": "Uptime"
+                  "kind": "organize",
+                  "spec": {
+                    "id": "organize",
+                    "options": {
+                      "excludeByName": {
+                        "Time": true,
+                        "job": true,
+                        "__name__": true
+                      },
+                      "indexByName": {},
+                      "renameByName": {
+                        "instance": "Instance",
+                        "Value #A": "CPU %",
+                        "Value #B": "Mem %",
+                        "Value #C": "Root FS %",
+                        "Value #D": "Load1",
+                        "Value #E": "Uptime"
+                      }
                     }
                   }
                 }
@@ -5404,27 +5410,33 @@
               ],
               "transformations": [
                 {
-                  "id": "merge",
-                  "options": {}
+                  "kind": "merge",
+                  "spec": {
+                    "id": "merge",
+                    "options": {}
+                  }
                 },
                 {
-                  "id": "organize",
-                  "options": {
-                    "excludeByName": {
-                      "Time": true,
-                      "job": true,
-                      "__name__": true,
-                      "fstype": false,
-                      "device": false
-                    },
-                    "renameByName": {
-                      "mountpoint": "Mount",
-                      "device": "Device",
-                      "fstype": "Type",
-                      "Value #A": "Size",
-                      "Value #B": "Used",
-                      "Value #C": "Avail",
-                      "Value #D": "Used %"
+                  "kind": "organize",
+                  "spec": {
+                    "id": "organize",
+                    "options": {
+                      "excludeByName": {
+                        "Time": true,
+                        "job": true,
+                        "__name__": true,
+                        "fstype": false,
+                        "device": false
+                      },
+                      "renameByName": {
+                        "mountpoint": "Mount",
+                        "device": "Device",
+                        "fstype": "Type",
+                        "Value #A": "Size",
+                        "Value #B": "Used",
+                        "Value #C": "Avail",
+                        "Value #D": "Used %"
+                      }
                     }
                   }
                 }
@@ -6495,23 +6507,29 @@
               ],
               "transformations": [
                 {
-                  "id": "merge",
-                  "options": {}
+                  "kind": "merge",
+                  "spec": {
+                    "id": "merge",
+                    "options": {}
+                  }
                 },
                 {
-                  "id": "organize",
-                  "options": {
-                    "excludeByName": {
-                      "Time": true,
-                      "job": true,
-                      "__name__": true
-                    },
-                    "renameByName": {
-                      "device": "Interface",
-                      "Value #A": "Up",
-                      "Value #B": "Carrier",
-                      "Value #C": "Speed",
-                      "Value #D": "MTU"
+                  "kind": "organize",
+                  "spec": {
+                    "id": "organize",
+                    "options": {
+                      "excludeByName": {
+                        "Time": true,
+                        "job": true,
+                        "__name__": true
+                      },
+                      "renameByName": {
+                        "device": "Interface",
+                        "Value #A": "Up",
+                        "Value #B": "Carrier",
+                        "Value #C": "Speed",
+                        "Value #D": "MTU"
+                      }
                     }
                   }
                 }
@@ -7773,21 +7791,24 @@
               ],
               "transformations": [
                 {
-                  "id": "organize",
-                  "options": {
-                    "excludeByName": {
-                      "Time": true,
-                      "Value #A": true,
-                      "job": true,
-                      "instance": false
-                    },
-                    "renameByName": {
-                      "instance": "Instance",
-                      "nodename": "Hostname",
-                      "sysname": "Kernel",
-                      "release": "Kernel ver",
-                      "machine": "Arch",
-                      "domainname": "Domain"
+                  "kind": "organize",
+                  "spec": {
+                    "id": "organize",
+                    "options": {
+                      "excludeByName": {
+                        "Time": true,
+                        "Value #A": true,
+                        "job": true,
+                        "instance": false
+                      },
+                      "renameByName": {
+                        "instance": "Instance",
+                        "nodename": "Hostname",
+                        "sysname": "Kernel",
+                        "release": "Kernel ver",
+                        "machine": "Arch",
+                        "domainname": "Domain"
+                      }
                     }
                   }
                 }
