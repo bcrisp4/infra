@@ -22,6 +22,7 @@ BASE_DATA: dict = {
     "prometheus_memory_high": "768M",
     "prometheus_cpu_quota": "200%",
     "prometheus_tasks_max": 4096,
+    "bns_listen_address": "192.168.1.2",
     "bns_host_port_admin": 9053,
     "nodeexporter_host_port": 9100,
     "node_name": "rpi5-4cpu-16gb-home",
@@ -44,16 +45,23 @@ def test_config_has_self_scrape_job() -> None:
     assert f"      - targets: ['localhost:{CONTAINER_PORT}']" in out
 
 
-def test_config_bns_job_uses_host_containers_internal_and_admin_port() -> None:
+def test_config_bns_job_uses_lan_ip_and_admin_port() -> None:
+    """bns binds its LAN IP only, so it is scraped there, not via the gateway."""
     out = _render_config(BASE_DATA)
     assert "  - job_name: bns" in out
-    assert "      - targets: ['host.containers.internal:9053']" in out
+    assert "      - targets: ['192.168.1.2:9053']" in out
 
 
 @pytest.mark.parametrize("port", [9053, 9090, 19090])
 def test_config_bns_target_tracks_admin_port(port: int) -> None:
     out = _render_config({**BASE_DATA, "bns_host_port_admin": port})
-    assert f"      - targets: ['host.containers.internal:{port}']" in out
+    assert f"      - targets: ['192.168.1.2:{port}']" in out
+
+
+@pytest.mark.parametrize("address", ["192.168.1.2", "10.0.0.5"])
+def test_config_bns_target_tracks_listen_address(address: str) -> None:
+    out = _render_config({**BASE_DATA, "bns_listen_address": address})
+    assert f"      - targets: ['{address}:9053']" in out
 
 
 def test_config_nodeexporter_job_uses_host_containers_internal() -> None:
@@ -117,6 +125,12 @@ def test_quadlet_section_order() -> None:
 def test_quadlet_pins_image_with_tag() -> None:
     out = _render_quadlet(BASE_DATA)
     assert "Image=quay.io/prometheus/prometheus:v3.12.0-distroless" in out
+
+
+def test_quadlet_joins_monitoring_network() -> None:
+    """Prometheus shares the monitoring bridge so Grafana resolves it by name."""
+    out = _render_quadlet(BASE_DATA)
+    assert "Network=monitoring.network" in out
 
 
 def test_quadlet_publishes_host_port_loopback_only() -> None:

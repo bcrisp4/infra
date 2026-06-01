@@ -53,8 +53,12 @@ def _render_config(data: Mapping) -> str:
     the Prometheus container to the host port), but that address is meaningless
     as an `instance` label, so we pin instance to the node's short hostname
     (data["node_name"]).
+
+    bns binds only its LAN IP (bns_listen_address), not the bridge gateway, so
+    it is scraped at that address rather than host.containers.internal. See the
+    bind rationale in tasks/bns.py.
     """
-    bns_target = f"host.containers.internal:{data['bns_host_port_admin']}"
+    bns_target = f"{data['bns_listen_address']}:{data['bns_host_port_admin']}"
     nodeexporter_target = f"host.containers.internal:{data['nodeexporter_host_port']}"
     node_name = data["node_name"]
     lines = [
@@ -106,10 +110,15 @@ def _render_quadlet(data: Mapping) -> str:
         "[Container]",
         f"Image={image}",
         "ContainerName=prometheus",
+        # Shared bridge with Grafana (tasks/podman_network.py): Grafana resolves
+        # this container as `prometheus` via aardvark-dns. host.containers.internal
+        # still resolves on a user-defined network, so the outbound scrapes of
+        # node-exporter/bns are unaffected by this attachment.
+        "Network=monitoring.network",
         # Loopback-only: Prometheus is reached solely via the Tailscale service
         # (HTTPS at prometheus.marlin-tet.ts.net), whose proxy on the host hits
-        # 127.0.0.1. No LAN or raw-Tailscale-IP exposure. See
-        # tasks/tailscale_service.py.
+        # 127.0.0.1, and by Grafana over the monitoring network above. No LAN or
+        # raw-Tailscale-IP exposure. See tasks/tailscale_service.py.
         f"PublishPort=127.0.0.1:{host_port}:{CONTAINER_PORT}/tcp",
         f"Volume={CONFIG_PATH}:{CONFIG_PATH}:ro",
         f"Volume={DATA_DIR}:{CONTAINER_DATA_DIR}",
@@ -148,6 +157,7 @@ _DATA_KEYS = (
     "prometheus_memory_high",
     "prometheus_cpu_quota",
     "prometheus_tasks_max",
+    "bns_listen_address",
     "bns_host_port_admin",
     "nodeexporter_host_port",
 )

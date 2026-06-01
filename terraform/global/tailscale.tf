@@ -77,6 +77,12 @@ resource "tailscale_acl" "this" {
         src = ["group:admins"]
         dst = ["svc:prometheus"]
         ip  = ["tcp:443"]
+      },
+      # Grafana tailnet service (HTTPS UI)
+      {
+        src = ["group:admins"]
+        dst = ["svc:grafana"]
+        ip  = ["tcp:443"]
       }
     ]
 
@@ -94,9 +100,10 @@ resource "tailscale_acl" "this" {
     autoApprovers = {
       services = {
         "tag:k8s-services" = ["tag:k8s-ingress"]
-        # tag:home (the homelab Pi) may advertise svc:prometheus without
-        # manual admin approval.
+        # tag:home (the homelab Pi) may advertise svc:prometheus + svc:grafana
+        # without manual admin approval.
         "svc:prometheus" = ["tag:home"]
+        "svc:grafana"    = ["tag:home"]
       }
       exitNode = ["group:admins"]
       routes = {
@@ -141,5 +148,18 @@ resource "tailscale_service" "prometheus" {
 
   name    = "svc:prometheus"
   comment = "Prometheus monitoring UI on rpi5-4cpu-16gb-home"
+  ports   = ["tcp:443"]
+}
+
+# Tailscale Service for the homelab Grafana UI. Advertised by the Pi (tag:home)
+# via `tailscale serve` (see pyinfra/tasks/tailscale_service.py), auto-approved
+# by the autoApprovers.services entry above. Gets its own MagicDNS name
+# (grafana.marlin-tet.ts.net) + VIP; access gated by the svc:grafana grant to
+# group:admins.
+resource "tailscale_service" "grafana" {
+  depends_on = [tailscale_acl.this]
+
+  name    = "svc:grafana"
+  comment = "Grafana UI on rpi5-4cpu-16gb-home"
   ports   = ["tcp:443"]
 }

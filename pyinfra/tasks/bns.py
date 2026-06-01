@@ -101,6 +101,7 @@ def _render_config(data: Mapping) -> str:
 def _render_quadlet(data: Mapping) -> str:
     """Render the systemd quadlet .container unit for bns from host data."""
     image = f"{data['bns_image']}:{data['bns_image_tag']}"
+    listen_address = data["bns_listen_address"]
     dns_port = data["bns_host_port_dns"]
     admin_port = data["bns_host_port_admin"]
 
@@ -117,15 +118,21 @@ def _render_quadlet(data: Mapping) -> str:
         "[Container]",
         f"Image={image}",
         "ContainerName=bns",
-        # Dual-stack bind: linux defaults IPV6_V6ONLY=1 on AF_INET6 sockets, so
-        # a single PublishPort=53:... only catches IPv4. Add explicit [::]
-        # lines to also listen on IPv6 (LAN + Tailscale v6).
-        f"PublishPort={dns_port}:{CONTAINER_DNS_PORT}/udp",
-        f"PublishPort={dns_port}:{CONTAINER_DNS_PORT}/tcp",
-        f"PublishPort={admin_port}:{CONTAINER_ADMIN_PORT}/tcp",
-        f"PublishPort=[::]:{dns_port}:{CONTAINER_DNS_PORT}/udp",
-        f"PublishPort=[::]:{dns_port}:{CONTAINER_DNS_PORT}/tcp",
-        f"PublishPort=[::]:{admin_port}:{CONTAINER_ADMIN_PORT}/tcp",
+        # Bind only the LAN IPv4 address (bns_listen_address), not the wildcard.
+        # bns serves LAN clients (DHCP hands it out as resolver) and nothing
+        # else: the Pi's own resolver is pinned to public DNS, and bns is not a
+        # Tailscale service. Binding the wildcard (0.0.0.0) would also occupy
+        # :53 on every podman bridge gateway, which collides with aardvark-dns
+        # (the name resolver for the user-defined `monitoring` network, see
+        # tasks/podman_network.py) and prevents Prometheus/Grafana from
+        # starting. No IPv6: it is disabled host-wide.
+        #
+        # Admin is published on the same LAN IP (not the bridge gateway), so
+        # Prometheus scrapes it at <bns_listen_address>:<admin_port> rather than
+        # host.containers.internal (see tasks/prometheus.py).
+        f"PublishPort={listen_address}:{dns_port}:{CONTAINER_DNS_PORT}/udp",
+        f"PublishPort={listen_address}:{dns_port}:{CONTAINER_DNS_PORT}/tcp",
+        f"PublishPort={listen_address}:{admin_port}:{CONTAINER_ADMIN_PORT}/tcp",
         f"Volume={CONFIG_PATH}:{CONFIG_PATH}:ro",
         # Named volume for blocklist cache. Podman auto-creates on first run
         # and seeds it from the image's /var/cache/bns (already chowned to
@@ -159,6 +166,7 @@ def _render_quadlet(data: Mapping) -> str:
 _DATA_KEYS = (
     "bns_image",
     "bns_image_tag",
+    "bns_listen_address",
     "bns_host_port_dns",
     "bns_host_port_admin",
     "bns_upstreams",

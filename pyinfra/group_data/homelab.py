@@ -18,6 +18,11 @@ install_podman = True
 bns_enabled = True
 bns_image = "ghcr.io/bcrisp4/bns"
 bns_image_tag = "0.5.0"
+# LAN IPv4 the bns container publishes on (DNS + admin). Bound to this address
+# only -- not the wildcard -- so it does not occupy :53 on the podman bridge
+# gateways (which would collide with aardvark-dns on the monitoring network) and
+# does not listen on Tailscale. Matches the Pi's static LAN IP (static_network).
+bns_listen_address = "192.168.1.2"
 bns_host_port_dns = 53
 bns_host_port_admin = 9053  # moved off 9090; Prometheus owns the standard port
 bns_upstreams = [
@@ -80,14 +85,40 @@ nodeexporter_memory_high = "96M"
 nodeexporter_cpu_quota = "50%"
 nodeexporter_tasks_max = 1024
 
-# Expose Prometheus as a Tailscale Service (tasks/tailscale_service.py). The Pi
-# advertises svc:prometheus via `tailscale serve`; tailscaled terminates TLS on
-# :443 and reverse-proxies to the loopback-bound container (prometheus_host_port).
-# MagicDNS: prometheus.marlin-tet.ts.net. Service object + ACL grant +
-# auto-approval live in terraform/global/tailscale.tf.
+# Shared podman network for the metrics stack (tasks/podman_network.py).
+# Prometheus + Grafana attach to it and resolve each other by ContainerName via
+# aardvark-dns. node-exporter stays Network=host (real host metrics) and is
+# scraped via host.containers.internal instead.
+monitoring_network_enabled = True
+monitoring_network_name = "monitoring"
+
+# Grafana runs as a rootful podman quadlet (tasks/grafana.py). Joins the
+# monitoring network and queries Prometheus by name (http://prometheus:9090).
+# Loopback-only host port; exposed on the tailnet via svc:grafana. sqlite state
+# (WAL enabled) on a dedicated LV at /var/lib/grafana (see inventory.py storage).
+# Image runs as uid 472. Ships default admin; password change is forced on first
+# login (access is already gated by the tailnet).
+grafana_enabled = True
+grafana_image = "docker.io/grafana/grafana-oss"
+grafana_image_tag = "13.0.1"
+grafana_host_port = 3000
+grafana_root_url = "https://grafana.marlin-tet.ts.net"
+# systemd-native cgroup ceilings (applied in [Service] of the quadlet).
+grafana_memory_max = "512M"
+grafana_memory_high = "384M"
+grafana_cpu_quota = "150%"
+grafana_tasks_max = 4096
+
+# Expose services as Tailscale Services (tasks/tailscale_service.py). The Pi
+# advertises each via `tailscale serve`; tailscaled terminates TLS on :443 and
+# reverse-proxies to the loopback-bound container. MagicDNS:
+# <name>.marlin-tet.ts.net. Service objects + ACL grants + auto-approval live in
+# terraform/global/tailscale.tf.
 tailscale_serve_enabled = True
-tailscale_serve_service_name = "svc:prometheus"
-tailscale_serve_https_port = 443
+tailscale_serve_services = [
+    {"name": "svc:prometheus", "backend_port": prometheus_host_port, "https_port": 443},
+    {"name": "svc:grafana", "backend_port": grafana_host_port, "https_port": 443},
+]
 
 # Static network config rendered into a NetworkManager keyfile. The Pi
 # moves off router-issued DHCP because it now runs its own DHCP server
