@@ -122,6 +122,9 @@ Common CLI flags:
 - `pyinfra -y` skips the "Detected changes:" diff preview entirely. Run `--dry` *without* `-y` to see the diff; add `-y` back for the apply (non-TTY runs still need it).
 - Homelab Pi (`ben@rpi5-4cpu-16gb-home`) has no passwordless sudo. `pyinfra` apply needs an interactive TTY for the sudo prompt, or set `PYINFRA_SUDO_PASSWORD` before invocation. Claude Code Bash tool has no TTY → user must run apply via `!` prefix.
 - NetworkManager keyfile renders (`tasks/network.py`): the `uuid=` value must match the existing in-memory connection's UUID, or NM creates a duplicate connection alongside it and two profiles fight for the interface. Read existing UUID via `nmcli -t -f connection.uuid con show '<id>'` and pin in host data.
+- User-defined podman network = aardvark-dns binds `<bridge-gateway>:53`. Any host process bound to the wildcard `:53` (e.g. a DNS server published as `PublishPort=53:...` with no host IP) occupies `:53` on every bridge gateway and blocks aardvark, so the FIRST container on the network fails to start (`aardvark-dns failed to start: ... Address already in use`). Fix: bind the host DNS server to a specific IP, not the wildcard.
+- `host.containers.internal` resolves to the bridge GATEWAY, not host loopback. A container CANNOT reach a host port bound to `127.0.0.1` via it. For container-to-container by name, put both on a user-defined network (aardvark-dns); to reach a host service, that service must bind the gateway/wildcard or a routable host IP.
+- Lint/format: `uv run ruff check` / `uv run ruff format` (ruff is a dev dependency). Tests: `uv run pytest`.
 
 ## When extending pyinfra
 
