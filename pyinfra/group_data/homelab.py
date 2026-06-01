@@ -92,6 +92,28 @@ nodeexporter_tasks_max = 1024
 monitoring_network_enabled = True
 monitoring_network_name = "monitoring"
 
+# Dedicated podman network for Grafana <-> image renderer only. Grafana joins
+# both this and monitoring; the renderer joins only this and publishes no host
+# port, so it is reachable by Grafana but not Prometheus, the LAN or Tailscale.
+rendering_network_enabled = True
+rendering_network_name = "rendering"
+
+# Grafana image renderer runs as a rootful podman quadlet (tasks/image_renderer.py).
+# Standalone remote rendering service (Node + headless Chromium) that turns panels
+# into PNGs. Joins the rendering network only; no published port. Grafana reaches
+# it at http://grafana-image-renderer:8081/render. Stateless (snapshots to /tmp),
+# so no volume. Chromium is memory-hungry, so ceilings are roomier than node-exporter.
+# Auth token is generated on the host (never committed) and shared with Grafana via
+# an EnvironmentFile; Grafana 13 refuses to start with the default renderer token.
+grafana_image_renderer_enabled = True
+grafana_image_renderer_image = "docker.io/grafana/grafana-image-renderer"
+grafana_image_renderer_image_tag = "v5.8.8"
+# systemd-native cgroup ceilings (applied in [Service] of the quadlet).
+grafana_image_renderer_memory_max = "1G"
+grafana_image_renderer_memory_high = "768M"
+grafana_image_renderer_cpu_quota = "150%"
+grafana_image_renderer_tasks_max = 4096
+
 # Grafana runs as a rootful podman quadlet (tasks/grafana.py). Joins the
 # monitoring network and queries Prometheus by name (http://prometheus:9090).
 # Loopback-only host port; exposed on the tailnet via svc:grafana. sqlite state

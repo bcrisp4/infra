@@ -5,22 +5,25 @@ the quadlet generator creates the corresponding podman network at daemon-reload.
 
 The `monitoring` network is the shared bridge for the metrics stack: Prometheus
 and Grafana attach to it and resolve each other by ContainerName via
-aardvark-dns (e.g. Grafana's datasource targets http://prometheus:9090). Only
-user-defined networks get aardvark name resolution; the podman default bridge
-does not, which is why this explicit unit exists.
+aardvark-dns (e.g. Grafana's datasource targets http://prometheus:9090). The
+`rendering` network is a dedicated bridge for Grafana <-> image renderer only, so
+the renderer is reachable by Grafana but not by Prometheus (Grafana joins both;
+see tasks/grafana.py and tasks/image_renderer.py). Only user-defined networks get
+aardvark name resolution; the podman default bridge does not, which is why these
+explicit units exist.
 
-A `.container` unit that sets `Network=monitoring.network` gets
-`Wants=`/`After=monitoring-network.service` auto-injected by the generator, so
-the network always comes up before the containers that need it; no manual
-ordering is required here.
+A `.container` unit that sets `Network=<name>.network` gets
+`Wants=`/`After=<name>-network.service` auto-injected by the generator, so the
+network always comes up before the containers that need it; no manual ordering is
+required here.
 
-node-exporter is deliberately NOT on this network: it runs `Network=host` for
+node-exporter is deliberately NOT on any of these: it runs `Network=host` for
 real host metrics and is scraped via host.containers.internal instead.
 
-Gated on `monitoring_network_enabled` host/group data so other hosts no-op.
+Each network is gated independently on its `<name>_network_enabled` host/group
+data so other hosts no-op.
 """
 
-from collections.abc import Mapping
 from io import StringIO
 
 from pyinfra import host
@@ -35,8 +38,8 @@ def _unit_path(name: str) -> str:
     return f"{UNIT_DIR}/{name}.network"
 
 
-def _render_network(data: Mapping) -> str:
-    """Render the systemd quadlet .network unit from host data.
+def _render_network(name: str) -> str:
+    """Render the systemd quadlet .network unit for the network named `name`.
 
     NetworkName pins the podman network name explicitly; without it the
     generator would derive `systemd-<unit>`. Pinning keeps the name stable and
@@ -45,7 +48,7 @@ def _render_network(data: Mapping) -> str:
     lines = [
         "# Rendered by pyinfra tasks/podman_network.py. Do not edit by hand.",
         "[Network]",
-        f"NetworkName={data['monitoring_network_name']}",
+        f"NetworkName={name}",
         "",
         "[Install]",
         "WantedBy=multi-user.target",
@@ -53,32 +56,41 @@ def _render_network(data: Mapping) -> str:
     return "\n".join(lines) + "\n"
 
 
+# Each entry: (enable-flag data key, network-name data key). Add a network by
+# defining both keys in group_data and appending here.
+_NETWORKS = (
+    ("monitoring_network_enabled", "monitoring_network_name"),
+    ("rendering_network_enabled", "rendering_network_name"),
+)
+
+
 @deploy("Configure podman networks")
 def podman_networks() -> None:
-    if not host.data.get("monitoring_network_enabled", False):
-        return
+    units = []
+    for enabled_key, name_key in _NETWORKS:
+        if not host.data.get(enabled_key, False):
+            continue
+        name = host.data.get(name_key)
 
-    # HostData is not subscriptable; materialize into a plain dict so the pure
-    # renderer stays test-friendly with `data["key"]` access.
-    name = host.data.get("monitoring_network_name")
-    data = {"monitoring_network_name": name}
-
-    unit = files.put(
-        name=f"Render {_unit_path(name)}",
-        src=StringIO(_render_network(data)),
-        dest=_unit_path(name),
-        user="root",
-        group="root",
-        mode="0644",
-        _sudo=True,
-    )
+        units.append(
+            files.put(
+                name=f"Render {_unit_path(name)}",
+                src=StringIO(_render_network(name)),
+                dest=_unit_path(name),
+                user="root",
+                group="root",
+                mode="0644",
+                _sudo=True,
+            )
+        )
 
     # A daemon-reload runs the quadlet generator, which creates the podman
-    # network. The network has no long-running service to "start"; the reload is
-    # the action. Containers referencing it pull it up via the generated
-    # <name>-network.service dependency.
+    # networks. A network has no long-running service to "start"; the reload is
+    # the action. Containers referencing one pull it up via the generated
+    # <name>-network.service dependency. did_change() is deferred via the _if
+    # callable: it can only be read after the execute phase.
     systemd.daemon_reload(
-        name="Reload systemd to create the podman network",
-        _if=unit.did_change,
+        name="Reload systemd to create the podman networks",
+        _if=lambda: any(u.did_change() for u in units),
         _sudo=True,
     )

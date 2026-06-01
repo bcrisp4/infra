@@ -93,6 +93,34 @@ def test_quadlet_joins_monitoring_network() -> None:
     assert "Network=monitoring.network" in out
 
 
+def test_quadlet_joins_rendering_network() -> None:
+    """Grafana also joins the dedicated rendering network to reach the renderer."""
+    out = _render_quadlet(BASE_DATA)
+    assert "Network=rendering.network" in out
+
+
+def test_quadlet_points_at_image_renderer() -> None:
+    """server_url targets the renderer by ContainerName with the required /render
+    suffix; callback_url points back at Grafana's own ContainerName + port."""
+    out = _render_quadlet(BASE_DATA)
+    assert (
+        "Environment=GF_RENDERING_SERVER_URL=http://grafana-image-renderer:8081/render"
+        in out
+    )
+    assert (
+        f"Environment=GF_RENDERING_CALLBACK_URL=http://grafana:{CONTAINER_PORT}/" in out
+    )
+
+
+def test_quadlet_loads_renderer_token_env_file() -> None:
+    """GF_RENDERING_RENDERER_TOKEN comes from the shared renderer token file
+    (Grafana 13 refuses to start with the default renderer token)."""
+    from tasks.image_renderer import TOKEN_FILE
+
+    out = _render_quadlet(BASE_DATA)
+    assert f"EnvironmentFile={TOKEN_FILE}" in out
+
+
 def test_quadlet_publishes_host_port_loopback_only() -> None:
     """Loopback only: reachable solely via the Tailscale service. No LAN
     (0.0.0.0) or raw-Tailscale-IP ([::]) exposure."""

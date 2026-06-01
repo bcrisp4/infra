@@ -5,9 +5,14 @@ Renders the Prometheus datasource provisioning file +
 grafana.service is running. The quadlet generator converts the .container file
 into a runtime systemd unit at daemon-reload.
 
-Networking: Grafana joins the shared `monitoring` podman network (see
-tasks/podman_network.py) and reaches the colocated Prometheus by ContainerName
-(http://prometheus:9090) via aardvark-dns. The host port is published on the
+Networking: Grafana joins two podman networks (see tasks/podman_network.py). On
+the shared `monitoring` network it reaches the colocated Prometheus by
+ContainerName (http://prometheus:9090) via aardvark-dns. On the dedicated
+`rendering` network it reaches the image renderer (http://grafana-image-renderer:8081,
+see tasks/image_renderer.py); Grafana is the only other member, so the renderer
+is not exposed to Prometheus or anything else. The renderer auth token is loaded
+from a shared host-generated EnvironmentFile (Grafana 13 refuses to start with the
+default renderer token); see tasks/image_renderer.py. The host port is published on the
 loopback only (127.0.0.1); external access is solely through the Tailscale
 service svc:grafana (HTTPS at grafana.marlin-tet.ts.net, see
 tasks/tailscale_service.py). No LAN or raw-Tailscale-IP exposure.
@@ -32,6 +37,8 @@ from pyinfra import host
 from pyinfra.api import deploy
 from pyinfra.operations import files, systemd
 
+from tasks.image_renderer import TOKEN_FILE as RENDERER_TOKEN_FILE
+
 UNIT_PATH = "/etc/containers/systemd/grafana.container"
 
 # Provisioning datasource file. Grafana reads /etc/grafana/provisioning by
@@ -53,6 +60,12 @@ CONTAINER_PORT = 3000
 
 # Prometheus is reached by its ContainerName on the shared monitoring network.
 PROMETHEUS_CONTAINER_NAME = "prometheus"
+
+# The image renderer is reached by its ContainerName on the dedicated rendering
+# network (see tasks/image_renderer.py). RENDERER_PORT is the renderer's fixed
+# in-container listen port; no host port is involved.
+RENDERER_CONTAINER_NAME = "grafana-image-renderer"
+RENDERER_PORT = 8081
 
 
 def _render_datasource(data: Mapping) -> str:
@@ -98,6 +111,9 @@ def _render_quadlet(data: Mapping) -> str:
         "ContainerName=grafana",
         # Shared bridge with Prometheus; resolves `prometheus` via aardvark-dns.
         "Network=monitoring.network",
+        # Dedicated bridge with the image renderer; resolves
+        # `grafana-image-renderer` via aardvark-dns. Grafana is its only peer.
+        "Network=rendering.network",
         # Loopback-only: Grafana is reached solely via the Tailscale service
         # (HTTPS at grafana.marlin-tet.ts.net), whose proxy on the host hits
         # 127.0.0.1. No LAN or raw-Tailscale-IP exposure. See
@@ -114,6 +130,16 @@ def _render_quadlet(data: Mapping) -> str:
         # Homelab: no telemetry, no update nag.
         "Environment=GF_ANALYTICS_REPORTING_ENABLED=false",
         "Environment=GF_ANALYTICS_CHECK_FOR_UPDATES=false",
+        # Remote image rendering (tasks/image_renderer.py). server_url is where
+        # Grafana sends render requests (the /render suffix is required);
+        # callback_url is how the renderer fetches the page to snapshot back from
+        # Grafana. Both resolve over the rendering network by ContainerName.
+        f"Environment=GF_RENDERING_SERVER_URL=http://{RENDERER_CONTAINER_NAME}:{RENDERER_PORT}/render",
+        f"Environment=GF_RENDERING_CALLBACK_URL=http://grafana:{CONTAINER_PORT}/",
+        # Shared token file (GF_RENDERING_RENDERER_TOKEN). Grafana 13 refuses to
+        # start with the default token when a renderer is set; this is the same
+        # host-generated file the renderer reads (tasks/image_renderer.py).
+        f"EnvironmentFile={RENDERER_TOKEN_FILE}",
         "",
         "[Service]",
         # Always restart: covers non-zero exits, panics, OOM-kill (SIGKILL from
