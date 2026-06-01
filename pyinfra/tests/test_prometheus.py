@@ -89,6 +89,28 @@ def test_config_nodeexporter_instance_tracks_node_name(name: str) -> None:
     assert f"        labels: {{instance: '{name}'}}" in out
 
 
+def test_config_has_grafana_job() -> None:
+    """Grafana is scraped over the monitoring bridge by ContainerName."""
+    out = _render_config(BASE_DATA)
+    assert "  - job_name: grafana" in out
+    assert "      - targets: ['grafana:3000']" in out
+
+
+def test_config_grafana_instance_relabelled_to_node_name() -> None:
+    """The scrape address is the container name, but instance should read as the
+    node's short hostname."""
+    out = _render_config(BASE_DATA)
+    grafana_block = out.split("  - job_name: grafana", 1)[1]
+    assert "        labels: {instance: 'rpi5-4cpu-16gb-home'}" in grafana_block
+
+
+@pytest.mark.parametrize("name", ["rpi5-4cpu-16gb-home", "htz-fsn1-prod-1"])
+def test_config_grafana_instance_tracks_node_name(name: str) -> None:
+    out = _render_config({**BASE_DATA, "node_name": name})
+    grafana_block = out.split("  - job_name: grafana", 1)[1]
+    assert f"        labels: {{instance: '{name}'}}" in grafana_block
+
+
 @pytest.mark.parametrize("interval", ["10s", "15s", "1m"])
 def test_config_scrape_interval_substituted(interval: str) -> None:
     out = _render_config({**BASE_DATA, "prometheus_scrape_interval": interval})

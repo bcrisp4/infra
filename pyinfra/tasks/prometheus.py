@@ -80,6 +80,15 @@ def _render_config(data: Mapping) -> str:
         "    static_configs:",
         f"      - targets: ['{nodeexporter_target}']",
         f"        labels: {{instance: '{node_name}'}}",
+        "",
+        # Grafana shares the monitoring bridge, so it is reached by ContainerName
+        # at its in-container port (3000), NOT the loopback-published host port.
+        # The target address is meaningless as `instance`, so pin it to the node
+        # short hostname (same rationale as node-exporter above).
+        "  - job_name: grafana",
+        "    static_configs:",
+        "      - targets: ['grafana:3000']",
+        f"        labels: {{instance: '{node_name}'}}",
     ]
     return "\n".join(lines) + "\n"
 
