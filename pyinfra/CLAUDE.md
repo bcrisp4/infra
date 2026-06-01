@@ -1,15 +1,15 @@
 # CLAUDE.md — pyinfra
 
-Guide Claude Code when working pyinfra in infra monorepo.
+Guide Claude Code when work pyinfra in infra monorepo.
 
 ## What pyinfra is
 
-pyinfra = Python infra automation tool. Turn Python into shell commands, execute on target hosts via connectors (SSH, Docker, local, chroot, etc.). Agentless, idempotent, supports dry-run with diffs.
+pyinfra = Python infra automation tool. Turn Python into shell commands, run on target hosts via connectors (SSH, Docker, local, chroot, etc.). Agentless, idempotent, supports dry-run with diffs.
 
 - Upstream repo: https://github.com/pyinfra-dev/pyinfra
 - Docs: https://docs.pyinfra.com/en/3.x/
 - Vendored read-only copy: `~/vendor/pyinfra/`
-- **context7 MCP** indexes pyinfra docs. Use `mcp__plugin_context7_context7__resolve-library-id` + `mcp__plugin_context7_context7__query-docs` for current API + usage info before web search or guessing.
+- **context7 MCP** indexes pyinfra docs. Use `mcp__plugin_context7_context7__resolve-library-id` + `mcp__plugin_context7_context7__query-docs` for current API + usage before web search or guess.
 
 ## Execution model
 
@@ -62,8 +62,8 @@ class NginxRunning(FactBase):
 
 ### Hosts and inventory
 - Inventory = Python file (usually `inventory.py`) listing targets.
-- Top-level list variable name becomes the group name. `group_data/<group>.py` (alongside `inventory.py`) is auto-discovered and supplies shared data.
-- Per-host data goes in the host tuple `(fqdn, {key: value})` and overrides group data. Tasks read values via `host.data.get("key", default)`.
+- Top-level list variable name becomes group name. `group_data/<group>.py` (alongside `inventory.py`) auto-discovered, supplies shared data.
+- Per-host data goes in host tuple `(fqdn, {key: value})`, overrides group data. Tasks read values via `host.data.get("key", default)`.
 - Plain hostnames default SSH connector. Connector-specific targets use `@connector/args` syntax.
 - Examples: `web1.example.net`, `@docker/ubuntu:latest`, `@local`, `@ssh/jump-host/target-host`.
 - Groups = dicts mapping group name → `(host_list, group_data)`. Data resolves global → group → host.
@@ -96,7 +96,8 @@ Common CLI flags:
 - Cluster naming: `{provider}-{region}-{env}` (e.g. `htz-fsn1-prod`).
 - Hosts live on Tailscale tailnet `marlin-tet.ts.net`. Prefer Tailscale hostnames/IPs over public DNS for remote SSH.
 - Never commit secrets, kubeconfigs, talosconfigs, private keys. Run pre-commit checks in root `CLAUDE.md` before commit.
-- See `pyinfra/README.md` for quick-start, host-add recipe, and troubleshooting.
+- See `pyinfra/README.md` for quick-start, host-add recipe, troubleshooting.
+- **Task pattern** (all container tasks: `tasks/bns.py`, `prometheus.py`, `grafana.py`, `nodeexporter.py`): `@deploy` fn gated on `<name>_enabled`, with pure `_render_*(data: Mapping) -> str` renderers that build config/quadlet text from host data, `files.put` the result, then `systemd.service(..., _if=unit.did_change, daemon_reload=True)` to restart only on change (config-only changes SIGHUP via `_if=config.did_change and not unit.did_change`). Materialize `host.data` into plain dict at `@deploy` boundary so renderers stay pure + testable. Unit-test renderers with plain `pytest` in `tests/test_<task>.py` (assert substrings, determinism, single trailing newline). `deploy.py` calls tasks in dependency order.
 
 ## Best practices
 
@@ -108,24 +109,25 @@ Common CLI flags:
 - **Use `QuoteString` / `MaskString`** from `pyinfra.api.command` when interpolating user-supplied values into shell commands. Handles escaping, keeps secrets out of logs.
 - **Pull `host` / `state` from `pyinfra.context`**, don't thread through function signatures.
 - **Reuse helpers** in `pyinfra.operations.util.file_utils` + friends before adding new utilities.
-- **Test operations + facts via fixtures**, not Python unit tests. Fixtures live under `tests/operations/<module>.<op>/` + `tests/facts/<module>.<Fact>/` in upstream repo, auto-discovered.
+- **Contributing operations/facts *upstream*** uses fixtures, not unit tests (under `tests/operations/<module>.<op>/` + `tests/facts/<module>.<Fact>/`). Does NOT apply to this repo's tasks — see task pattern under "Project conventions" and unit-test pure renderers with `pytest`.
 
 ## Gotchas
 
-- `host.data["key"]` raises `TypeError` — `HostData` is not subscriptable. Use `host.data.get("key")` (or materialize a plain dict at the `@deploy` boundary) before passing to pure renderers.
-- Apply a deploy: `cd pyinfra && uv run pyinfra -y inventory.py deploy.py --limit <fqdn>`. `-y` skips the interactive change-confirm prompt (required in non-TTY runs; otherwise pyinfra raises `EOFError`).
-- Podman quadlet: `Memory=` / `CPUS=` / `PidsLimit=` in `[Container]` need podman ≥5.5 (quadlet rejects them with "unsupported key" on 5.4.x — Debian 13 ships 5.4.2). For portability put cgroup ceilings in `[Service]` as `MemoryMax=` / `CPUQuota=` / `TasksMax=` — quadlet passes `[Service]` through unchanged.
+- `host.data["key"]` raises `TypeError` — `HostData` not subscriptable. Use `host.data.get("key")` (or materialize plain dict at `@deploy` boundary) before passing to pure renderers.
+- Apply deploy: `cd pyinfra && uv run pyinfra -y inventory.py deploy.py --limit <fqdn>`. `-y` skips interactive change-confirm prompt (required in non-TTY runs; else pyinfra raises `EOFError`).
+- Podman quadlet: `Memory=` / `CPUS=` / `PidsLimit=` in `[Container]` need podman ≥5.5 (quadlet rejects with "unsupported key" on 5.4.x — Debian 13 ships 5.4.2). For portability put cgroup ceilings in `[Service]` as `MemoryMax=` / `CPUQuota=` / `TasksMax=` — quadlet passes `[Service]` through unchanged.
 - Quadlet boot start = `[Install] WantedBy=multi-user.target` in the `.container`. Do NOT pass `enabled=True` to `systemd.service` — generator-produced units cannot be `systemctl enable`d ("Unit file does not exist").
-- Quadlet rejects unknown `[Container]` keys silently: the generator skips the whole unit, so `daemon-reload` produces no `<name>.service` and `systemd.service` restart fails with "Unit <name>.service not found". `Network=` has a dedicated key but there is NO `PidMode=` key (podman 5.4) — share the host PID namespace via `PodmanArgs=--pid=host`. Anything the generator doesn't support goes through `PodmanArgs=`. Diagnose with `/usr/lib/podman/quadlet -dryrun` on the host.
-- Quadlet `Exec=` is parsed by systemd, which expands env vars: a literal `$` must be written `$$` or regex anchors (`($|/)`, trailing `$`) get eaten as bogus expansions (see `tasks/nodeexporter.py` filesystem-collector excludes).
-- `podman stats` LIMIT column reports host RAM (not the cgroup max) under `--cgroups=split` (quadlet default). Authoritative sources: `systemctl status <unit>` and `/sys/fs/cgroup/system.slice/<unit>/memory.{current,peak,max,events}`.
-- `pyinfra -y` skips the "Detected changes:" diff preview entirely. Run `--dry` *without* `-y` to see the diff; add `-y` back for the apply (non-TTY runs still need it).
-- Homelab Pi (`ben@rpi5-4cpu-16gb-home`) has no passwordless sudo. `pyinfra` apply needs an interactive TTY for the sudo prompt, or set `PYINFRA_SUDO_PASSWORD` before invocation. Claude Code Bash tool has no TTY → user must run apply via `!` prefix.
-- NetworkManager keyfile renders (`tasks/network.py`): the `uuid=` value must match the existing in-memory connection's UUID, or NM creates a duplicate connection alongside it and two profiles fight for the interface. Read existing UUID via `nmcli -t -f connection.uuid con show '<id>'` and pin in host data.
-- User-defined podman network = aardvark-dns binds `<bridge-gateway>:53`. Any host process bound to the wildcard `:53` (e.g. a DNS server published as `PublishPort=53:...` with no host IP) occupies `:53` on every bridge gateway and blocks aardvark, so the FIRST container on the network fails to start (`aardvark-dns failed to start: ... Address already in use`). Fix: bind the host DNS server to a specific IP, not the wildcard.
-- `host.containers.internal` resolves to the bridge GATEWAY, not host loopback. A container CANNOT reach a host port bound to `127.0.0.1` via it. For container-to-container by name, put both on a user-defined network (aardvark-dns); to reach a host service, that service must bind the gateway/wildcard or a routable host IP.
-- Lint/format: `uv run ruff check` / `uv run ruff format` (ruff is a dev dependency). Tests: `uv run pytest`.
-- `tailscale serve` HTTPS for a Service: use the CLI form `tailscale serve --service=<svc> --https=<port> http://<backend>`, NOT `serve set-config <huJSON>`. The flattened set-config schema has one per-endpoint protocol field that conflates listener vs backend, so `{"tcp:443":"http://..."}` configures a PLAINTEXT http listener (no TLS) and `serve get-config` round-trips lossily. Symptom: browser TLS error / `curl: wrong version number`; `tailscale serve get-config` looks identical to a working service but the listener is http. Verified in vendored `ipn/conffile/serveconf.go` + `cmd/tailscale/cli/serve_v2.go`. Re-applying the same `--https` config is idempotent (tailscaled only rejects a serve-TYPE change on a port).
+- Quadlet rejects unknown `[Container]` keys silently: generator skips whole unit, so `daemon-reload` produces no `<name>.service` and `systemd.service` restart fails with "Unit <name>.service not found". `Network=` has dedicated key but NO `PidMode=` key (podman 5.4) — share host PID namespace via `PodmanArgs=--pid=host`. Anything generator doesn't support goes through `PodmanArgs=`. Diagnose with `/usr/lib/podman/quadlet -dryrun` on host.
+- Quadlet `Exec=` parsed by systemd, which expands env vars: literal `$` must be written `$$` or regex anchors (`($|/)`, trailing `$`) get eaten as bogus expansions (see `tasks/nodeexporter.py` filesystem-collector excludes).
+- `podman stats` LIMIT column reports host RAM (not cgroup max) under `--cgroups=split` (quadlet default). Authoritative sources: `systemctl status <unit>` and `/sys/fs/cgroup/system.slice/<unit>/memory.{current,peak,max,events}`.
+- `pyinfra -y` skips "Detected changes:" diff preview entirely. Run `--dry` *without* `-y` to see diff; add `-y` back for apply (non-TTY runs still need it).
+- Homelab Pi (`ben@rpi5-4cpu-16gb-home`) has no passwordless sudo. `pyinfra` apply needs interactive TTY for sudo prompt, or set `PYINFRA_SUDO_PASSWORD` before invocation. Claude Code Bash tool has no TTY → user must run apply via `!` prefix.
+- NetworkManager keyfile renders (`tasks/network.py`): `uuid=` value must match existing in-memory connection's UUID, else NM creates duplicate connection alongside it and two profiles fight for interface. Read existing UUID via `nmcli -t -f connection.uuid con show '<id>'` and pin in host data.
+- User-defined podman network = aardvark-dns binds `<bridge-gateway>:53`. Any host process bound to wildcard `:53` (e.g. DNS server published as `PublishPort=53:...` with no host IP) occupies `:53` on every bridge gateway and blocks aardvark, so FIRST container on network fails to start (`aardvark-dns failed to start: ... Address already in use`). Fix: bind host DNS server to specific IP, not wildcard.
+- `host.containers.internal` resolves to bridge GATEWAY, not host loopback. Container CANNOT reach host port bound to `127.0.0.1` via it. For container-to-container by name, put both on user-defined network (aardvark-dns); to reach host service, that service must bind gateway/wildcard or routable host IP.
+- Lint/format: `uv run ruff check` / `uv run ruff format` (ruff is dev dependency). Tests: `uv run pytest`.
+- `tailscale serve` HTTPS for Service: use CLI form `tailscale serve --service=<svc> --https=<port> http://<backend>`, NOT `serve set-config <huJSON>`. Flattened set-config schema has one per-endpoint protocol field that conflates listener vs backend, so `{"tcp:443":"http://..."}` configures PLAINTEXT http listener (no TLS) and `serve get-config` round-trips lossily. Symptom: browser TLS error / `curl: wrong version number`; `tailscale serve get-config` looks identical to working service but listener is http. Verified in vendored tailscale source at `~/vendor/tailscale` (`ipn/conffile/serveconf.go` + `cmd/tailscale/cli/serve_v2.go`) — read-only reference for serve/ACL/config internals. Re-applying same `--https` config is idempotent (tailscaled only rejects serve-TYPE change on a port).
+- New Tailscale Service: `tailscale cert <name>` / first HTTPS hit can fail with `acme: Certificate not found` (404) until node's netmap learns freshly-created service. `sudo systemctl restart tailscaled` forces fresh netmap pull and resolves it. (`tailscale cert` writing files to disk is just a test; serve auto-uses cert, no separate apply step.)
 
 ## When extending pyinfra
 
