@@ -46,10 +46,17 @@ def _render_config(data: Mapping) -> str:
     """Render prometheus.yml from host data.
 
     Hand-rolled YAML (no PyYAML) because the shape is fixed and unit-tested.
-    The bns scrape target reads bns_host_port_admin so the port has a single
-    source of truth.
+    The bns and node-exporter scrape targets read their host ports from data so
+    each port has a single source of truth.
+
+    node-exporter is scraped over host.containers.internal (the only route from
+    the Prometheus container to the host port), but that address is meaningless
+    as an `instance` label, so we pin instance to the node's short hostname
+    (data["node_name"]).
     """
     bns_target = f"host.containers.internal:{data['bns_host_port_admin']}"
+    nodeexporter_target = f"host.containers.internal:{data['nodeexporter_host_port']}"
+    node_name = data["node_name"]
     lines = [
         "# Rendered by pyinfra tasks/prometheus.py. Do not edit by hand.",
         "global:",
@@ -64,6 +71,11 @@ def _render_config(data: Mapping) -> str:
         "  - job_name: bns",
         "    static_configs:",
         f"      - targets: ['{bns_target}']",
+        "",
+        "  - job_name: node-exporter",
+        "    static_configs:",
+        f"      - targets: ['{nodeexporter_target}']",
+        f"        labels: {{instance: '{node_name}'}}",
     ]
     return "\n".join(lines) + "\n"
 
@@ -137,6 +149,7 @@ _DATA_KEYS = (
     "prometheus_cpu_quota",
     "prometheus_tasks_max",
     "bns_host_port_admin",
+    "nodeexporter_host_port",
 )
 
 
@@ -148,6 +161,9 @@ def prometheus() -> None:
     # HostData is not subscriptable; materialize into a plain dict so the pure
     # renderers stay test-friendly with `data["key"]` access.
     data = {k: host.data.get(k) for k in _DATA_KEYS}
+    # Short hostname for the node-exporter `instance` label (the inventory name
+    # is the Tailscale FQDN; take the first label).
+    data["node_name"] = host.name.split(".")[0]
 
     # Set ownership on the mounted LV root before the container starts. storage()
     # runs earlier in deploy.py and mounts the LV here (0700 root); chown to the

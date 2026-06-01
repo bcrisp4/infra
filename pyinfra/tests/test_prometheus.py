@@ -23,6 +23,8 @@ BASE_DATA: dict = {
     "prometheus_cpu_quota": "200%",
     "prometheus_tasks_max": 4096,
     "bns_host_port_admin": 9053,
+    "nodeexporter_host_port": 9100,
+    "node_name": "rpi5-4cpu-16gb-home",
 }
 
 
@@ -52,6 +54,31 @@ def test_config_bns_job_uses_host_containers_internal_and_admin_port() -> None:
 def test_config_bns_target_tracks_admin_port(port: int) -> None:
     out = _render_config({**BASE_DATA, "bns_host_port_admin": port})
     assert f"      - targets: ['host.containers.internal:{port}']" in out
+
+
+def test_config_nodeexporter_job_uses_host_containers_internal() -> None:
+    out = _render_config(BASE_DATA)
+    assert "  - job_name: node-exporter" in out
+    assert "      - targets: ['host.containers.internal:9100']" in out
+
+
+@pytest.mark.parametrize("port", [9100, 19100])
+def test_config_nodeexporter_target_tracks_host_port(port: int) -> None:
+    out = _render_config({**BASE_DATA, "nodeexporter_host_port": port})
+    assert f"      - targets: ['host.containers.internal:{port}']" in out
+
+
+def test_config_nodeexporter_instance_relabelled_to_node_name() -> None:
+    """The scrape address is host.containers.internal, but instance should read
+    as the node's short hostname."""
+    out = _render_config(BASE_DATA)
+    assert "        labels: {instance: 'rpi5-4cpu-16gb-home'}" in out
+
+
+@pytest.mark.parametrize("name", ["rpi5-4cpu-16gb-home", "htz-fsn1-prod-1"])
+def test_config_nodeexporter_instance_tracks_node_name(name: str) -> None:
+    out = _render_config({**BASE_DATA, "node_name": name})
+    assert f"        labels: {{instance: '{name}'}}" in out
 
 
 @pytest.mark.parametrize("interval", ["10s", "15s", "1m"])

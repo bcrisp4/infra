@@ -4,6 +4,7 @@ from tasks.base import base
 from tasks.bns import bns
 from tasks.dhcp import dnsmasq
 from tasks.network import static_network
+from tasks.nodeexporter import node_exporter
 from tasks.podman import install_podman
 from tasks.prometheus import prometheus
 from tasks.storage import storage
@@ -16,6 +17,7 @@ static_network()
 storage()
 install_podman()
 bns()
+node_exporter()
 prometheus()
 tailscale_service()
 dnsmasq()
