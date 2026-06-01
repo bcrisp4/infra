@@ -64,6 +64,22 @@ prometheus_memory_high = "768M"
 prometheus_cpu_quota = "200%"
 prometheus_tasks_max = 4096
 
+# node-exporter runs as a rootful podman quadlet (tasks/nodeexporter.py). Host
+# namespaces + rootfs (Network=host, PidMode=host, /:/host:ro) so metrics
+# describe the Pi, not the container. Binds 0.0.0.0:9100 (Network=host removes
+# the loopback restriction Prometheus uses; matches bns admin's trusted-LAN
+# exposure). Prometheus scrapes it via host.containers.internal:9100. Stateless,
+# so ceilings are small.
+nodeexporter_enabled = True
+nodeexporter_image = "quay.io/prometheus/node-exporter"
+nodeexporter_image_tag = "v1.11.1"
+nodeexporter_host_port = 9100
+# systemd-native cgroup ceilings (applied in [Service] of the quadlet).
+nodeexporter_memory_max = "128M"
+nodeexporter_memory_high = "96M"
+nodeexporter_cpu_quota = "50%"
+nodeexporter_tasks_max = 1024
+
 # Expose Prometheus as a Tailscale Service (tasks/tailscale_service.py). The Pi
 # advertises svc:prometheus via `tailscale serve`; tailscaled terminates TLS on
 # :443 and reverse-proxies to the loopback-bound container (prometheus_host_port).
