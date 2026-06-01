@@ -116,17 +116,16 @@
       {
         "kind": "QueryVariable",
         "spec": {
-          "allValue": ".*",
           "allowCustomValue": true,
           "current": {
-            "text": "All",
-            "value": "$__all"
+            "text": "",
+            "value": ""
           },
           "definition": "label_values(node_uname_info{job=~\"$job\"}, instance)",
           "hide": "dontHide",
-          "includeAll": true,
+          "includeAll": false,
           "label": "Instance",
-          "multi": true,
+          "multi": false,
           "name": "instance",
           "options": [],
           "query": {
@@ -159,7 +158,7 @@
           "baseFilters": [],
           "filters": [],
           "defaultKeys": [],
-          "hide": "dontHide",
+          "hide": "hideLabel",
           "skipUrlSync": false,
           "allowCustomValue": true
         }
@@ -190,8 +189,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 - (avg by(instance)(rate(node_cpu_seconds_total{job=~\"$job\", instance=~\"$instance\", mode=\"idle\"}[$__rate_interval])) * 100)",
-                        "legendFormat": "{{instance}}",
+                        "expr": "100 - (avg(rate(node_cpu_seconds_total{job=~\"$job\", instance=\"$instance\", mode=\"idle\"}[$__rate_interval])) * 100)",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -276,8 +275,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 * (1 - (node_memory_MemAvailable_bytes{job=~\"$job\", instance=~\"$instance\"} / node_memory_MemTotal_bytes{job=~\"$job\", instance=~\"$instance\"}))",
-                        "legendFormat": "{{instance}}",
+                        "expr": "100 * (1 - (node_memory_MemAvailable_bytes{job=~\"$job\", instance=\"$instance\"} / node_memory_MemTotal_bytes{job=~\"$job\", instance=\"$instance\"}))",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -362,8 +361,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 * (1 - (node_memory_SwapFree_bytes{job=~\"$job\", instance=~\"$instance\"} / node_memory_SwapTotal_bytes{job=~\"$job\", instance=~\"$instance\"}))",
-                        "legendFormat": "{{instance}}",
+                        "expr": "100 * (1 - (node_memory_SwapFree_bytes{job=~\"$job\", instance=\"$instance\"} / node_memory_SwapTotal_bytes{job=~\"$job\", instance=\"$instance\"}))",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -448,8 +447,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 * (1 - (node_filesystem_avail_bytes{job=~\"$job\", instance=~\"$instance\", mountpoint=\"/\"} / node_filesystem_size_bytes{job=~\"$job\", instance=~\"$instance\", mountpoint=\"/\"}))",
-                        "legendFormat": "{{instance}}",
+                        "expr": "100 * (1 - (node_filesystem_avail_bytes{job=~\"$job\", instance=\"$instance\", mountpoint=\"/\"} / node_filesystem_size_bytes{job=~\"$job\", instance=\"$instance\", mountpoint=\"/\"}))",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -534,8 +533,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_load1{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}}",
+                        "expr": "node_load1{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -613,8 +612,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "max by(instance)(node_hwmon_temp_celsius{job=~\"$job\", instance=~\"$instance\"})",
-                        "legendFormat": "{{instance}}",
+                        "expr": "max(node_hwmon_temp_celsius{job=~\"$job\", instance=\"$instance\"})",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -699,8 +698,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_time_seconds{job=~\"$job\", instance=~\"$instance\"} - node_boot_time_seconds{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}}",
+                        "expr": "node_time_seconds{job=~\"$job\", instance=\"$instance\"} - node_boot_time_seconds{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -855,8 +854,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 - (avg by(instance)(rate(node_cpu_seconds_total{job=~\"$job\", instance=~\"$instance\", mode=\"idle\"}[$__rate_interval])) * 100)",
-                        "legendFormat": "{{instance}}",
+                        "expr": "100 - (avg(rate(node_cpu_seconds_total{job=~\"$job\", instance=\"$instance\", mode=\"idle\"}[$__rate_interval])) * 100)",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -945,8 +944,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 * (1 - (node_memory_MemAvailable_bytes{job=~\"$job\", instance=~\"$instance\"} / node_memory_MemTotal_bytes{job=~\"$job\", instance=~\"$instance\"}))",
-                        "legendFormat": "{{instance}}",
+                        "expr": "100 * (1 - (node_memory_MemAvailable_bytes{job=~\"$job\", instance=\"$instance\"} / node_memory_MemTotal_bytes{job=~\"$job\", instance=\"$instance\"}))",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -1035,8 +1034,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "sum by(instance)(rate(node_network_receive_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
-                        "legendFormat": "{{instance}} rx",
+                        "expr": "sum(rate(node_network_receive_bytes_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval]))",
+                        "legendFormat": "rx",
                         "range": true
                       }
                     }
@@ -1055,8 +1054,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "sum by(instance)(rate(node_network_transmit_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
-                        "legendFormat": "{{instance}} tx",
+                        "expr": "sum(rate(node_network_transmit_bytes_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval]))",
+                        "legendFormat": "tx",
                         "range": true
                       }
                     }
@@ -1143,8 +1142,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "sum by(instance)(rate(node_disk_read_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
-                        "legendFormat": "{{instance}} read",
+                        "expr": "sum(rate(node_disk_read_bytes_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval]))",
+                        "legendFormat": "read",
                         "range": true
                       }
                     }
@@ -1163,8 +1162,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "sum by(instance)(rate(node_disk_written_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
-                        "legendFormat": "{{instance}} write",
+                        "expr": "sum(rate(node_disk_written_bytes_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval]))",
+                        "legendFormat": "write",
                         "range": true
                       }
                     }
@@ -1251,8 +1250,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_load1{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} 1m",
+                        "expr": "node_load1{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "1m",
                         "range": true
                       }
                     }
@@ -1271,8 +1270,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_load5{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} 5m",
+                        "expr": "node_load5{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "5m",
                         "range": true
                       }
                     }
@@ -1291,8 +1290,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_load15{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} 15m",
+                        "expr": "node_load15{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "15m",
                         "range": true
                       }
                     }
@@ -1379,8 +1378,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 * (1 - (node_filesystem_avail_bytes{job=~\"$job\", instance=~\"$instance\", mountpoint=\"/\"} / node_filesystem_size_bytes{job=~\"$job\", instance=~\"$instance\", mountpoint=\"/\"}))",
-                        "legendFormat": "{{instance}}",
+                        "expr": "100 * (1 - (node_filesystem_avail_bytes{job=~\"$job\", instance=\"$instance\", mountpoint=\"/\"} / node_filesystem_size_bytes{job=~\"$job\", instance=\"$instance\", mountpoint=\"/\"}))",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -1469,7 +1468,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 - (avg by(instance)(rate(node_cpu_seconds_total{job=~\"$job\", instance=~\"$instance\", mode=\"idle\"}[$__rate_interval])) * 100)",
+                        "expr": "100 - (avg(rate(node_cpu_seconds_total{job=~\"$job\", instance=\"$instance\", mode=\"idle\"}[$__rate_interval])) * 100)",
                         "instant": true,
                         "range": false,
                         "format": "table"
@@ -1490,7 +1489,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 * (1 - (node_memory_MemAvailable_bytes{job=~\"$job\", instance=~\"$instance\"} / node_memory_MemTotal_bytes{job=~\"$job\", instance=~\"$instance\"}))",
+                        "expr": "100 * (1 - (node_memory_MemAvailable_bytes{job=~\"$job\", instance=\"$instance\"} / node_memory_MemTotal_bytes{job=~\"$job\", instance=\"$instance\"}))",
                         "instant": true,
                         "range": false,
                         "format": "table"
@@ -1511,7 +1510,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 * (1 - (node_filesystem_avail_bytes{job=~\"$job\", instance=~\"$instance\", mountpoint=\"/\"} / node_filesystem_size_bytes{job=~\"$job\", instance=~\"$instance\", mountpoint=\"/\"}))",
+                        "expr": "100 * (1 - (node_filesystem_avail_bytes{job=~\"$job\", instance=\"$instance\", mountpoint=\"/\"} / node_filesystem_size_bytes{job=~\"$job\", instance=\"$instance\", mountpoint=\"/\"}))",
                         "instant": true,
                         "range": false,
                         "format": "table"
@@ -1532,7 +1531,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_load1{job=~\"$job\", instance=~\"$instance\"}",
+                        "expr": "node_load1{job=~\"$job\", instance=\"$instance\"}",
                         "instant": true,
                         "range": false,
                         "format": "table"
@@ -1553,7 +1552,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_time_seconds{job=~\"$job\", instance=~\"$instance\"} - node_boot_time_seconds{job=~\"$job\", instance=~\"$instance\"}",
+                        "expr": "node_time_seconds{job=~\"$job\", instance=\"$instance\"} - node_boot_time_seconds{job=~\"$job\", instance=\"$instance\"}",
                         "instant": true,
                         "range": false,
                         "format": "table"
@@ -1718,8 +1717,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "avg by(instance, mode)(rate(node_cpu_seconds_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])) * 100",
-                        "legendFormat": "{{instance}} {{mode}}",
+                        "expr": "avg by(mode)(rate(node_cpu_seconds_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])) * 100",
+                        "legendFormat": "{{mode}}",
                         "range": true
                       }
                     }
@@ -1811,8 +1810,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "(1 - rate(node_cpu_seconds_total{job=~\"$job\", instance=~\"$instance\", mode=\"idle\"}[$__rate_interval])) * 100",
-                        "legendFormat": "{{instance}} cpu{{cpu}}",
+                        "expr": "(1 - rate(node_cpu_seconds_total{job=~\"$job\", instance=\"$instance\", mode=\"idle\"}[$__rate_interval])) * 100",
+                        "legendFormat": "cpu{{cpu}}",
                         "range": true
                       }
                     }
@@ -1901,8 +1900,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 - (avg by(instance)(rate(node_cpu_seconds_total{job=~\"$job\", instance=~\"$instance\", mode=\"idle\"}[$__rate_interval])) * 100)",
-                        "legendFormat": "{{instance}}",
+                        "expr": "100 - (avg(rate(node_cpu_seconds_total{job=~\"$job\", instance=\"$instance\", mode=\"idle\"}[$__rate_interval])) * 100)",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -1986,8 +1985,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "avg by(instance)(rate(node_cpu_seconds_total{job=~\"$job\", instance=~\"$instance\", mode=\"iowait\"}[$__rate_interval])) * 100",
-                        "legendFormat": "{{instance}}",
+                        "expr": "avg(rate(node_cpu_seconds_total{job=~\"$job\", instance=\"$instance\", mode=\"iowait\"}[$__rate_interval])) * 100",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -2075,8 +2074,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_load1{job=~\"$job\", instance=~\"$instance\"} / on(instance) group_left count by(instance)(node_cpu_seconds_total{job=~\"$job\", instance=~\"$instance\", mode=\"idle\"})",
-                        "legendFormat": "{{instance}}",
+                        "expr": "node_load1{job=~\"$job\", instance=\"$instance\"} / scalar(count(node_cpu_seconds_total{job=~\"$job\", instance=\"$instance\", mode=\"idle\"}))",
+                        "legendFormat": "load / core",
                         "range": true
                       }
                     }
@@ -2163,8 +2162,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_load1{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} 1m",
+                        "expr": "node_load1{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "1m",
                         "range": true
                       }
                     }
@@ -2183,8 +2182,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_load5{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} 5m",
+                        "expr": "node_load5{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "5m",
                         "range": true
                       }
                     }
@@ -2203,8 +2202,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_load15{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} 15m",
+                        "expr": "node_load15{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "15m",
                         "range": true
                       }
                     }
@@ -2291,8 +2290,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_procs_running{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} running",
+                        "expr": "node_procs_running{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "running",
                         "range": true
                       }
                     }
@@ -2311,8 +2310,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_procs_blocked{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} blocked",
+                        "expr": "node_procs_blocked{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "blocked",
                         "range": true
                       }
                     }
@@ -2399,8 +2398,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_context_switches_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} ctx-switches",
+                        "expr": "rate(node_context_switches_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "ctx-switches",
                         "range": true
                       }
                     }
@@ -2419,8 +2418,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_intr_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} interrupts",
+                        "expr": "rate(node_intr_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "interrupts",
                         "range": true
                       }
                     }
@@ -2507,8 +2506,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_forks_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} forks/s",
+                        "expr": "rate(node_forks_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "forks/s",
                         "range": true
                       }
                     }
@@ -2595,8 +2594,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_cpu_scaling_frequency_hertz{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} cpu{{cpu}}",
+                        "expr": "node_cpu_scaling_frequency_hertz{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "cpu{{cpu}}",
                         "range": true
                       }
                     }
@@ -2683,8 +2682,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_schedstat_running_seconds_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} cpu{{cpu}} running",
+                        "expr": "rate(node_schedstat_running_seconds_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "cpu{{cpu}} running",
                         "range": true
                       }
                     }
@@ -2703,8 +2702,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_schedstat_waiting_seconds_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} cpu{{cpu}} waiting",
+                        "expr": "rate(node_schedstat_waiting_seconds_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "cpu{{cpu}} waiting",
                         "range": true
                       }
                     }
@@ -2791,8 +2790,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 * (1 - (node_memory_MemAvailable_bytes{job=~\"$job\", instance=~\"$instance\"} / node_memory_MemTotal_bytes{job=~\"$job\", instance=~\"$instance\"}))",
-                        "legendFormat": "{{instance}}",
+                        "expr": "100 * (1 - (node_memory_MemAvailable_bytes{job=~\"$job\", instance=\"$instance\"} / node_memory_MemTotal_bytes{job=~\"$job\", instance=\"$instance\"}))",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -2876,8 +2875,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_MemTotal_bytes{job=~\"$job\", instance=~\"$instance\"} - node_memory_MemFree_bytes{job=~\"$job\", instance=~\"$instance\"} - node_memory_Buffers_bytes{job=~\"$job\", instance=~\"$instance\"} - node_memory_Cached_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} used",
+                        "expr": "node_memory_MemTotal_bytes{job=~\"$job\", instance=\"$instance\"} - node_memory_MemFree_bytes{job=~\"$job\", instance=\"$instance\"} - node_memory_Buffers_bytes{job=~\"$job\", instance=\"$instance\"} - node_memory_Cached_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "used",
                         "range": true
                       }
                     }
@@ -2896,8 +2895,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_Buffers_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} buffers",
+                        "expr": "node_memory_Buffers_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "buffers",
                         "range": true
                       }
                     }
@@ -2916,8 +2915,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_Cached_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} cached",
+                        "expr": "node_memory_Cached_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "cached",
                         "range": true
                       }
                     }
@@ -2936,8 +2935,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_MemFree_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} free",
+                        "expr": "node_memory_MemFree_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "free",
                         "range": true
                       }
                     }
@@ -3028,8 +3027,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_MemTotal_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} total",
+                        "expr": "node_memory_MemTotal_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "total",
                         "range": true
                       }
                     }
@@ -3048,8 +3047,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_MemAvailable_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} available",
+                        "expr": "node_memory_MemAvailable_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "available",
                         "range": true
                       }
                     }
@@ -3136,8 +3135,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_Committed_AS_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} committed",
+                        "expr": "node_memory_Committed_AS_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "committed",
                         "range": true
                       }
                     }
@@ -3156,8 +3155,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_CommitLimit_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} limit",
+                        "expr": "node_memory_CommitLimit_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "limit",
                         "range": true
                       }
                     }
@@ -3244,8 +3243,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_SwapTotal_bytes{job=~\"$job\", instance=~\"$instance\"} - node_memory_SwapFree_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} used",
+                        "expr": "node_memory_SwapTotal_bytes{job=~\"$job\", instance=\"$instance\"} - node_memory_SwapFree_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "used",
                         "range": true
                       }
                     }
@@ -3264,8 +3263,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_SwapCached_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} cached",
+                        "expr": "node_memory_SwapCached_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "cached",
                         "range": true
                       }
                     }
@@ -3352,8 +3351,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_vmstat_pswpin{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} in",
+                        "expr": "rate(node_vmstat_pswpin{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "in",
                         "range": true
                       }
                     }
@@ -3372,8 +3371,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_vmstat_pswpout{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} out",
+                        "expr": "rate(node_vmstat_pswpout{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "out",
                         "range": true
                       }
                     }
@@ -3460,8 +3459,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 * (1 - (node_memory_SwapFree_bytes{job=~\"$job\", instance=~\"$instance\"} / node_memory_SwapTotal_bytes{job=~\"$job\", instance=~\"$instance\"}))",
-                        "legendFormat": "{{instance}}",
+                        "expr": "100 * (1 - (node_memory_SwapFree_bytes{job=~\"$job\", instance=\"$instance\"} / node_memory_SwapTotal_bytes{job=~\"$job\", instance=\"$instance\"}))",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -3545,8 +3544,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_Active_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} active",
+                        "expr": "node_memory_Active_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "active",
                         "range": true
                       }
                     }
@@ -3565,8 +3564,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_Inactive_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} inactive",
+                        "expr": "node_memory_Inactive_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "inactive",
                         "range": true
                       }
                     }
@@ -3585,8 +3584,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_AnonPages_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} anon",
+                        "expr": "node_memory_AnonPages_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "anon",
                         "range": true
                       }
                     }
@@ -3605,8 +3604,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_Mapped_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} mapped",
+                        "expr": "node_memory_Mapped_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "mapped",
                         "range": true
                       }
                     }
@@ -3625,8 +3624,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_Shmem_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} shmem",
+                        "expr": "node_memory_Shmem_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "shmem",
                         "range": true
                       }
                     }
@@ -3713,8 +3712,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_Slab_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} slab",
+                        "expr": "node_memory_Slab_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "slab",
                         "range": true
                       }
                     }
@@ -3733,8 +3732,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_SReclaimable_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} reclaimable",
+                        "expr": "node_memory_SReclaimable_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "reclaimable",
                         "range": true
                       }
                     }
@@ -3753,8 +3752,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_SUnreclaim_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} unreclaim",
+                        "expr": "node_memory_SUnreclaim_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "unreclaim",
                         "range": true
                       }
                     }
@@ -3773,8 +3772,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_KernelStack_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} kstack",
+                        "expr": "node_memory_KernelStack_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "kstack",
                         "range": true
                       }
                     }
@@ -3793,8 +3792,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_PageTables_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} pagetables",
+                        "expr": "node_memory_PageTables_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "pagetables",
                         "range": true
                       }
                     }
@@ -3881,8 +3880,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_Dirty_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} dirty",
+                        "expr": "node_memory_Dirty_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "dirty",
                         "range": true
                       }
                     }
@@ -3901,8 +3900,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_Writeback_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} writeback",
+                        "expr": "node_memory_Writeback_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "writeback",
                         "range": true
                       }
                     }
@@ -3989,8 +3988,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_VmallocUsed_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} used",
+                        "expr": "node_memory_VmallocUsed_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "used",
                         "range": true
                       }
                     }
@@ -4009,8 +4008,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_memory_VmallocTotal_bytes{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} total",
+                        "expr": "node_memory_VmallocTotal_bytes{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "total",
                         "range": true
                       }
                     }
@@ -4097,8 +4096,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_vmstat_pgfault{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} minor+major",
+                        "expr": "rate(node_vmstat_pgfault{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "minor+major",
                         "range": true
                       }
                     }
@@ -4117,8 +4116,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_vmstat_pgmajfault{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} major",
+                        "expr": "rate(node_vmstat_pgmajfault{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "major",
                         "range": true
                       }
                     }
@@ -4205,8 +4204,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_vmstat_pgpgin{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} in",
+                        "expr": "rate(node_vmstat_pgpgin{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "in",
                         "range": true
                       }
                     }
@@ -4225,8 +4224,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_vmstat_pgpgout{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} out",
+                        "expr": "rate(node_vmstat_pgpgout{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "out",
                         "range": true
                       }
                     }
@@ -4313,8 +4312,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "increase(node_vmstat_oom_kill{job=~\"$job\", instance=~\"$instance\"}[1h])",
-                        "legendFormat": "{{instance}}",
+                        "expr": "increase(node_vmstat_oom_kill{job=~\"$job\", instance=\"$instance\"}[1h])",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -4395,8 +4394,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_disk_read_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} {{device}} read",
+                        "expr": "rate(node_disk_read_bytes_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "{{device}} read",
                         "range": true
                       }
                     }
@@ -4415,8 +4414,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_disk_written_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} {{device}} write",
+                        "expr": "rate(node_disk_written_bytes_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "{{device}} write",
                         "range": true
                       }
                     }
@@ -4503,8 +4502,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_disk_reads_completed_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} {{device}} read",
+                        "expr": "rate(node_disk_reads_completed_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "{{device}} read",
                         "range": true
                       }
                     }
@@ -4523,8 +4522,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_disk_writes_completed_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} {{device}} write",
+                        "expr": "rate(node_disk_writes_completed_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "{{device}} write",
                         "range": true
                       }
                     }
@@ -4611,8 +4610,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_disk_io_time_seconds_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]) * 100",
-                        "legendFormat": "{{instance}} {{device}}",
+                        "expr": "rate(node_disk_io_time_seconds_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval]) * 100",
+                        "legendFormat": "{{device}}",
                         "range": true
                       }
                     }
@@ -4700,8 +4699,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_disk_read_time_seconds_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]) / clamp_min(rate(node_disk_reads_completed_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]), 1)",
-                        "legendFormat": "{{instance}} {{device}} read",
+                        "expr": "rate(node_disk_read_time_seconds_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval]) / clamp_min(rate(node_disk_reads_completed_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval]), 1)",
+                        "legendFormat": "{{device}} read",
                         "range": true
                       }
                     }
@@ -4720,8 +4719,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_disk_write_time_seconds_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]) / clamp_min(rate(node_disk_writes_completed_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]), 1)",
-                        "legendFormat": "{{instance}} {{device}} write",
+                        "expr": "rate(node_disk_write_time_seconds_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval]) / clamp_min(rate(node_disk_writes_completed_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval]), 1)",
+                        "legendFormat": "{{device}} write",
                         "range": true
                       }
                     }
@@ -4808,8 +4807,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_disk_io_time_weighted_seconds_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} {{device}}",
+                        "expr": "rate(node_disk_io_time_weighted_seconds_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "{{device}}",
                         "range": true
                       }
                     }
@@ -4896,8 +4895,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_disk_io_now{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} {{device}}",
+                        "expr": "node_disk_io_now{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "{{device}}",
                         "range": true
                       }
                     }
@@ -4984,8 +4983,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_disk_discards_completed_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} {{device}}",
+                        "expr": "rate(node_disk_discards_completed_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "{{device}}",
                         "range": true
                       }
                     }
@@ -5072,8 +5071,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_disk_flush_requests_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} {{device}}",
+                        "expr": "rate(node_disk_flush_requests_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "{{device}}",
                         "range": true
                       }
                     }
@@ -5160,8 +5159,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 * (1 - (node_filesystem_avail_bytes{job=~\"$job\", instance=~\"$instance\", fstype!=\"\"} / node_filesystem_size_bytes{job=~\"$job\", instance=~\"$instance\", fstype!=\"\"}))",
-                        "legendFormat": "{{instance}} {{mountpoint}}",
+                        "expr": "100 * (1 - (node_filesystem_avail_bytes{job=~\"$job\", instance=\"$instance\", fstype!=\"\"} / node_filesystem_size_bytes{job=~\"$job\", instance=\"$instance\", fstype!=\"\"}))",
+                        "legendFormat": "{{mountpoint}}",
                         "range": true
                       }
                     }
@@ -5246,8 +5245,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 * (1 - (node_filesystem_avail_bytes{job=~\"$job\", instance=~\"$instance\", fstype!=\"\"} / node_filesystem_size_bytes{job=~\"$job\", instance=~\"$instance\", fstype!=\"\"}))",
-                        "legendFormat": "{{instance}} {{mountpoint}}",
+                        "expr": "100 * (1 - (node_filesystem_avail_bytes{job=~\"$job\", instance=\"$instance\", fstype!=\"\"} / node_filesystem_size_bytes{job=~\"$job\", instance=\"$instance\", fstype!=\"\"}))",
+                        "legendFormat": "{{mountpoint}}",
                         "range": true
                       }
                     }
@@ -5336,7 +5335,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_filesystem_size_bytes{job=~\"$job\", instance=~\"$instance\", fstype!=\"\"}",
+                        "expr": "node_filesystem_size_bytes{job=~\"$job\", instance=\"$instance\", fstype!=\"\"}",
                         "instant": true,
                         "range": false,
                         "format": "table"
@@ -5357,7 +5356,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_filesystem_size_bytes{job=~\"$job\", instance=~\"$instance\", fstype!=\"\"} - node_filesystem_avail_bytes{job=~\"$job\", instance=~\"$instance\", fstype!=\"\"}",
+                        "expr": "node_filesystem_size_bytes{job=~\"$job\", instance=\"$instance\", fstype!=\"\"} - node_filesystem_avail_bytes{job=~\"$job\", instance=\"$instance\", fstype!=\"\"}",
                         "instant": true,
                         "range": false,
                         "format": "table"
@@ -5378,7 +5377,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_filesystem_avail_bytes{job=~\"$job\", instance=~\"$instance\", fstype!=\"\"}",
+                        "expr": "node_filesystem_avail_bytes{job=~\"$job\", instance=\"$instance\", fstype!=\"\"}",
                         "instant": true,
                         "range": false,
                         "format": "table"
@@ -5399,7 +5398,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 * (1 - (node_filesystem_avail_bytes{job=~\"$job\", instance=~\"$instance\", fstype!=\"\"} / node_filesystem_size_bytes{job=~\"$job\", instance=~\"$instance\", fstype!=\"\"}))",
+                        "expr": "100 * (1 - (node_filesystem_avail_bytes{job=~\"$job\", instance=\"$instance\", fstype!=\"\"} / node_filesystem_size_bytes{job=~\"$job\", instance=\"$instance\", fstype!=\"\"}))",
                         "instant": true,
                         "range": false,
                         "format": "table"
@@ -5558,8 +5557,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 * (1 - (node_filesystem_files_free{job=~\"$job\", instance=~\"$instance\", fstype!=\"\"} / node_filesystem_files{job=~\"$job\", instance=~\"$instance\", fstype!=\"\"}))",
-                        "legendFormat": "{{instance}} {{mountpoint}}",
+                        "expr": "100 * (1 - (node_filesystem_files_free{job=~\"$job\", instance=\"$instance\", fstype!=\"\"} / node_filesystem_files{job=~\"$job\", instance=\"$instance\", fstype!=\"\"}))",
+                        "legendFormat": "{{mountpoint}}",
                         "range": true
                       }
                     }
@@ -5644,8 +5643,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 * (1 - (node_filesystem_files_free{job=~\"$job\", instance=~\"$instance\", fstype!=\"\"} / node_filesystem_files{job=~\"$job\", instance=~\"$instance\", fstype!=\"\"}))",
-                        "legendFormat": "{{instance}} {{mountpoint}}",
+                        "expr": "100 * (1 - (node_filesystem_files_free{job=~\"$job\", instance=\"$instance\", fstype!=\"\"} / node_filesystem_files{job=~\"$job\", instance=\"$instance\", fstype!=\"\"}))",
+                        "legendFormat": "{{mountpoint}}",
                         "range": true
                       }
                     }
@@ -5734,8 +5733,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_filesystem_readonly{job=~\"$job\", instance=~\"$instance\", fstype!=\"\"}",
-                        "legendFormat": "{{instance}} {{mountpoint}}",
+                        "expr": "node_filesystem_readonly{job=~\"$job\", instance=\"$instance\", fstype!=\"\"}",
+                        "legendFormat": "{{mountpoint}}",
                         "range": true
                       }
                     }
@@ -5824,8 +5823,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_filesystem_device_error{job=~\"$job\", instance=~\"$instance\", fstype!=\"\"}",
-                        "legendFormat": "{{instance}} {{mountpoint}}",
+                        "expr": "node_filesystem_device_error{job=~\"$job\", instance=\"$instance\", fstype!=\"\"}",
+                        "legendFormat": "{{mountpoint}}",
                         "range": true
                       }
                     }
@@ -5913,8 +5912,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_network_receive_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} {{device}} rx",
+                        "expr": "rate(node_network_receive_bytes_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "{{device}} rx",
                         "range": true
                       }
                     }
@@ -5933,8 +5932,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_network_transmit_bytes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} {{device}} tx",
+                        "expr": "rate(node_network_transmit_bytes_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "{{device}} tx",
                         "range": true
                       }
                     }
@@ -6021,8 +6020,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_network_receive_packets_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} {{device}} rx",
+                        "expr": "rate(node_network_receive_packets_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "{{device}} rx",
                         "range": true
                       }
                     }
@@ -6041,8 +6040,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_network_transmit_packets_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} {{device}} tx",
+                        "expr": "rate(node_network_transmit_packets_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "{{device}} tx",
                         "range": true
                       }
                     }
@@ -6129,8 +6128,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_network_receive_errs_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} {{device}} rx",
+                        "expr": "rate(node_network_receive_errs_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "{{device}} rx",
                         "range": true
                       }
                     }
@@ -6149,8 +6148,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_network_transmit_errs_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} {{device}} tx",
+                        "expr": "rate(node_network_transmit_errs_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "{{device}} tx",
                         "range": true
                       }
                     }
@@ -6237,8 +6236,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_network_receive_drop_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} {{device}} rx",
+                        "expr": "rate(node_network_receive_drop_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "{{device}} rx",
                         "range": true
                       }
                     }
@@ -6257,8 +6256,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_network_transmit_drop_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} {{device}} tx",
+                        "expr": "rate(node_network_transmit_drop_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "{{device}} tx",
                         "range": true
                       }
                     }
@@ -6345,8 +6344,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_network_carrier_changes_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} {{device}}",
+                        "expr": "rate(node_network_carrier_changes_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "{{device}}",
                         "range": true
                       }
                     }
@@ -6433,7 +6432,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_network_up{job=~\"$job\", instance=~\"$instance\"}",
+                        "expr": "node_network_up{job=~\"$job\", instance=\"$instance\"}",
                         "instant": true,
                         "range": false,
                         "format": "table"
@@ -6454,7 +6453,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_network_carrier{job=~\"$job\", instance=~\"$instance\"}",
+                        "expr": "node_network_carrier{job=~\"$job\", instance=\"$instance\"}",
                         "instant": true,
                         "range": false,
                         "format": "table"
@@ -6475,7 +6474,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_network_speed_bytes{job=~\"$job\", instance=~\"$instance\"}",
+                        "expr": "node_network_speed_bytes{job=~\"$job\", instance=\"$instance\"}",
                         "instant": true,
                         "range": false,
                         "format": "table"
@@ -6496,7 +6495,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_network_mtu_bytes{job=~\"$job\", instance=~\"$instance\"}",
+                        "expr": "node_network_mtu_bytes{job=~\"$job\", instance=\"$instance\"}",
                         "instant": true,
                         "range": false,
                         "format": "table"
@@ -6623,8 +6622,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_netstat_Tcp_CurrEstab{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}}",
+                        "expr": "node_netstat_Tcp_CurrEstab{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -6711,8 +6710,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_netstat_Tcp_ActiveOpens{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} active",
+                        "expr": "rate(node_netstat_Tcp_ActiveOpens{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "active",
                         "range": true
                       }
                     }
@@ -6731,8 +6730,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_netstat_Tcp_PassiveOpens{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} passive",
+                        "expr": "rate(node_netstat_Tcp_PassiveOpens{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "passive",
                         "range": true
                       }
                     }
@@ -6819,8 +6818,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_netstat_Tcp_RetransSegs{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} retrans",
+                        "expr": "rate(node_netstat_Tcp_RetransSegs{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "retrans",
                         "range": true
                       }
                     }
@@ -6839,8 +6838,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_netstat_Tcp_InErrs{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} in-errs",
+                        "expr": "rate(node_netstat_Tcp_InErrs{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "in-errs",
                         "range": true
                       }
                     }
@@ -6859,8 +6858,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_netstat_Tcp_OutRsts{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} out-rsts",
+                        "expr": "rate(node_netstat_Tcp_OutRsts{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "out-rsts",
                         "range": true
                       }
                     }
@@ -6947,8 +6946,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_netstat_Tcp_InSegs{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} in",
+                        "expr": "rate(node_netstat_Tcp_InSegs{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "in",
                         "range": true
                       }
                     }
@@ -6967,8 +6966,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_netstat_Tcp_OutSegs{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} out",
+                        "expr": "rate(node_netstat_Tcp_OutSegs{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "out",
                         "range": true
                       }
                     }
@@ -7055,8 +7054,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_netstat_Udp_InDatagrams{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} in",
+                        "expr": "rate(node_netstat_Udp_InDatagrams{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "in",
                         "range": true
                       }
                     }
@@ -7075,8 +7074,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_netstat_Udp_OutDatagrams{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} out",
+                        "expr": "rate(node_netstat_Udp_OutDatagrams{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "out",
                         "range": true
                       }
                     }
@@ -7163,8 +7162,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_netstat_Udp_InErrors{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} in-errors",
+                        "expr": "rate(node_netstat_Udp_InErrors{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "in-errors",
                         "range": true
                       }
                     }
@@ -7183,8 +7182,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_netstat_Udp_RcvbufErrors{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} rcvbuf",
+                        "expr": "rate(node_netstat_Udp_RcvbufErrors{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "rcvbuf",
                         "range": true
                       }
                     }
@@ -7203,8 +7202,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_netstat_Udp_SndbufErrors{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} sndbuf",
+                        "expr": "rate(node_netstat_Udp_SndbufErrors{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "sndbuf",
                         "range": true
                       }
                     }
@@ -7223,8 +7222,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_netstat_Udp_NoPorts{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} no-ports",
+                        "expr": "rate(node_netstat_Udp_NoPorts{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "no-ports",
                         "range": true
                       }
                     }
@@ -7311,8 +7310,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_sockstat_sockets_used{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} total",
+                        "expr": "node_sockstat_sockets_used{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "total",
                         "range": true
                       }
                     }
@@ -7331,8 +7330,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_sockstat_TCP_inuse{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} tcp",
+                        "expr": "node_sockstat_TCP_inuse{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "tcp",
                         "range": true
                       }
                     }
@@ -7351,8 +7350,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_sockstat_TCP_tw{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} tcp-tw",
+                        "expr": "node_sockstat_TCP_tw{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "tcp-tw",
                         "range": true
                       }
                     }
@@ -7371,8 +7370,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_sockstat_TCP_alloc{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} tcp-alloc",
+                        "expr": "node_sockstat_TCP_alloc{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "tcp-alloc",
                         "range": true
                       }
                     }
@@ -7391,8 +7390,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_sockstat_UDP_inuse{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} udp",
+                        "expr": "node_sockstat_UDP_inuse{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "udp",
                         "range": true
                       }
                     }
@@ -7479,8 +7478,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 * node_nf_conntrack_entries{job=~\"$job\", instance=~\"$instance\"} / node_nf_conntrack_entries_limit{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}}",
+                        "expr": "100 * node_nf_conntrack_entries{job=~\"$job\", instance=\"$instance\"} / node_nf_conntrack_entries_limit{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -7564,8 +7563,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_nf_conntrack_entries{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} entries",
+                        "expr": "node_nf_conntrack_entries{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "entries",
                         "range": true
                       }
                     }
@@ -7584,8 +7583,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_nf_conntrack_entries_limit{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} limit",
+                        "expr": "node_nf_conntrack_entries_limit{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "limit",
                         "range": true
                       }
                     }
@@ -7672,8 +7671,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "sum by(instance)(rate(node_softnet_dropped_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
-                        "legendFormat": "{{instance}} dropped",
+                        "expr": "sum(rate(node_softnet_dropped_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval]))",
+                        "legendFormat": "dropped",
                         "range": true
                       }
                     }
@@ -7692,8 +7691,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "sum by(instance)(rate(node_softnet_times_squeezed_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
-                        "legendFormat": "{{instance}} squeezed",
+                        "expr": "sum(rate(node_softnet_times_squeezed_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval]))",
+                        "legendFormat": "squeezed",
                         "range": true
                       }
                     }
@@ -7780,7 +7779,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_uname_info{job=~\"$job\", instance=~\"$instance\"}",
+                        "expr": "node_uname_info{job=~\"$job\", instance=\"$instance\"}",
                         "instant": true,
                         "range": false,
                         "format": "table"
@@ -7877,8 +7876,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_time_seconds{job=~\"$job\", instance=~\"$instance\"} - node_boot_time_seconds{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}}",
+                        "expr": "node_time_seconds{job=~\"$job\", instance=\"$instance\"} - node_boot_time_seconds{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -7955,8 +7954,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_boot_time_seconds{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}}",
+                        "expr": "node_boot_time_seconds{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -8033,8 +8032,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_hwmon_temp_celsius{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} {{chip}}/{{sensor}}",
+                        "expr": "node_hwmon_temp_celsius{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "{{chip}}/{{sensor}}",
                         "range": true
                       }
                     }
@@ -8121,8 +8120,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_thermal_zone_temp{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} {{zone}} {{type}}",
+                        "expr": "node_thermal_zone_temp{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "{{zone}} {{type}}",
                         "range": true
                       }
                     }
@@ -8209,8 +8208,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_cooling_device_cur_state{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} {{type}} state",
+                        "expr": "node_cooling_device_cur_state{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "{{type}} state",
                         "range": true
                       }
                     }
@@ -8229,8 +8228,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_hwmon_fan_rpm{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} {{chip}}/{{sensor}} rpm",
+                        "expr": "node_hwmon_fan_rpm{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "{{chip}}/{{sensor}} rpm",
                         "range": true
                       }
                     }
@@ -8317,8 +8316,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_timex_sync_status{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}}",
+                        "expr": "node_timex_sync_status{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -8410,8 +8409,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_timex_offset_seconds{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} offset",
+                        "expr": "node_timex_offset_seconds{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "offset",
                         "range": true
                       }
                     }
@@ -8498,8 +8497,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_timex_estimated_error_seconds{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}}",
+                        "expr": "node_timex_estimated_error_seconds{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -8586,8 +8585,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_filefd_allocated{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} allocated",
+                        "expr": "node_filefd_allocated{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "allocated",
                         "range": true
                       }
                     }
@@ -8606,8 +8605,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_filefd_maximum{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} maximum",
+                        "expr": "node_filefd_maximum{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "maximum",
                         "range": true
                       }
                     }
@@ -8694,8 +8693,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "100 * node_filefd_allocated{job=~\"$job\", instance=~\"$instance\"} / node_filefd_maximum{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}}",
+                        "expr": "100 * node_filefd_allocated{job=~\"$job\", instance=\"$instance\"} / node_filefd_maximum{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -8779,8 +8778,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_entropy_available_bits{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}}",
+                        "expr": "node_entropy_available_bits{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
@@ -8867,8 +8866,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_pressure_cpu_waiting_seconds_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} waiting",
+                        "expr": "rate(node_pressure_cpu_waiting_seconds_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "waiting",
                         "range": true
                       }
                     }
@@ -8955,8 +8954,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_pressure_memory_waiting_seconds_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} waiting",
+                        "expr": "rate(node_pressure_memory_waiting_seconds_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "waiting",
                         "range": true
                       }
                     }
@@ -8975,8 +8974,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_pressure_memory_stalled_seconds_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} stalled",
+                        "expr": "rate(node_pressure_memory_stalled_seconds_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "stalled",
                         "range": true
                       }
                     }
@@ -9063,8 +9062,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_pressure_io_waiting_seconds_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} waiting",
+                        "expr": "rate(node_pressure_io_waiting_seconds_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "waiting",
                         "range": true
                       }
                     }
@@ -9083,8 +9082,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(node_pressure_io_stalled_seconds_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
-                        "legendFormat": "{{instance}} stalled",
+                        "expr": "rate(node_pressure_io_stalled_seconds_total{job=~\"$job\", instance=\"$instance\"}[$__rate_interval])",
+                        "legendFormat": "stalled",
                         "range": true
                       }
                     }
@@ -9171,8 +9170,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_scrape_collector_duration_seconds{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}} {{collector}}",
+                        "expr": "node_scrape_collector_duration_seconds{job=~\"$job\", instance=\"$instance\"}",
+                        "legendFormat": "{{collector}}",
                         "range": true
                       }
                     }
@@ -9259,8 +9258,8 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "node_scrape_collector_success{job=~\"$job\", instance=~\"$instance\"} == 0",
-                        "legendFormat": "{{instance}} {{collector}}",
+                        "expr": "node_scrape_collector_success{job=~\"$job\", instance=\"$instance\"} == 0",
+                        "legendFormat": "{{collector}}",
                         "range": true
                       }
                     }
@@ -9348,7 +9347,7 @@
                       },
                       "spec": {
                         "expr": "scrape_duration_seconds{job=~\"$job\", instance=~\"$instance\"}",
-                        "legendFormat": "{{instance}}",
+                        "legendFormat": "",
                         "range": true
                       }
                     }
