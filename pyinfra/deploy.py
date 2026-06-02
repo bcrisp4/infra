@@ -8,6 +8,7 @@ from tasks.image_renderer import image_renderer
 from tasks.network import static_network
 from tasks.nodeexporter import node_exporter
 from tasks.podman import install_podman
+from tasks.podman_exporter import podman_exporter
 from tasks.podman_network import podman_networks
 from tasks.prometheus import prometheus
 from tasks.tailscale_service import tailscale_service
@@ -20,6 +21,7 @@ install_podman()
 podman_networks()
 bns()
 node_exporter()
+podman_exporter()
 prometheus()
 image_renderer()
 grafana()

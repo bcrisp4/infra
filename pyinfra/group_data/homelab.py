@@ -84,6 +84,23 @@ nodeexporter_memory_high = "96M"
 nodeexporter_cpu_quota = "50%"
 nodeexporter_tasks_max = 1024
 
+# prometheus-podman-exporter runs as a rootful podman quadlet
+# (tasks/podman_exporter.py). Exports podman container/pod/image/system metrics.
+# Talks to podman over the rootful API socket (/run/podman/podman.sock), so it
+# needs NO host networking: it joins the monitoring network and Prometheus
+# scrapes it by ContainerName (podman-exporter:9882), like Grafana. No published
+# port. Runs as root (socket access); --collector.enhance-metrics adds
+# per-container CPU/memory/network usage. Stateless, so ceilings are small.
+podman_exporter_enabled = True
+podman_exporter_image = "quay.io/navidys/prometheus-podman-exporter"
+podman_exporter_image_tag = "v1.21.0"
+podman_exporter_port = 9882
+# systemd-native cgroup ceilings (applied in [Service] of the quadlet).
+podman_exporter_memory_max = "128M"
+podman_exporter_memory_high = "96M"
+podman_exporter_cpu_quota = "50%"
+podman_exporter_tasks_max = 256
+
 # Shared podman network for the metrics stack (tasks/podman_network.py).
 # Prometheus + Grafana attach to it and resolve each other by ContainerName via
 # aardvark-dns. node-exporter stays Network=host (real host metrics) and is

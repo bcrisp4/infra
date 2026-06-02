@@ -25,6 +25,7 @@ BASE_DATA: dict = {
     "bns_listen_address": "192.168.1.2",
     "bns_host_port_admin": 9053,
     "nodeexporter_host_port": 9100,
+    "podman_exporter_port": 9882,
     "node_name": "rpi5-4cpu-16gb-home-1",
 }
 
@@ -109,6 +110,25 @@ def test_config_grafana_instance_tracks_node_name(name: str) -> None:
     out = _render_config({**BASE_DATA, "node_name": name})
     grafana_block = out.split("  - job_name: grafana", 1)[1]
     assert f"        labels: {{instance: '{name}'}}" in grafana_block
+
+
+def test_config_has_podman_exporter_job() -> None:
+    """podman-exporter is scraped over the monitoring bridge by ContainerName."""
+    out = _render_config(BASE_DATA)
+    assert "  - job_name: podman-exporter" in out
+    assert "      - targets: ['podman-exporter:9882']" in out
+
+
+def test_config_podman_exporter_instance_relabelled_to_node_name() -> None:
+    out = _render_config(BASE_DATA)
+    block = out.split("  - job_name: podman-exporter", 1)[1]
+    assert "        labels: {instance: 'rpi5-4cpu-16gb-home-1'}" in block
+
+
+@pytest.mark.parametrize("port", [9882, 19882])
+def test_config_podman_exporter_target_tracks_port(port: int) -> None:
+    out = _render_config({**BASE_DATA, "podman_exporter_port": port})
+    assert f"      - targets: ['podman-exporter:{port}']" in out
 
 
 @pytest.mark.parametrize("interval", ["10s", "15s", "1m"])
