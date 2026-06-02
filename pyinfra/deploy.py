@@ -7,6 +7,7 @@ from tasks.grafana import grafana
 from tasks.image_renderer import image_renderer
 from tasks.network import static_network
 from tasks.nodeexporter import node_exporter
+from tasks.pcie import pcie_gen3
 from tasks.podman import install_podman
 from tasks.podman_exporter import podman_exporter
 from tasks.podman_network import podman_networks
@@ -18,6 +19,7 @@ base()
 unattended_upgrades()
 static_network()
 install_podman()
+pcie_gen3()
 podman_networks()
 bns()
 node_exporter()

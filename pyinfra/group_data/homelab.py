@@ -15,6 +15,12 @@ base_packages = [
 
 install_podman = True
 
+# Force PCIe Gen 3.0 on the Pi 5 via /boot/firmware/config.txt (tasks/pcie.py).
+# Gen 3 is NOT certified on the Pi 5 and may be unstable; opt-in here, reversible
+# by setting pcie_gen = 2 (or disabling) + reboot. Requires a manual reboot.
+pcie_gen3_enabled = True
+pcie_gen = 3
+
 bns_enabled = True
 bns_image = "ghcr.io/bcrisp4/bns"
 bns_image_tag = "0.5.0"
