@@ -908,7 +908,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "podman_container_state{job=~\"$job\", instance=~\"$instance\"}",
+                        "expr": "max by (name) (podman_container_state{job=~\"$job\", instance=~\"$instance\"})",
                         "legendFormat": "",
                         "range": false,
                         "instant": true,
@@ -930,7 +930,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "podman_container_health{job=~\"$job\", instance=~\"$instance\"}",
+                        "expr": "max by (name) (podman_container_health{job=~\"$job\", instance=~\"$instance\"})",
                         "legendFormat": "",
                         "range": false,
                         "instant": true,
@@ -952,7 +952,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "podman_container_info{job=~\"$job\", instance=~\"$instance\"}",
+                        "expr": "max by (name, image) (podman_container_info{job=~\"$job\", instance=~\"$instance\"})",
                         "legendFormat": "",
                         "range": false,
                         "instant": true,
@@ -974,7 +974,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(podman_container_cpu_seconds_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
+                        "expr": "sum by (name) (rate(podman_container_cpu_seconds_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
                         "legendFormat": "",
                         "range": false,
                         "instant": true,
@@ -996,7 +996,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "podman_container_mem_usage_bytes{job=~\"$job\", instance=~\"$instance\"}",
+                        "expr": "max by (name) (podman_container_mem_usage_bytes{job=~\"$job\", instance=~\"$instance\"})",
                         "legendFormat": "",
                         "range": false,
                         "instant": true,
@@ -1018,7 +1018,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "podman_container_pids{job=~\"$job\", instance=~\"$instance\"}",
+                        "expr": "max by (name) (podman_container_pids{job=~\"$job\", instance=~\"$instance\"})",
                         "legendFormat": "",
                         "range": false,
                         "instant": true,
@@ -1040,7 +1040,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(podman_container_net_input_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
+                        "expr": "sum by (name) (rate(podman_container_net_input_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
                         "legendFormat": "",
                         "range": false,
                         "instant": true,
@@ -1062,7 +1062,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "rate(podman_container_net_output_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval])",
+                        "expr": "sum by (name) (rate(podman_container_net_output_total{job=~\"$job\", instance=~\"$instance\"}[$__rate_interval]))",
                         "legendFormat": "",
                         "range": false,
                         "instant": true,
@@ -1084,7 +1084,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "time() - podman_container_started_seconds{job=~\"$job\", instance=~\"$instance\"}",
+                        "expr": "max by (name) (time() - podman_container_started_seconds{job=~\"$job\", instance=~\"$instance\"})",
                         "legendFormat": "",
                         "range": false,
                         "instant": true,
@@ -1109,15 +1109,20 @@
                     "options": {
                       "excludeByName": {
                         "Time": true,
-                        "job": true,
-                        "instance": true,
-                        "__name__": true,
-                        "id": true,
-                        "image_id": true,
-                        "ports": true,
                         "Value #C": true
                       },
-                      "indexByName": {},
+                      "indexByName": {
+                        "name": 0,
+                        "Value #A": 1,
+                        "Value #B": 2,
+                        "Value #D": 3,
+                        "Value #E": 4,
+                        "Value #F": 5,
+                        "Value #G": 6,
+                        "Value #H": 7,
+                        "Value #I": 8,
+                        "image": 9
+                      },
                       "renameByName": {
                         "name": "Container",
                         "image": "Image",
