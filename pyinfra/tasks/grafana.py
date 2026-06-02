@@ -18,10 +18,9 @@ service svc:grafana (HTTPS at grafana.marlin-tet.ts.net, see
 tasks/tailscale_service.py). No LAN or raw-Tailscale-IP exposure.
 
 State: Grafana's sqlite DB, dashboards and plugins live under /var/lib/grafana,
-bind-mounted from a dedicated LV (provisioned by tasks/storage.py). The image
-runs as uid:gid 472:472, so the data dir is chowned to match before the
-container starts. sqlite WAL journal mode is enabled (GF_DATABASE_WAL) for
-better concurrency/durability.
+a plain dir on the rootfs. The image runs as uid:gid 472:472, so the data dir is
+chowned to match before the container starts. sqlite WAL journal mode is enabled
+(GF_DATABASE_WAL) for better concurrency/durability.
 
 Reload semantics: any change to the quadlet OR the datasource file triggers a
 restart. Grafana loads provisioning at startup, so a restart applies datasource
@@ -47,9 +46,9 @@ UNIT_PATH = "/etc/containers/systemd/grafana.container"
 PROVISIONING_DIR = "/etc/grafana/provisioning/datasources"
 DATASOURCE_PATH = f"{PROVISIONING_DIR}/prometheus.yaml"
 
-# State dir. Bind-mounted from a dedicated LV (tasks/storage.py mounts the LV
-# here). The grafana image runs as uid:gid 472:472, so the host dir is chowned
-# to match before first start.
+# State dir. A plain dir on the rootfs (created + chowned below before first
+# start). The grafana image runs as uid:gid 472:472, so the host dir is chowned
+# to match.
 DATA_DIR = "/var/lib/grafana"
 DATA_UID = "472"
 DATA_GID = "472"
@@ -182,9 +181,9 @@ def grafana() -> None:
     # renderers stay test-friendly with `data["key"]` access.
     data = {k: host.data.get(k) for k in _DATA_KEYS}
 
-    # Set ownership on the mounted LV root before the container starts. storage()
-    # runs earlier in deploy.py and mounts the LV here (0700 root); chown to the
-    # container uid so the grafana process can write its sqlite DB + plugins.
+    # Create the rootfs data dir (if absent) and chown to the container uid
+    # before the container starts, so the grafana process can write its sqlite DB
+    # + plugins. Idempotent: a dir pre-populated by a data restore is left intact.
     files.directory(
         name="Ensure /var/lib/grafana owned by container uid",
         path=DATA_DIR,

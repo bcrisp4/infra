@@ -32,7 +32,7 @@ Tasks are `@deploy`-decorated functions that compose pyinfra built-in operations
 
 ```python
 homelab = [
-    ("rpi5-4cpu-16gb-home.marlin-tet.ts.net", {"ssh_user": "ben"}),
+    ("rpi5-4cpu-16gb-home-1.marlin-tet.ts.net", {"ssh_user": "ben"}),
 ]
 ```
 
@@ -84,7 +84,7 @@ Examples:
 
 ```bash
 # Run against just one host
-uv run pyinfra inventory.py deploy.py --limit rpi5-4cpu-16gb-home.marlin-tet.ts.net
+uv run pyinfra inventory.py deploy.py --limit rpi5-4cpu-16gb-home-1.marlin-tet.ts.net
 
 # Ad-hoc command instead of a deploy
 uv run pyinfra inventory.py exec -- uptime
@@ -116,7 +116,7 @@ uv run pytest -v
 
    ```python
    homelab = [
-       ("rpi5-4cpu-16gb-home.marlin-tet.ts.net", {"ssh_user": "ben"}),
+       ("rpi5-4cpu-16gb-home-1.marlin-tet.ts.net", {"ssh_user": "ben"}),
        ("new-host.marlin-tet.ts.net", {"ssh_user": "ben"}),
    ]
    ```

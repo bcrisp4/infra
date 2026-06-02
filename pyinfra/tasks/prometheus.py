@@ -10,10 +10,9 @@ Reload semantics:
 - Config-only changed    -> SIGHUP via ExecReload (Prometheus reloads config +
                             rules, no container restart).
 
-TSDB persists on a dedicated LV mounted at /var/lib/prometheus (provisioned by
-tasks/storage.py). The distroless image runs as uid 65532 (the distroless
-`nonroot` user, NOT `nobody` 65534), so the data dir is chowned to match before
-the container starts.
+TSDB persists in a plain dir on the rootfs at /var/lib/prometheus. The distroless
+image runs as uid 65532 (the distroless `nonroot` user, NOT `nobody` 65534), so
+the data dir is chowned to match before the container starts.
 
 Gated on `prometheus_enabled` host/group data so non-prometheus hosts no-op.
 """
@@ -29,9 +28,9 @@ CONFIG_DIR = "/etc/prometheus"
 CONFIG_PATH = f"{CONFIG_DIR}/prometheus.yml"
 UNIT_PATH = "/etc/containers/systemd/prometheus.container"
 
-# TSDB data dir. Bind-mounted from a dedicated LV (tasks/storage.py mounts the
-# LV here). The distroless prometheus image runs as uid:gid 65532:65532, so the
-# host dir is chowned to match before first start.
+# TSDB data dir. A plain dir on the rootfs (created + chowned below before first
+# start). The distroless prometheus image runs as uid:gid 65532:65532, so the
+# host dir is chowned to match.
 DATA_DIR = "/var/lib/prometheus"
 CONTAINER_DATA_DIR = "/prometheus"
 DATA_UID = "65532"
@@ -184,9 +183,9 @@ def prometheus() -> None:
     # is the Tailscale FQDN; take the first label).
     data["node_name"] = host.name.split(".")[0]
 
-    # Set ownership on the mounted LV root before the container starts. storage()
-    # runs earlier in deploy.py and mounts the LV here (0700 root); chown to the
-    # container uid so the distroless prometheus process can write the TSDB.
+    # Create the rootfs data dir (if absent) and chown to the container uid
+    # before the container starts, so the distroless prometheus process can write
+    # the TSDB. Idempotent: a dir pre-populated by a data restore is left intact.
     files.directory(
         name="Ensure /var/lib/prometheus owned by container uid",
         path=DATA_DIR,

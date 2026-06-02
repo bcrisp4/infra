@@ -26,7 +26,7 @@ same-type re-apply. A per-service marker file records the desired state and
 drives change detection so the serve command runs only when it changes.
 
 Requires tailscale >= 1.86.0 and a tag-based node identity (the Pi is tag:home);
-both hold on rpi5-4cpu-16gb-home (tailscale 1.98.4).
+both hold on rpi5-4cpu-16gb-home-1 (tailscale 1.98.4).
 
 Gated on `tailscale_serve_enabled` host/group data so other hosts no-op.
 """

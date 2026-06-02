@@ -147,7 +147,7 @@ resource "tailscale_service" "prometheus" {
   depends_on = [tailscale_acl.this]
 
   name    = "svc:prometheus"
-  comment = "Prometheus monitoring UI on rpi5-4cpu-16gb-home"
+  comment = "Prometheus monitoring UI on rpi5-4cpu-16gb-home-1"
   ports   = ["tcp:443"]
 }
 
@@ -160,6 +160,6 @@ resource "tailscale_service" "grafana" {
   depends_on = [tailscale_acl.this]
 
   name    = "svc:grafana"
-  comment = "Grafana UI on rpi5-4cpu-16gb-home"
+  comment = "Grafana UI on rpi5-4cpu-16gb-home-1"
   ports   = ["tcp:443"]
 }

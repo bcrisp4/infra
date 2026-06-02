@@ -53,9 +53,8 @@ bns_cpu_quota = "200%"
 bns_tasks_max = 4096
 
 # Prometheus runs as a rootful podman quadlet (tasks/prometheus.py). Scrapes
-# itself + bns (via host.containers.internal:bns_host_port_admin). TSDB on a
-# dedicated LV at /var/lib/prometheus (see inventory.py storage). Distroless
-# image runs as uid 65532.
+# itself + bns (via host.containers.internal:bns_host_port_admin). TSDB in a
+# plain rootfs dir at /var/lib/prometheus. Distroless image runs as uid 65532.
 prometheus_enabled = True
 prometheus_image = "quay.io/prometheus/prometheus"
 prometheus_image_tag = "v3.12.0-distroless"
@@ -117,7 +116,7 @@ grafana_image_renderer_tasks_max = 4096
 # Grafana runs as a rootful podman quadlet (tasks/grafana.py). Joins the
 # monitoring network and queries Prometheus by name (http://prometheus:9090).
 # Loopback-only host port; exposed on the tailnet via svc:grafana. sqlite state
-# (WAL enabled) on a dedicated LV at /var/lib/grafana (see inventory.py storage).
+# (WAL enabled) in a plain rootfs dir at /var/lib/grafana.
 # Image runs as uid 472. Ships default admin; password change is forced on first
 # login (access is already gated by the tailnet).
 grafana_enabled = True

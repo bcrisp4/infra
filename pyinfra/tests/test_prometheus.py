@@ -25,7 +25,7 @@ BASE_DATA: dict = {
     "bns_listen_address": "192.168.1.2",
     "bns_host_port_admin": 9053,
     "nodeexporter_host_port": 9100,
-    "node_name": "rpi5-4cpu-16gb-home",
+    "node_name": "rpi5-4cpu-16gb-home-1",
 }
 
 
@@ -80,10 +80,10 @@ def test_config_nodeexporter_instance_relabelled_to_node_name() -> None:
     """The scrape address is host.containers.internal, but instance should read
     as the node's short hostname."""
     out = _render_config(BASE_DATA)
-    assert "        labels: {instance: 'rpi5-4cpu-16gb-home'}" in out
+    assert "        labels: {instance: 'rpi5-4cpu-16gb-home-1'}" in out
 
 
-@pytest.mark.parametrize("name", ["rpi5-4cpu-16gb-home", "htz-fsn1-prod-1"])
+@pytest.mark.parametrize("name", ["rpi5-4cpu-16gb-home-1", "htz-fsn1-prod-1"])
 def test_config_nodeexporter_instance_tracks_node_name(name: str) -> None:
     out = _render_config({**BASE_DATA, "node_name": name})
     assert f"        labels: {{instance: '{name}'}}" in out
@@ -101,10 +101,10 @@ def test_config_grafana_instance_relabelled_to_node_name() -> None:
     node's short hostname."""
     out = _render_config(BASE_DATA)
     grafana_block = out.split("  - job_name: grafana", 1)[1]
-    assert "        labels: {instance: 'rpi5-4cpu-16gb-home'}" in grafana_block
+    assert "        labels: {instance: 'rpi5-4cpu-16gb-home-1'}" in grafana_block
 
 
-@pytest.mark.parametrize("name", ["rpi5-4cpu-16gb-home", "htz-fsn1-prod-1"])
+@pytest.mark.parametrize("name", ["rpi5-4cpu-16gb-home-1", "htz-fsn1-prod-1"])
 def test_config_grafana_instance_tracks_node_name(name: str) -> None:
     out = _render_config({**BASE_DATA, "node_name": name})
     grafana_block = out.split("  - job_name: grafana", 1)[1]

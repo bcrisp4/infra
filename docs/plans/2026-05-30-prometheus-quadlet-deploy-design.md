@@ -4,7 +4,7 @@ Date: 2026-05-30
 
 ## Summary
 
-Deploy Prometheus to `rpi5-4cpu-16gb-home` using pyinfra, following the same
+Deploy Prometheus to `rpi5-4cpu-16gb-home-1` using pyinfra, following the same
 rootful podman quadlet pattern already used for bns (`pyinfra/tasks/bns.py`).
 Prometheus scrapes itself and the bns admin endpoint, stores its TSDB on a
 dedicated LVM logical volume, and is reachable on host `:9090` over LAN and
@@ -48,7 +48,7 @@ not deployed today.
 ## Architecture
 
 ```
-                        rpi5-4cpu-16gb-home
+                        rpi5-4cpu-16gb-home-1
   +-------------------------------------------------------------+
   |                                                             |
   |  prometheus container (rootful quadlet, uid 65532)          |
@@ -240,7 +240,7 @@ the apply via the `!` prefix:
 
 ```
 cd pyinfra && uv run pyinfra inventory.py deploy.py \
-  --limit rpi5-4cpu-16gb-home.marlin-tet.ts.net --dry      # review diff first
+  --limit rpi5-4cpu-16gb-home-1.marlin-tet.ts.net --dry      # review diff first
 # then re-run with -y to apply
 ```
 

@@ -10,14 +10,12 @@ from tasks.nodeexporter import node_exporter
 from tasks.podman import install_podman
 from tasks.podman_network import podman_networks
 from tasks.prometheus import prometheus
-from tasks.storage import storage
 from tasks.tailscale_service import tailscale_service
 from tasks.unattended_upgrades import unattended_upgrades
 
 base()
 unattended_upgrades()
 static_network()
-storage()
 install_podman()
 podman_networks()
 bns()

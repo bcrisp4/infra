@@ -97,7 +97,7 @@ def test_rewrite_cmdline_cases(description: str, given: str, expected: str) -> N
 
 
 def test_rewrite_cmdline_real_pi5_input() -> None:
-    """Exercise the function against the actual cmdline observed on rpi5-4cpu-16gb-home."""
+    """Exercise the function against the actual cmdline observed on rpi5-4cpu-16gb-home-1."""
     assert _rewrite_cmdline(REAL_PI5_CMDLINE) == REAL_PI5_EXPECTED
 
 
