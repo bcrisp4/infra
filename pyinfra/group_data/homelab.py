@@ -23,7 +23,7 @@ pcie_gen = 3
 
 bns_enabled = True
 bns_image = "ghcr.io/bcrisp4/bns"
-bns_image_tag = "0.5.0"
+bns_image_tag = "0.5.1"
 # LAN IPv4 the bns container publishes on (DNS + admin). Bound to this address
 # only -- not the wildcard -- so it does not occupy :53 on the podman bridge
 # gateways (which would collide with aardvark-dns on the monitoring network) and
@@ -45,6 +45,21 @@ bns_upstreams = [
         "timeout": "5s",
     },
 ]
+# Blocklist sources (all http type) fetched + refreshed by bns. hagezi pro =
+# balanced general blocklist; tif = "threat intelligence feeds" (malware,
+# phishing, scam domains).
+bns_blocklists = [
+    {
+        "name": "hagezi-pro",
+        "url": "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/pro.txt",
+    },
+    {
+        "name": "hagezi-tif",
+        "url": "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/tif.txt",
+    },
+]
+# How often bns refetches the blocklist sources.
+bns_blocklist_refresh = "6h"
 bns_log_level = "info"
 bns_query_log_enabled = True
 # Per-unit journal rate limit. Drops bns log lines above the burst within

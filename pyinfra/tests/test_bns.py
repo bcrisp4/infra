@@ -3,8 +3,6 @@
 import pytest
 
 from tasks.bns import (
-    BLOCKLIST_REFRESH,
-    BLOCKLIST_URL,
     CACHE_BLOCKLISTS_DIR,
     CACHE_DIR,
     CACHE_VOLUME,
@@ -35,6 +33,17 @@ BASE_DATA: dict = {
             "timeout": "5s",
         },
     ],
+    "bns_blocklists": [
+        {
+            "name": "hagezi-pro",
+            "url": "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/pro.txt",
+        },
+        {
+            "name": "hagezi-tif",
+            "url": "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/tif.txt",
+        },
+    ],
+    "bns_blocklist_refresh": "6h",
     "bns_log_level": "info",
     "bns_query_log_enabled": True,
     "bns_log_rate_interval": "30s",
@@ -139,20 +148,41 @@ def test_config_terminates_with_single_newline() -> None:
     assert not out.endswith("\n\n")
 
 
-def test_config_uses_hagezi_pro_http_source() -> None:
-    """Default blocklist = hagezi pro fetched via http source."""
+def test_config_renders_blocklist_sources_from_data() -> None:
+    """Blocklist sources come from bns_blocklists, each an http source."""
     out = _render_config(BASE_DATA)
     assert "    - type: http" in out
-    assert "      name: hagezi-pro" in out
-    assert f"      url: {BLOCKLIST_URL}" in out
+    for b in BASE_DATA["bns_blocklists"]:
+        assert f"      name: {b['name']}" in out
+        assert f"      url: {b['url']}" in out
     # File source must not leak back in.
     assert "    - type: file" not in out
 
 
+def test_config_supports_single_blocklist() -> None:
+    out = _render_config(
+        {
+            **BASE_DATA,
+            "bns_blocklists": [
+                {"name": "hagezi-pro", "url": "https://example/pro.txt"},
+            ],
+        }
+    )
+    assert "      name: hagezi-pro" in out
+    assert "      url: https://example/pro.txt" in out
+    assert "hagezi-tif" not in out
+
+
 def test_config_blocklists_refresh_and_cache_dir() -> None:
     out = _render_config(BASE_DATA)
-    assert f"  refresh_interval: {BLOCKLIST_REFRESH}" in out
+    assert "  refresh_interval: 6h" in out
     assert f"  cache_dir: {CACHE_BLOCKLISTS_DIR}" in out
+
+
+@pytest.mark.parametrize("interval", ["1h", "6h", "24h"])
+def test_config_refresh_interval_tracks_data(interval: str) -> None:
+    out = _render_config({**BASE_DATA, "bns_blocklist_refresh": interval})
+    assert f"  refresh_interval: {interval}" in out
 
 
 def test_config_is_deterministic() -> None:

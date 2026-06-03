@@ -37,9 +37,8 @@ CACHE_VOLUME = "bns-cache"
 CONTAINER_DNS_PORT = 5354
 CONTAINER_ADMIN_PORT = 9090
 
-# Canonical hagezi pro blocklist (http source). Refreshed on the cadence below.
-BLOCKLIST_URL = "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/domains/pro.txt"
-BLOCKLIST_REFRESH = "24h"
+# Blocklist sources + refresh cadence come from host data (`bns_blocklists`,
+# `bns_blocklist_refresh`).
 
 
 def _render_config(data: Mapping) -> str:
@@ -59,6 +58,12 @@ def _render_config(data: Mapping) -> str:
             upstream_lines.append(f'    addr: "{u["addr"]}"')
         upstream_lines.append(f"    timeout: {u['timeout']}")
 
+    blocklist_lines: list[str] = []
+    for b in data["bns_blocklists"]:
+        blocklist_lines.append("    - type: http")
+        blocklist_lines.append(f"      name: {b['name']}")
+        blocklist_lines.append(f"      url: {b['url']}")
+
     lines = [
         "# Rendered by pyinfra tasks/bns.py. Do not edit by hand.",
         "listen:",
@@ -76,12 +81,10 @@ def _render_config(data: Mapping) -> str:
         "  negative_ttl_max: 900s",
         "",
         "blocklists:",
-        f"  refresh_interval: {BLOCKLIST_REFRESH}",
+        f"  refresh_interval: {data['bns_blocklist_refresh']}",
         f"  cache_dir: {CACHE_BLOCKLISTS_DIR}",
         "  sources:",
-        "    - type: http",
-        "      name: hagezi-pro",
-        f"      url: {BLOCKLIST_URL}",
+        *blocklist_lines,
         "",
         "admin:",
         f'  listen: ":{CONTAINER_ADMIN_PORT}"',
@@ -170,6 +173,8 @@ _DATA_KEYS = (
     "bns_host_port_dns",
     "bns_host_port_admin",
     "bns_upstreams",
+    "bns_blocklists",
+    "bns_blocklist_refresh",
     "bns_log_level",
     "bns_query_log_enabled",
     "bns_log_rate_interval",
