@@ -609,7 +609,7 @@
                         "name": "${datasource}"
                       },
                       "spec": {
-                        "expr": "up{job=~\"$job\", instance=~\"$instance\"} and on(instance) pi5_board_info{job=~\"$job\", instance=~\"$instance\"}",
+                        "expr": "up{job=~\"$job\", instance=~\"$instance\"} and on(job) pi5_board_info{job=~\"$job\", instance=~\"$instance\"}",
                         "legendFormat": "",
                         "range": true
                       }
