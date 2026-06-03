@@ -122,6 +122,33 @@ podman_exporter_memory_high = "96M"
 podman_exporter_cpu_quota = "50%"
 podman_exporter_tasks_max = 256
 
+# pi5_exporter runs as a rootful podman quadlet (tasks/pi5_exporter.py). Exposes
+# Pi 5 firmware/mailbox telemetry node-exporter cannot reach (PMIC per-rail
+# power, sticky throttle/under-voltage flags, firmware voltages/clocks, SoC/PMIC
+# temperature, RTC backup cell). Joins the monitoring network; Prometheus scrapes
+# it by ContainerName (pi5-exporter:2712), like podman-exporter. No published
+# port. Needs /dev/vcio (AddDevice) + the host `video` GID (GroupAdd) so the
+# non-root image user (uid 65532) can open the firmware mailbox; without the
+# group it silently skips all firmware collectors. Port 2712 = BCM2712 mnemonic.
+# Stateless, so ceilings are small.
+pi5_exporter_enabled = True
+pi5_exporter_image = "ghcr.io/bcrisp4/pi5_exporter"
+# git tag vX.Y.Z publishes image tag X.Y.Z (metadata-action strips the v).
+pi5_exporter_image_tag = "0.1.1"
+pi5_exporter_port = 2712
+# Internal collection ticker. /metrics serves the latest cached snapshot, so keep
+# this BELOW prometheus_scrape_interval (15s) so a scrape rarely re-reads the same
+# cached collection. The exporter default equals 15s -- this lowers it.
+pi5_exporter_collection_interval = "10s"
+# Numeric host `video` GID (getent group video). 44 on Debian / Raspberry Pi OS.
+# Rootful podman keeps no useful supplementary groups, so it is passed explicitly.
+pi5_exporter_video_gid = 44
+# systemd-native cgroup ceilings (applied in [Service] of the quadlet).
+pi5_exporter_memory_max = "64M"
+pi5_exporter_memory_high = "48M"
+pi5_exporter_cpu_quota = "50%"
+pi5_exporter_tasks_max = 64
+
 # Shared podman network for the metrics stack (tasks/podman_network.py).
 # Prometheus + Grafana attach to it and resolve each other by ContainerName via
 # aardvark-dns. node-exporter stays Network=host (real host metrics) and is

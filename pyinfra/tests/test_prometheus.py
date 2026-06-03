@@ -26,6 +26,7 @@ BASE_DATA: dict = {
     "bns_host_port_admin": 9053,
     "nodeexporter_host_port": 9100,
     "podman_exporter_port": 9882,
+    "pi5_exporter_port": 2712,
     "node_name": "rpi5-4cpu-16gb-home-1",
 }
 
@@ -129,6 +130,25 @@ def test_config_podman_exporter_instance_relabelled_to_node_name() -> None:
 def test_config_podman_exporter_target_tracks_port(port: int) -> None:
     out = _render_config({**BASE_DATA, "podman_exporter_port": port})
     assert f"      - targets: ['podman-exporter:{port}']" in out
+
+
+def test_config_has_pi5_exporter_job() -> None:
+    """pi5-exporter is scraped over the monitoring bridge by ContainerName."""
+    out = _render_config(BASE_DATA)
+    assert "  - job_name: pi5-exporter" in out
+    assert "      - targets: ['pi5-exporter:2712']" in out
+
+
+def test_config_pi5_exporter_instance_relabelled_to_node_name() -> None:
+    out = _render_config(BASE_DATA)
+    block = out.split("  - job_name: pi5-exporter", 1)[1]
+    assert "        labels: {instance: 'rpi5-4cpu-16gb-home-1'}" in block
+
+
+@pytest.mark.parametrize("port", [2712, 12712])
+def test_config_pi5_exporter_target_tracks_port(port: int) -> None:
+    out = _render_config({**BASE_DATA, "pi5_exporter_port": port})
+    assert f"      - targets: ['pi5-exporter:{port}']" in out
 
 
 @pytest.mark.parametrize("interval", ["10s", "15s", "1m"])

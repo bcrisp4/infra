@@ -60,6 +60,7 @@ def _render_config(data: Mapping) -> str:
     bns_target = f"{data['bns_listen_address']}:{data['bns_host_port_admin']}"
     nodeexporter_target = f"host.containers.internal:{data['nodeexporter_host_port']}"
     podman_exporter_target = f"podman-exporter:{data['podman_exporter_port']}"
+    pi5_exporter_target = f"pi5-exporter:{data['pi5_exporter_port']}"
     node_name = data["node_name"]
     lines = [
         "# Rendered by pyinfra tasks/prometheus.py. Do not edit by hand.",
@@ -97,6 +98,15 @@ def _render_config(data: Mapping) -> str:
         "  - job_name: podman-exporter",
         "    static_configs:",
         f"      - targets: ['{podman_exporter_target}']",
+        f"        labels: {{instance: '{node_name}'}}",
+        "",
+        # pi5-exporter shares the monitoring bridge, so it is reached by
+        # ContainerName at its in-container port, NOT a published host port. The
+        # target address is meaningless as `instance`, so pin it to the node
+        # short hostname (same rationale as node-exporter/grafana above).
+        "  - job_name: pi5-exporter",
+        "    static_configs:",
+        f"      - targets: ['{pi5_exporter_target}']",
         f"        labels: {{instance: '{node_name}'}}",
     ]
     return "\n".join(lines) + "\n"
@@ -179,6 +189,7 @@ _DATA_KEYS = (
     "bns_host_port_admin",
     "nodeexporter_host_port",
     "podman_exporter_port",
+    "pi5_exporter_port",
 )
 
 
