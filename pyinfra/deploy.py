@@ -1,6 +1,7 @@
 """Top-level pyinfra deploy: applies all base config to every host in inventory."""
 
 from tasks.base import base
+from tasks.bfeed import bfeed
 from tasks.bns import bns
 from tasks.dhcp import dnsmasq
 from tasks.grafana import grafana
@@ -29,5 +30,6 @@ pi5_exporter()
 prometheus()
 image_renderer()
 grafana()
+bfeed()
 tailscale_service()
 dnsmasq()

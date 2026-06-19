@@ -83,6 +83,12 @@ resource "tailscale_acl" "this" {
         src = ["group:admins"]
         dst = ["svc:grafana"]
         ip  = ["tcp:443"]
+      },
+      # bfeed tailnet service (HTTPS UI)
+      {
+        src = ["group:admins"]
+        dst = ["svc:bfeed"]
+        ip  = ["tcp:443"]
       }
     ]
 
@@ -101,9 +107,10 @@ resource "tailscale_acl" "this" {
       services = {
         "tag:k8s-services" = ["tag:k8s-ingress"]
         # tag:home (the homelab Pi) may advertise svc:prometheus + svc:grafana
-        # without manual admin approval.
+        # + svc:bfeed without manual admin approval.
         "svc:prometheus" = ["tag:home"]
         "svc:grafana"    = ["tag:home"]
+        "svc:bfeed"      = ["tag:home"]
       }
       exitNode = ["group:admins"]
       routes = {
@@ -161,5 +168,18 @@ resource "tailscale_service" "grafana" {
 
   name    = "svc:grafana"
   comment = "Grafana UI on rpi5-4cpu-16gb-home-1"
+  ports   = ["tcp:443"]
+}
+
+# Tailscale Service for the homelab bfeed RSS reader. Advertised by the Pi
+# (tag:home) via `tailscale serve` (see pyinfra/tasks/tailscale_service.py),
+# auto-approved by the autoApprovers.services entry above. Gets its own MagicDNS
+# name (bfeed.marlin-tet.ts.net) + VIP; access gated by the svc:bfeed grant to
+# group:admins.
+resource "tailscale_service" "bfeed" {
+  depends_on = [tailscale_acl.this]
+
+  name    = "svc:bfeed"
+  comment = "bfeed RSS reader on rpi5-4cpu-16gb-home-1"
   ports   = ["tcp:443"]
 }

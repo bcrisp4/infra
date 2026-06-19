@@ -195,6 +195,24 @@ grafana_memory_high = "384M"
 grafana_cpu_quota = "150%"
 grafana_tasks_max = 4096
 
+# bfeed (self-hosted RSS/Atom/JSON feed reader) runs as a rootful podman quadlet
+# (tasks/bfeed.py). Single Go binary + sqlite at /var/lib/bfeed (image runs as
+# uid 65532). No podman network -- it talks to nothing else on the host but polls
+# feeds over the internet, so it stays on the default bridge for outbound NAT.
+# Loopback-only host port; exposed on the tailnet via svc:bfeed. BFEED_BASE_URL is
+# mandatory (bfeed exits without it) and must be the public MagicDNS URL.
+bfeed_enabled = True
+bfeed_image = "ghcr.io/bcrisp4/bfeed"
+# git tag vX.Y.Z publishes image tag X.Y.Z (goreleaser strips the v).
+bfeed_image_tag = "0.1.0"
+bfeed_host_port = 8080
+bfeed_base_url = "https://bfeed.marlin-tet.ts.net"
+# systemd-native cgroup ceilings (applied in [Service] of the quadlet).
+bfeed_memory_max = "256M"
+bfeed_memory_high = "192M"
+bfeed_cpu_quota = "100%"
+bfeed_tasks_max = 1024
+
 # Expose services as Tailscale Services (tasks/tailscale_service.py). The Pi
 # advertises each via `tailscale serve`; tailscaled terminates TLS on :443 and
 # reverse-proxies to the loopback-bound container. MagicDNS:
@@ -204,6 +222,7 @@ tailscale_serve_enabled = True
 tailscale_serve_services = [
     {"name": "svc:prometheus", "backend_port": prometheus_host_port, "https_port": 443},
     {"name": "svc:grafana", "backend_port": grafana_host_port, "https_port": 443},
+    {"name": "svc:bfeed", "backend_port": bfeed_host_port, "https_port": 443},
 ]
 
 # Static network config rendered into a NetworkManager keyfile. The Pi
