@@ -204,7 +204,7 @@ grafana_tasks_max = 4096
 bfeed_enabled = True
 bfeed_image = "ghcr.io/bcrisp4/bfeed"
 # git tag vX.Y.Z publishes image tag X.Y.Z (goreleaser strips the v).
-bfeed_image_tag = "0.3.0"
+bfeed_image_tag = "0.3.1"
 bfeed_host_port = 8080
 bfeed_base_url = "https://bfeed.marlin-tet.ts.net"
 # systemd-native cgroup ceilings (applied in [Service] of the quadlet).
