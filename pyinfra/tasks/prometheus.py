@@ -61,6 +61,7 @@ def _render_config(data: Mapping) -> str:
     nodeexporter_target = f"host.containers.internal:{data['nodeexporter_host_port']}"
     podman_exporter_target = f"podman-exporter:{data['podman_exporter_port']}"
     pi5_exporter_target = f"pi5-exporter:{data['pi5_exporter_port']}"
+    bfeed_target = f"bfeed:{data['bfeed_metrics_port']}"
     node_name = data["node_name"]
     lines = [
         "# Rendered by pyinfra tasks/prometheus.py. Do not edit by hand.",
@@ -107,6 +108,15 @@ def _render_config(data: Mapping) -> str:
         "  - job_name: pi5-exporter",
         "    static_configs:",
         f"      - targets: ['{pi5_exporter_target}']",
+        f"        labels: {{instance: '{node_name}'}}",
+        "",
+        # bfeed shares the monitoring bridge, so its metrics listener is reached
+        # by ContainerName at its unpublished metrics port, NOT the loopback app
+        # port. The target address is meaningless as `instance`, so pin it to the
+        # node short hostname (same rationale as node-exporter/grafana above).
+        "  - job_name: bfeed",
+        "    static_configs:",
+        f"      - targets: ['{bfeed_target}']",
         f"        labels: {{instance: '{node_name}'}}",
     ]
     return "\n".join(lines) + "\n"
@@ -190,6 +200,7 @@ _DATA_KEYS = (
     "nodeexporter_host_port",
     "podman_exporter_port",
     "pi5_exporter_port",
+    "bfeed_metrics_port",
 )
 
 

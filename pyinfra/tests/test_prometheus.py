@@ -27,6 +27,7 @@ BASE_DATA: dict = {
     "nodeexporter_host_port": 9100,
     "podman_exporter_port": 9882,
     "pi5_exporter_port": 2712,
+    "bfeed_metrics_port": 9091,
     "node_name": "rpi5-4cpu-16gb-home-1",
 }
 
@@ -151,6 +152,25 @@ def test_config_pi5_exporter_target_tracks_port(port: int) -> None:
     assert f"      - targets: ['pi5-exporter:{port}']" in out
 
 
+def test_config_has_bfeed_job() -> None:
+    """bfeed is scraped over the monitoring bridge by ContainerName."""
+    out = _render_config(BASE_DATA)
+    assert "  - job_name: bfeed" in out
+    assert "      - targets: ['bfeed:9091']" in out
+
+
+def test_config_bfeed_instance_relabelled_to_node_name() -> None:
+    out = _render_config(BASE_DATA)
+    block = out.split("  - job_name: bfeed", 1)[1]
+    assert "        labels: {instance: 'rpi5-4cpu-16gb-home-1'}" in block
+
+
+@pytest.mark.parametrize("port", [9091, 19091])
+def test_config_bfeed_target_tracks_port(port: int) -> None:
+    out = _render_config({**BASE_DATA, "bfeed_metrics_port": port})
+    assert f"      - targets: ['bfeed:{port}']" in out
+
+
 @pytest.mark.parametrize("interval", ["10s", "15s", "1m"])
 def test_config_scrape_interval_substituted(interval: str) -> None:
     out = _render_config({**BASE_DATA, "prometheus_scrape_interval": interval})
@@ -180,7 +200,9 @@ def test_quadlet_has_all_required_sections() -> None:
 def test_quadlet_section_order() -> None:
     """[Unit] before [Container] before [Service] before [Install]."""
     out = _render_quadlet(BASE_DATA)
-    positions = [out.index(s) for s in ("[Unit]", "[Container]", "[Service]", "[Install]")]
+    positions = [
+        out.index(s) for s in ("[Unit]", "[Container]", "[Service]", "[Install]")
+    ]
     assert positions == sorted(positions), f"section order wrong: {positions}"
 
 
@@ -236,7 +258,11 @@ def test_quadlet_exec_carries_retention_flags() -> None:
 
 def test_quadlet_retention_flags_track_data() -> None:
     out = _render_quadlet(
-        {**BASE_DATA, "prometheus_retention_time": "90d", "prometheus_retention_size": "16GB"}
+        {
+            **BASE_DATA,
+            "prometheus_retention_time": "90d",
+            "prometheus_retention_size": "16GB",
+        }
     )
     assert "--storage.tsdb.retention.time=90d" in out
     assert "--storage.tsdb.retention.size=16GB" in out
@@ -306,7 +332,10 @@ def test_quadlet_is_deterministic() -> None:
 @pytest.mark.parametrize(
     ("tag", "expected"),
     [
-        ("v3.12.0-distroless", "Image=quay.io/prometheus/prometheus:v3.12.0-distroless"),
+        (
+            "v3.12.0-distroless",
+            "Image=quay.io/prometheus/prometheus:v3.12.0-distroless",
+        ),
         ("v3.12.0", "Image=quay.io/prometheus/prometheus:v3.12.0"),
         ("latest", "Image=quay.io/prometheus/prometheus:latest"),
     ],
