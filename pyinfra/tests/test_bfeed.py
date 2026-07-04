@@ -14,6 +14,7 @@ BASE_DATA: dict = {
     "bfeed_image_tag": "0.1.0",
     "bfeed_host_port": 8080,
     "bfeed_base_url": "https://bfeed.marlin-tet.ts.net",
+    "bfeed_metrics_port": 9091,
     "bfeed_memory_max": "256M",
     "bfeed_memory_high": "192M",
     "bfeed_cpu_quota": "100%",
@@ -40,11 +41,11 @@ def test_quadlet_pins_image_with_tag() -> None:
     assert "Image=ghcr.io/bcrisp4/bfeed:0.1.0" in out
 
 
-def test_quadlet_joins_no_user_defined_network() -> None:
-    """bfeed stays on the default podman bridge (outbound NAT for feed polling);
-    it reaches no other container, so it joins none of the named networks."""
+def test_quadlet_joins_monitoring_network() -> None:
+    """bfeed shares the monitoring bridge so Prometheus scrapes it by name; a
+    user-defined network still NATs outbound for feed polling."""
     out = _render_quadlet(BASE_DATA)
-    assert "Network=" not in out
+    assert "Network=monitoring.network" in out
 
 
 def test_quadlet_publishes_host_port_loopback_only() -> None:
@@ -80,6 +81,26 @@ def test_quadlet_sets_mandatory_base_url() -> None:
 def test_quadlet_base_url_tracks_host_data(base_url: str) -> None:
     out = _render_quadlet({**BASE_DATA, "bfeed_base_url": base_url})
     assert f"Environment=BFEED_BASE_URL={base_url}" in out
+
+
+def test_quadlet_sets_metrics_addr() -> None:
+    """Separate Prometheus metrics listener on the configured port."""
+    out = _render_quadlet(BASE_DATA)
+    assert "Environment=BFEED_METRICS_ADDR=:9091" in out
+
+
+@pytest.mark.parametrize("port", [9091, 19091])
+def test_quadlet_metrics_addr_tracks_port(port: int) -> None:
+    out = _render_quadlet({**BASE_DATA, "bfeed_metrics_port": port})
+    assert f"Environment=BFEED_METRICS_ADDR=:{port}" in out
+
+
+def test_quadlet_does_not_publish_metrics_port() -> None:
+    """The metrics port is reachable only over the monitoring bridge; it must
+    never be published to the host (no LAN/Tailscale exposure)."""
+    out = _render_quadlet(BASE_DATA)
+    assert "PublishPort=127.0.0.1:9091" not in out
+    assert ":9091:9091" not in out
 
 
 def test_quadlet_sets_json_logging() -> None:

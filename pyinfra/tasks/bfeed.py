@@ -4,12 +4,16 @@ Renders /etc/containers/systemd/bfeed.container from host data, then ensures
 bfeed.service is running. The quadlet generator converts the .container file
 into a runtime systemd unit at daemon-reload.
 
-Networking: bfeed joins no user-defined podman network -- it talks to nothing
-else on the host, but it DOES poll feeds over the public internet, so it stays
-on the default podman bridge (outbound NAT). The host port is published on the
-loopback only (127.0.0.1); external access is solely through the Tailscale
-service svc:bfeed (HTTPS at bfeed.marlin-tet.ts.net, see
-tasks/tailscale_service.py). No LAN or raw-Tailscale-IP exposure.
+Networking: bfeed joins the `monitoring` podman network so Prometheus can scrape
+its /metrics endpoint by ContainerName (bfeed:<bfeed_metrics_port>) via
+aardvark-dns, like Grafana/podman-exporter/pi5-exporter. A user-defined network
+still provides outbound NAT, so bfeed keeps polling feeds over the public
+internet. The app host port is published on the loopback only (127.0.0.1);
+external access is solely through the Tailscale service svc:bfeed (HTTPS at
+bfeed.marlin-tet.ts.net, see tasks/tailscale_service.py). No LAN or
+raw-Tailscale-IP exposure. The metrics listener (BFEED_METRICS_ADDR) is NOT
+published to the host, so it is reachable only by Prometheus over the monitoring
+bridge, not the LAN or Tailscale.
 
 State: bfeed's sqlite DB (BFEED_DATABASE_PATH defaults to /data/bfeed.db) lives
 under /var/lib/bfeed, a plain dir on the rootfs bind-mounted at /data. The image
@@ -54,6 +58,7 @@ def _render_quadlet(data: Mapping) -> str:
     image = f"{data['bfeed_image']}:{data['bfeed_image_tag']}"
     host_port = data["bfeed_host_port"]
     base_url = data["bfeed_base_url"]
+    metrics_port = data["bfeed_metrics_port"]
     lines = [
         "# Rendered by pyinfra tasks/bfeed.py. Do not edit by hand.",
         "[Unit]",
@@ -67,19 +72,28 @@ def _render_quadlet(data: Mapping) -> str:
         "[Container]",
         f"Image={image}",
         "ContainerName=bfeed",
-        # No Network= line: bfeed stays on the default podman bridge, which gives
-        # the outbound NAT it needs to poll feeds. It reaches no other container,
-        # so it joins none of the user-defined networks.
-        #
-        # Loopback-only: bfeed is reached solely via the Tailscale service (HTTPS
-        # at bfeed.marlin-tet.ts.net), whose proxy on the host hits 127.0.0.1. No
-        # LAN or raw-Tailscale-IP exposure. See tasks/tailscale_service.py.
+        # Shared bridge with Prometheus (tasks/podman_network.py): Prometheus
+        # resolves this container as `bfeed` via aardvark-dns and scrapes its
+        # /metrics port. A user-defined network still provides outbound NAT, so
+        # bfeed keeps polling feeds over the internet.
+        "Network=monitoring.network",
+        # Loopback-only app port: bfeed's UI is reached solely via the Tailscale
+        # service (HTTPS at bfeed.marlin-tet.ts.net), whose proxy on the host hits
+        # 127.0.0.1. No LAN or raw-Tailscale-IP exposure. The metrics port below
+        # is NOT published, so it stays reachable only over the monitoring bridge.
+        # See tasks/tailscale_service.py.
         f"PublishPort=127.0.0.1:{host_port}:{CONTAINER_PORT}/tcp",
         f"Volume={DATA_DIR}:{CONTAINER_DATA_DIR}",
         # Mandatory: bfeed refuses to start without BFEED_BASE_URL. Behind the
         # Tailscale serve TLS proxy, this must be the public MagicDNS URL so
         # absolute links + cookies resolve, not the loopback bind.
         f"Environment=BFEED_BASE_URL={base_url}",
+        # Separate Prometheus metrics listener (feed-poll, article-scrape, HTTP,
+        # error, backlog metrics at /metrics + its own /healthz). Binds all
+        # container interfaces on this port; unpublished, so only Prometheus on
+        # the monitoring bridge reaches it. The DNS-rebinding Host check applies
+        # only to the app handler, not this listener, so scraping by name is fine.
+        f"Environment=BFEED_METRICS_ADDR=:{metrics_port}",
         # Structured JSON logs to the journal (the image default, set explicitly).
         "Environment=BFEED_LOG_FORMAT=json",
         "Environment=BFEED_LOG_LEVEL=info",
@@ -108,6 +122,7 @@ _DATA_KEYS = (
     "bfeed_image_tag",
     "bfeed_host_port",
     "bfeed_base_url",
+    "bfeed_metrics_port",
     "bfeed_memory_max",
     "bfeed_memory_high",
     "bfeed_cpu_quota",
