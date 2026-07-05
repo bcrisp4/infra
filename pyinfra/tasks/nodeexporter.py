@@ -18,10 +18,13 @@ that it must share the host namespaces and read the host filesystem:
 The filesystem collector excludes are widened to drop the /host-prefixed and
 container-internal mounts so disk series are not duplicated/garbage.
 
-Because Network=host shares the host net namespace, the listen address cannot be
-restricted with PublishPort the way Prometheus is; the bind is controlled only
-by --web.listen-address. We bind :9100 (0.0.0.0), matching the trusted-LAN
-exposure of the bns admin port. Prometheus scrapes host.containers.internal:9100.
+Because Network=host shares the host net namespace, the listen address cannot
+be restricted with PublishPort the way Prometheus is; the bind is controlled
+only by --web.listen-address, built as <nodeexporter_listen_address>:<port>.
+The default listen address is "" (all interfaces), matching the trusted-LAN
+exposure of the bns admin port on the Pi. Hosts with a public interface (cloud
+instances) set their Tailscale IP so :9100 is not internet-exposed. Prometheus
+scrapes host.containers.internal:9100 on the same host.
 
 Gated on `nodeexporter_enabled` host/group data so non-exporter hosts no-op.
 """
@@ -45,9 +48,7 @@ CONTAINER_PORT = 9100
 # Filesystem collector excludes, widened from upstream defaults to also drop the
 # /host-prefixed view and podman's container storage so disk series aren't
 # duplicated under --path.rootfs.
-FS_MOUNT_POINTS_EXCLUDE = (
-    "^/(host/)?(dev|proc|sys|run/credentials/.+|var/lib/containers/.+|var/lib/docker/.+)($|/)"
-)
+FS_MOUNT_POINTS_EXCLUDE = "^/(host/)?(dev|proc|sys|run/credentials/.+|var/lib/containers/.+|var/lib/docker/.+)($|/)"
 FS_TYPES_EXCLUDE = (
     "^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|"
     "hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|"
@@ -69,10 +70,11 @@ def _render_quadlet(data: Mapping) -> str:
     """Render the systemd quadlet .container unit for node-exporter from host data."""
     image = f"{data['nodeexporter_image']}:{data['nodeexporter_image_tag']}"
     host_port = data["nodeexporter_host_port"]
+    listen_address = data["nodeexporter_listen_address"]
     exec_args = " ".join(
         [
             f"--path.rootfs={HOST_ROOTFS_MOUNT}",
-            f"--web.listen-address=:{host_port}",
+            f"--web.listen-address={listen_address}:{host_port}",
             "--collector.filesystem.mount-points-exclude="
             f"{_systemd_escape_exec(FS_MOUNT_POINTS_EXCLUDE)}",
             f"--collector.filesystem.fs-types-exclude={_systemd_escape_exec(FS_TYPES_EXCLUDE)}",
@@ -124,6 +126,7 @@ _DATA_KEYS = (
     "nodeexporter_image",
     "nodeexporter_image_tag",
     "nodeexporter_host_port",
+    "nodeexporter_listen_address",
     "nodeexporter_memory_max",
     "nodeexporter_memory_high",
     "nodeexporter_cpu_quota",

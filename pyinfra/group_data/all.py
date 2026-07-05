@@ -75,6 +75,9 @@ prometheus_tasks_max = 4096
 nodeexporter_image = "quay.io/prometheus/node-exporter"
 nodeexporter_image_tag = "v1.11.1"
 nodeexporter_host_port = 9100
+# Bind address for --web.listen-address ("" = all interfaces). Hosts with a
+# public interface set their Tailscale IP here so :9100 stays off the internet.
+nodeexporter_listen_address = ""
 nodeexporter_memory_max = "128M"
 nodeexporter_memory_high = "96M"
 nodeexporter_cpu_quota = "50%"
