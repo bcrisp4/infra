@@ -124,7 +124,7 @@ Accepted trade-offs: enabling a service no longer auto-adds its scrape job (the 
 
 ### tasks/nodeexporter.py
 
-New key `nodeexporter_listen_address`, default `0.0.0.0` (Pi behavior unchanged). Cloud hosts set their Tailscale IP in their host data dict so `Network=host` on a machine with a public interface does not expose `:9100` to the internet. One-line renderer change to `--web.listen-address`.
+New key `nodeexporter_listen_address`, default `""` (empty string = all interfaces, so the rendered `--web.listen-address=:9100` and therefore the quadlet unit are byte-identical on the Pi; `0.0.0.0` would have identical semantics but force a pointless container restart). Cloud hosts set their Tailscale IP in their host data dict so `Network=host` on a machine with a public interface does not expose `:9100` to the internet. One-line renderer change to `--web.listen-address`.
 
 ## Migration plan
 
