@@ -10,10 +10,15 @@ See `CLAUDE.md` in this directory for pyinfra concepts and project conventions. 
 pyinfra/
 ├── pyproject.toml           # uv project, declares pyinfra dep
 ├── .python-version          # pinned Python (3.12)
-├── inventory.py             # hosts + groups
+├── inventory.py             # hosts (in `all`, with per-host data) + role groups
 ├── deploy.py                # top-level entry, wires tasks together
 ├── group_data/
-│   └── homelab.py           # shared data for the `homelab` group
+│   ├── all.py               # project-wide defaults, every service disabled
+│   ├── dns_servers.py       # role flip file: bns
+│   ├── dhcp_servers.py      # role flip file: dnsmasq
+│   ├── monitoring_servers.py # role flip file: prometheus/grafana/renderer
+│   ├── metrics_agents.py    # role flip file: node-exporter/podman-exporter
+│   └── feed_hosts.py        # role flip file: bfeed
 ├── tasks/
 │   ├── base.py              # apt update/upgrade, packages, timezone
 │   ├── podman.py            # install podman + Pi cmdline patch
@@ -28,24 +33,37 @@ Tasks are `@deploy`-decorated functions that compose pyinfra built-in operations
 
 ### How inventory and data fit together
 
-`inventory.py` defines groups. The variable name *is* the group name:
+`inventory.py` declares every host ONCE in the `all` list, together with its
+per-host data dict (machine facts: addresses, UUIDs, GIDs, serve lists, scrape
+targets). Role groups are bare-FQDN membership lists:
 
 ```python
-homelab = [
-    ("rpi5-4cpu-16gb-home-1.marlin-tet.ts.net", {"ssh_user": "ben"}),
-]
+all = [("rpi5-4cpu-16gb-home-1.marlin-tet.ts.net", _pi_data)]
+
+dns_servers = [_PI]
+monitoring_servers = [_PI]
+metrics_agents = [_PI]
 ```
 
-`group_data/homelab.py` provides defaults for every host in `homelab`:
+Data resolution, first match wins:
 
-```python
-timezone = "UTC"
-base_packages = ["vim", "git", "htop", "tmux", "curl"]
+1. host dict in `inventory.py` (machine facts)
+2. `group_data/<role>.py` (enable flags + role policy)
+3. `group_data/all.py` (project-wide defaults; every `<name>_enabled = False`)
+
+Keep role-file keys disjoint (each role owns its services' key prefixes) so
+group merge order never matters. pyinfra creates hosts only from the explicit
+`all` list; a guard at the bottom of `inventory.py` raises if a role names an
+undeclared host. Inspect the resolved data with:
+
+```bash
+uv run pyinfra inventory.py debug-inventory
 ```
 
-Per-host overrides go in the host tuple in `inventory.py`. Tasks read values via `host.data.get("key", default)`, so missing keys fall back cleanly.
-
-Resolution order: host data → group data → defaults baked into the task.
+**Prometheus scrape targets are explicit.** Enabling a service does not add a
+scrape job. Add an entry to `prometheus_scrape_targets` in the monitoring
+server's host dict (`{"job": ..., "target": ..., "labels": {...}}`). Cross-host
+targets use the Tailscale FQDN (`cloud1.marlin-tet.ts.net:9100`).
 
 ## Prerequisites
 
@@ -92,7 +110,9 @@ uv run pyinfra inventory.py exec -- uptime
 
 ## What gets applied
 
-Currently `deploy.py` runs these task modules against every host in the inventory:
+`deploy.py` calls every task module in dependency order; each task gates itself
+on its `<name>_enabled` host/group data, so what actually runs on a host is
+decided by its role groups and host dict. The foundational tasks:
 
 - **`tasks/base.py`** — refresh apt cache, upgrade installed packages, install `base_packages`, set timezone (idempotent via a `timedatectl show` fact check).
 - **`tasks/unattended_upgrades.py`** — install `unattended-upgrades`, drop `/etc/apt/apt.conf.d/20auto-upgrades` to enable periodic security updates.
@@ -112,41 +132,35 @@ uv run pytest -v
 
 ## Adding a host
 
-1. Append a tuple to the appropriate group in `inventory.py`:
+1. Declare it once in `all` with its data dict, then add it to role lists:
 
    ```python
-   homelab = [
-       ("rpi5-4cpu-16gb-home-1.marlin-tet.ts.net", {"ssh_user": "ben"}),
-       ("new-host.marlin-tet.ts.net", {"ssh_user": "ben"}),
-   ]
+   _cloud1 = {"ssh_user": "debian"}
+
+   all = [(_PI, _pi_data), ("cloud1.marlin-tet.ts.net", _cloud1)]
+   metrics_agents = [_PI, "cloud1.marlin-tet.ts.net"]
    ```
 
-2. Confirm with a dry-run, then apply.
+2. If the central Prometheus should scrape it, append to
+   `prometheus_scrape_targets` in `_pi_data` (and set
+   `nodeexporter_listen_address` to the host's Tailscale IP if it has a
+   public interface).
+3. `uv run pyinfra inventory.py debug-inventory` to check resolved data, then
+   dry-run and apply.
 
-Per-host overrides go in the data dict:
+Per-host overrides (timezone, package list, any `all.py` key) go in the host's
+data dict.
 
-```python
-("special-host.marlin-tet.ts.net", {
-    "ssh_user": "ben",
-    "timezone": "Europe/London",
-    "base_packages": ["vim", "git", "tmux"],
-}),
-```
+## Adding a role
 
-## Adding a new group
+1. Add a membership list in `inventory.py` (and extend the guard's `_roles`
+   dict), e.g. `queue_servers = [_PI]`.
+2. Create `group_data/queue_servers.py` flipping that role's `<name>_enabled`
+   keys (defaults belong in `group_data/all.py`).
+3. Singleton roles (DHCP, DNS on the LAN): keep membership to exactly one
+   host; nothing enforces this beyond the list you write.
 
-1. Add a new top-level list in `inventory.py`, e.g. `kube_nodes = [...]`.
-2. Optionally create `group_data/kube_nodes.py` for shared data.
-3. In tasks, gate behaviour by group membership:
-
-   ```python
-   from pyinfra import host
-
-   if "kube_nodes" in host.groups:
-       ...
-   ```
-
-A host can belong to multiple groups; just include it in multiple lists.
+A host can belong to multiple roles; include it in multiple lists.
 
 ## Adding a new task
 
