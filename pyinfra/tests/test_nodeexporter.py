@@ -12,6 +12,7 @@ BASE_DATA: dict = {
     "nodeexporter_image": "quay.io/prometheus/node-exporter",
     "nodeexporter_image_tag": "v1.11.1",
     "nodeexporter_host_port": 9100,
+    "nodeexporter_listen_address": "",
     "nodeexporter_memory_max": "128M",
     "nodeexporter_memory_high": "96M",
     "nodeexporter_cpu_quota": "50%",
@@ -28,7 +29,9 @@ def test_quadlet_has_all_required_sections() -> None:
 def test_quadlet_section_order() -> None:
     """[Unit] before [Container] before [Service] before [Install]."""
     out = _render_quadlet(BASE_DATA)
-    positions = [out.index(s) for s in ("[Unit]", "[Container]", "[Service]", "[Install]")]
+    positions = [
+        out.index(s) for s in ("[Unit]", "[Container]", "[Service]", "[Install]")
+    ]
     assert positions == sorted(positions), f"section order wrong: {positions}"
 
 
@@ -69,9 +72,10 @@ def test_quadlet_exec_sets_path_rootfs() -> None:
     assert f"--path.rootfs={HOST_ROOTFS_MOUNT}" in out
 
 
-def test_quadlet_binds_all_interfaces_on_host_port() -> None:
-    """Network=host removes PublishPort; bind is via --web.listen-address. We
-    bind :<port> (0.0.0.0), matching bns admin's trusted-LAN exposure."""
+def test_quadlet_default_binds_all_interfaces_on_host_port() -> None:
+    """Network=host removes PublishPort; bind is via --web.listen-address.
+    Default listen address is empty (all interfaces), matching bns admin's
+    trusted-LAN exposure on the Pi."""
     out = _render_quadlet(BASE_DATA)
     assert f"--web.listen-address=:{CONTAINER_PORT}" in out
     assert "PublishPort" not in out
@@ -81,6 +85,13 @@ def test_quadlet_binds_all_interfaces_on_host_port() -> None:
 def test_quadlet_listen_address_tracks_host_port(port: int) -> None:
     out = _render_quadlet({**BASE_DATA, "nodeexporter_host_port": port})
     assert f"--web.listen-address=:{port}" in out
+
+
+def test_quadlet_listen_address_restricts_bind() -> None:
+    """A cloud host with a public interface binds its Tailscale IP only, so
+    :9100 is not exposed to the internet."""
+    out = _render_quadlet({**BASE_DATA, "nodeexporter_listen_address": "100.64.0.5"})
+    assert "--web.listen-address=100.64.0.5:9100" in out
 
 
 def test_quadlet_filesystem_collector_excludes_present() -> None:

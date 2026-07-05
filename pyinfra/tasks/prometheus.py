@@ -45,24 +45,12 @@ def _render_config(data: Mapping) -> str:
     """Render prometheus.yml from host data.
 
     Hand-rolled YAML (no PyYAML) because the shape is fixed and unit-tested.
-    The bns and node-exporter scrape targets read their host ports from data so
-    each port has a single source of truth.
-
-    node-exporter is scraped over host.containers.internal (the only route from
-    the Prometheus container to the host port), but that address is meaningless
-    as an `instance` label, so we pin instance to the node's short hostname
-    (data["node_name"]).
-
-    bns binds only its LAN IP (bns_listen_address), not the bridge gateway, so
-    it is scraped at that address rather than host.containers.internal. See the
-    bind rationale in tasks/bns.py.
+    The self-scrape job is built in; every other job comes from the
+    `prometheus_scrape_targets` host data list (entries {job, target,
+    labels?}), so this task has no knowledge of other services' data keys and
+    cross-host targets are just more entries. Enabling a service does NOT
+    auto-add its job - the operator adds the entry in inventory.py.
     """
-    bns_target = f"{data['bns_listen_address']}:{data['bns_host_port_admin']}"
-    nodeexporter_target = f"host.containers.internal:{data['nodeexporter_host_port']}"
-    podman_exporter_target = f"podman-exporter:{data['podman_exporter_port']}"
-    pi5_exporter_target = f"pi5-exporter:{data['pi5_exporter_port']}"
-    bfeed_target = f"bfeed:{data['bfeed_metrics_port']}"
-    node_name = data["node_name"]
     lines = [
         "# Rendered by pyinfra tasks/prometheus.py. Do not edit by hand.",
         "global:",
@@ -73,52 +61,16 @@ def _render_config(data: Mapping) -> str:
         "  - job_name: prometheus",
         "    static_configs:",
         f"      - targets: ['localhost:{CONTAINER_PORT}']",
-        "",
-        "  - job_name: bns",
-        "    static_configs:",
-        f"      - targets: ['{bns_target}']",
-        "",
-        "  - job_name: node-exporter",
-        "    static_configs:",
-        f"      - targets: ['{nodeexporter_target}']",
-        f"        labels: {{instance: '{node_name}'}}",
-        "",
-        # Grafana shares the monitoring bridge, so it is reached by ContainerName
-        # at its in-container port (3000), NOT the loopback-published host port.
-        # The target address is meaningless as `instance`, so pin it to the node
-        # short hostname (same rationale as node-exporter above).
-        "  - job_name: grafana",
-        "    static_configs:",
-        "      - targets: ['grafana:3000']",
-        f"        labels: {{instance: '{node_name}'}}",
-        "",
-        # podman-exporter shares the monitoring bridge, so it is reached by
-        # ContainerName at its in-container port, NOT a published host port. The
-        # target address is meaningless as `instance`, so pin it to the node
-        # short hostname (same rationale as node-exporter/grafana above).
-        "  - job_name: podman-exporter",
-        "    static_configs:",
-        f"      - targets: ['{podman_exporter_target}']",
-        f"        labels: {{instance: '{node_name}'}}",
-        "",
-        # pi5-exporter shares the monitoring bridge, so it is reached by
-        # ContainerName at its in-container port, NOT a published host port. The
-        # target address is meaningless as `instance`, so pin it to the node
-        # short hostname (same rationale as node-exporter/grafana above).
-        "  - job_name: pi5-exporter",
-        "    static_configs:",
-        f"      - targets: ['{pi5_exporter_target}']",
-        f"        labels: {{instance: '{node_name}'}}",
-        "",
-        # bfeed shares the monitoring bridge, so its metrics listener is reached
-        # by ContainerName at its unpublished metrics port, NOT the loopback app
-        # port. The target address is meaningless as `instance`, so pin it to the
-        # node short hostname (same rationale as node-exporter/grafana above).
-        "  - job_name: bfeed",
-        "    static_configs:",
-        f"      - targets: ['{bfeed_target}']",
-        f"        labels: {{instance: '{node_name}'}}",
     ]
+    for entry in data["prometheus_scrape_targets"]:
+        lines.append("")
+        lines.append(f"  - job_name: {entry['job']}")
+        lines.append("    static_configs:")
+        lines.append(f"      - targets: ['{entry['target']}']")
+        labels = entry.get("labels")
+        if labels:
+            rendered = ", ".join(f"{k}: '{v}'" for k, v in labels.items())
+            lines.append(f"        labels: {{{rendered}}}")
     return "\n".join(lines) + "\n"
 
 
@@ -195,12 +147,7 @@ _DATA_KEYS = (
     "prometheus_memory_high",
     "prometheus_cpu_quota",
     "prometheus_tasks_max",
-    "bns_listen_address",
-    "bns_host_port_admin",
-    "nodeexporter_host_port",
-    "podman_exporter_port",
-    "pi5_exporter_port",
-    "bfeed_metrics_port",
+    "prometheus_scrape_targets",
 )
 
 
@@ -212,9 +159,6 @@ def prometheus() -> None:
     # HostData is not subscriptable; materialize into a plain dict so the pure
     # renderers stay test-friendly with `data["key"]` access.
     data = {k: host.data.get(k) for k in _DATA_KEYS}
-    # Short hostname for the node-exporter `instance` label (the inventory name
-    # is the Tailscale FQDN; take the first label).
-    data["node_name"] = host.name.split(".")[0]
 
     # Create the rootfs data dir (if absent) and chown to the container uid
     # before the container starts, so the distroless prometheus process can write

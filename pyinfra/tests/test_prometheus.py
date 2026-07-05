@@ -22,13 +22,14 @@ BASE_DATA: dict = {
     "prometheus_memory_high": "768M",
     "prometheus_cpu_quota": "200%",
     "prometheus_tasks_max": 4096,
-    "bns_listen_address": "192.168.1.2",
-    "bns_host_port_admin": 9053,
-    "nodeexporter_host_port": 9100,
-    "podman_exporter_port": 9882,
-    "pi5_exporter_port": 2712,
-    "bfeed_metrics_port": 9091,
-    "node_name": "rpi5-4cpu-16gb-home-1",
+    "prometheus_scrape_targets": [
+        {"job": "bns", "target": "192.168.1.2:9053"},
+        {
+            "job": "node-exporter",
+            "target": "host.containers.internal:9100",
+            "labels": {"instance": "rpi5-4cpu-16gb-home-1"},
+        },
+    ],
 }
 
 
@@ -42,140 +43,68 @@ def test_config_global_uses_scrape_interval() -> None:
     assert "  evaluation_interval: 15s" in out
 
 
+@pytest.mark.parametrize("interval", ["10s", "15s", "1m"])
+def test_config_scrape_interval_substituted(interval: str) -> None:
+    out = _render_config({**BASE_DATA, "prometheus_scrape_interval": interval})
+    assert f"  scrape_interval: {interval}" in out
+    assert f"  evaluation_interval: {interval}" in out
+
+
 def test_config_has_self_scrape_job() -> None:
     out = _render_config(BASE_DATA)
     assert "  - job_name: prometheus" in out
     assert f"      - targets: ['localhost:{CONTAINER_PORT}']" in out
 
 
-def test_config_bns_job_uses_lan_ip_and_admin_port() -> None:
-    """bns binds its LAN IP only, so it is scraped there, not via the gateway."""
+def test_config_empty_target_list_renders_self_scrape_only() -> None:
+    out = _render_config({**BASE_DATA, "prometheus_scrape_targets": []})
+    assert out.count("  - job_name: ") == 1
+    assert "  - job_name: prometheus" in out
+
+
+def test_config_renders_job_per_target_entry() -> None:
     out = _render_config(BASE_DATA)
     assert "  - job_name: bns" in out
     assert "      - targets: ['192.168.1.2:9053']" in out
-
-
-@pytest.mark.parametrize("port", [9053, 9090, 19090])
-def test_config_bns_target_tracks_admin_port(port: int) -> None:
-    out = _render_config({**BASE_DATA, "bns_host_port_admin": port})
-    assert f"      - targets: ['192.168.1.2:{port}']" in out
-
-
-@pytest.mark.parametrize("address", ["192.168.1.2", "10.0.0.5"])
-def test_config_bns_target_tracks_listen_address(address: str) -> None:
-    out = _render_config({**BASE_DATA, "bns_listen_address": address})
-    assert f"      - targets: ['{address}:9053']" in out
-
-
-def test_config_nodeexporter_job_uses_host_containers_internal() -> None:
-    out = _render_config(BASE_DATA)
     assert "  - job_name: node-exporter" in out
     assert "      - targets: ['host.containers.internal:9100']" in out
 
 
-@pytest.mark.parametrize("port", [9100, 19100])
-def test_config_nodeexporter_target_tracks_host_port(port: int) -> None:
-    out = _render_config({**BASE_DATA, "nodeexporter_host_port": port})
-    assert f"      - targets: ['host.containers.internal:{port}']" in out
-
-
-def test_config_nodeexporter_instance_relabelled_to_node_name() -> None:
-    """The scrape address is host.containers.internal, but instance should read
-    as the node's short hostname."""
+def test_config_entry_without_labels_has_no_labels_line() -> None:
     out = _render_config(BASE_DATA)
-    assert "        labels: {instance: 'rpi5-4cpu-16gb-home-1'}" in out
+    bns_block = out.split("  - job_name: bns", 1)[1].split("  - job_name: ", 1)[0]
+    assert "labels:" not in bns_block
 
 
-@pytest.mark.parametrize("name", ["rpi5-4cpu-16gb-home-1", "htz-fsn1-prod-1"])
-def test_config_nodeexporter_instance_tracks_node_name(name: str) -> None:
-    out = _render_config({**BASE_DATA, "node_name": name})
-    assert f"        labels: {{instance: '{name}'}}" in out
-
-
-def test_config_has_grafana_job() -> None:
-    """Grafana is scraped over the monitoring bridge by ContainerName."""
+def test_config_entry_with_labels_renders_labels_line() -> None:
     out = _render_config(BASE_DATA)
-    assert "  - job_name: grafana" in out
-    assert "      - targets: ['grafana:3000']" in out
+    ne_block = out.split("  - job_name: node-exporter", 1)[1]
+    assert "        labels: {instance: 'rpi5-4cpu-16gb-home-1'}" in ne_block
 
 
-def test_config_grafana_instance_relabelled_to_node_name() -> None:
-    """The scrape address is the container name, but instance should read as the
-    node's short hostname."""
+def test_config_multiple_labels_rendered_in_insertion_order() -> None:
+    targets = [
+        {
+            "job": "cloud-node",
+            "target": "cloud1.marlin-tet.ts.net:9100",
+            "labels": {"instance": "cloud1", "env": "prod"},
+        },
+    ]
+    out = _render_config({**BASE_DATA, "prometheus_scrape_targets": targets})
+    assert "        labels: {instance: 'cloud1', env: 'prod'}" in out
+
+
+def test_config_preserves_target_list_order() -> None:
     out = _render_config(BASE_DATA)
-    grafana_block = out.split("  - job_name: grafana", 1)[1]
-    assert "        labels: {instance: 'rpi5-4cpu-16gb-home-1'}" in grafana_block
+    assert out.index("job_name: prometheus") < out.index("job_name: bns")
+    assert out.index("job_name: bns") < out.index("job_name: node-exporter")
 
 
-@pytest.mark.parametrize("name", ["rpi5-4cpu-16gb-home-1", "htz-fsn1-prod-1"])
-def test_config_grafana_instance_tracks_node_name(name: str) -> None:
-    out = _render_config({**BASE_DATA, "node_name": name})
-    grafana_block = out.split("  - job_name: grafana", 1)[1]
-    assert f"        labels: {{instance: '{name}'}}" in grafana_block
-
-
-def test_config_has_podman_exporter_job() -> None:
-    """podman-exporter is scraped over the monitoring bridge by ContainerName."""
-    out = _render_config(BASE_DATA)
-    assert "  - job_name: podman-exporter" in out
-    assert "      - targets: ['podman-exporter:9882']" in out
-
-
-def test_config_podman_exporter_instance_relabelled_to_node_name() -> None:
-    out = _render_config(BASE_DATA)
-    block = out.split("  - job_name: podman-exporter", 1)[1]
-    assert "        labels: {instance: 'rpi5-4cpu-16gb-home-1'}" in block
-
-
-@pytest.mark.parametrize("port", [9882, 19882])
-def test_config_podman_exporter_target_tracks_port(port: int) -> None:
-    out = _render_config({**BASE_DATA, "podman_exporter_port": port})
-    assert f"      - targets: ['podman-exporter:{port}']" in out
-
-
-def test_config_has_pi5_exporter_job() -> None:
-    """pi5-exporter is scraped over the monitoring bridge by ContainerName."""
-    out = _render_config(BASE_DATA)
-    assert "  - job_name: pi5-exporter" in out
-    assert "      - targets: ['pi5-exporter:2712']" in out
-
-
-def test_config_pi5_exporter_instance_relabelled_to_node_name() -> None:
-    out = _render_config(BASE_DATA)
-    block = out.split("  - job_name: pi5-exporter", 1)[1]
-    assert "        labels: {instance: 'rpi5-4cpu-16gb-home-1'}" in block
-
-
-@pytest.mark.parametrize("port", [2712, 12712])
-def test_config_pi5_exporter_target_tracks_port(port: int) -> None:
-    out = _render_config({**BASE_DATA, "pi5_exporter_port": port})
-    assert f"      - targets: ['pi5-exporter:{port}']" in out
-
-
-def test_config_has_bfeed_job() -> None:
-    """bfeed is scraped over the monitoring bridge by ContainerName."""
-    out = _render_config(BASE_DATA)
-    assert "  - job_name: bfeed" in out
-    assert "      - targets: ['bfeed:9091']" in out
-
-
-def test_config_bfeed_instance_relabelled_to_node_name() -> None:
-    out = _render_config(BASE_DATA)
-    block = out.split("  - job_name: bfeed", 1)[1]
-    assert "        labels: {instance: 'rpi5-4cpu-16gb-home-1'}" in block
-
-
-@pytest.mark.parametrize("port", [9091, 19091])
-def test_config_bfeed_target_tracks_port(port: int) -> None:
-    out = _render_config({**BASE_DATA, "bfeed_metrics_port": port})
-    assert f"      - targets: ['bfeed:{port}']" in out
-
-
-@pytest.mark.parametrize("interval", ["10s", "15s", "1m"])
-def test_config_scrape_interval_substituted(interval: str) -> None:
-    out = _render_config({**BASE_DATA, "prometheus_scrape_interval": interval})
-    assert f"  scrape_interval: {interval}" in out
-    assert f"  evaluation_interval: {interval}" in out
+def test_config_cross_host_target() -> None:
+    """Cross-host scraping is just another entry - the renderer must not care."""
+    targets = [{"job": "node-exporter", "target": "cloud1.marlin-tet.ts.net:9100"}]
+    out = _render_config({**BASE_DATA, "prometheus_scrape_targets": targets})
+    assert "      - targets: ['cloud1.marlin-tet.ts.net:9100']" in out
 
 
 def test_config_terminates_with_single_newline() -> None:
