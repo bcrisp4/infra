@@ -31,6 +31,7 @@ grafana_image_renderer_enabled = False
 nodeexporter_enabled = False
 podman_exporter_enabled = False
 bfeed_enabled = False
+bscribe_enabled = False
 monitoring_network_enabled = False
 rendering_network_enabled = False
 tailscale_serve_enabled = False
@@ -138,6 +139,20 @@ bfeed_memory_max = "256M"
 bfeed_memory_high = "192M"
 bfeed_cpu_quota = "100%"
 bfeed_tasks_max = 1024
+
+# --- bscribe (document conversion; loopback app port, container-only metrics) ---
+bscribe_image = "ghcr.io/bcrisp4/bscribe"
+# git tag vX.Y.Z publishes image tag X.Y.Z (metadata-action strips the v).
+bscribe_image_tag = "0.3.1"
+bscribe_host_port = 8000
+bscribe_metrics_port = 9090
+# Parse worker processes = max parse concurrency (LibreOffice can spike ~1.14GB
+# per concurrent office conversion; keep in step with the memory ceiling below).
+bscribe_worker_count = 4
+bscribe_memory_max = "2G"
+bscribe_memory_high = "1536M"
+bscribe_cpu_quota = "400%"
+bscribe_tasks_max = 4096
 
 # --- tailscale serve (per-host service list lives in the host dict) ---------
 tailscale_serve_services = []

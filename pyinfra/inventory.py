@@ -56,6 +56,7 @@ _pi_data = {
         {"name": "svc:prometheus", "backend_port": 9090, "https_port": 443},
         {"name": "svc:grafana", "backend_port": 3000, "https_port": 443},
         {"name": "svc:bfeed", "backend_port": 8080, "https_port": 443},
+        {"name": "svc:bscribe", "backend_port": 8000, "https_port": 443},
     ],
     # Everything the central Prometheus scrapes (tasks/prometheus.py loops
     # over this). Enabling a service does NOT auto-add its job: add the entry
@@ -89,6 +90,11 @@ _pi_data = {
             "target": "bfeed:9091",
             "labels": {"instance": _PI_SHORT},
         },
+        {
+            "job": "bscribe",
+            "target": "bscribe:9090",
+            "labels": {"instance": _PI_SHORT},
+        },
     ],
 }
 
@@ -100,6 +106,7 @@ dhcp_servers = [_PI]
 monitoring_servers = [_PI]
 metrics_agents = [_PI]
 feed_hosts = [_PI]
+scribe_hosts = [_PI]
 
 # --- guard ---------------------------------------------------------------
 # pyinfra creates hosts only from `all` when it is defined explicitly; a host
@@ -111,6 +118,7 @@ _roles = {
     "monitoring_servers": monitoring_servers,
     "metrics_agents": metrics_agents,
     "feed_hosts": feed_hosts,
+    "scribe_hosts": scribe_hosts,
 }
 for _role_name, _members in _roles.items():
     for _member in _members:

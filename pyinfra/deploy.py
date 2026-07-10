@@ -2,6 +2,7 @@
 
 from tasks.base import base
 from tasks.bfeed import bfeed
+from tasks.bscribe import bscribe
 from tasks.bns import bns
 from tasks.dhcp import dnsmasq
 from tasks.grafana import grafana
@@ -31,5 +32,6 @@ prometheus()
 image_renderer()
 grafana()
 bfeed()
+bscribe()
 tailscale_service()
 dnsmasq()
