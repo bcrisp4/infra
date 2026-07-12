@@ -131,7 +131,7 @@ grafana_tasks_max = 4096
 # --- bfeed (feed reader; loopback app port, container-only metrics port) ----
 bfeed_image = "ghcr.io/bcrisp4/bfeed"
 # git tag vX.Y.Z publishes image tag X.Y.Z (goreleaser strips the v).
-bfeed_image_tag = "0.10.0"
+bfeed_image_tag = "0.11.0"
 bfeed_host_port = 8080
 bfeed_metrics_port = 9091
 bfeed_base_url = "https://bfeed.marlin-tet.ts.net"
