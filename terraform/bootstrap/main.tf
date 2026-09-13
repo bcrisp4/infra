@@ -51,6 +51,12 @@ variable "workspaces" {
   }
 }
 
+variable "aws_route53_role_arn" {
+  description = "AWS IAM role ARN for Route 53 management in the global workspace"
+  type        = string
+  default     = "arn:aws:iam::546045836508:role/bc4-terraform-global-route53"
+}
+
 # Data source for organization
 data "tfe_organization" "this" {
   name = var.organization
@@ -224,6 +230,36 @@ resource "tfe_variable" "onepassword_vault" {
 # Attach 1Password variable set to global workspace
 resource "tfe_workspace_variable_set" "global_onepassword" {
   variable_set_id = tfe_variable_set.onepassword.id
+  workspace_id    = tfe_workspace.this["global"].id
+}
+
+# Variable set for AWS Route 53 credentials
+resource "tfe_variable_set" "aws_route53" {
+  organization = data.tfe_organization.this.name
+  name         = "aws-route53-credentials"
+  description  = "AWS OIDC credentials for Route 53 management"
+}
+
+resource "tfe_variable" "aws_provider_auth" {
+  key             = "TFC_AWS_PROVIDER_AUTH"
+  value           = "true"
+  category        = "env"
+  sensitive       = false
+  variable_set_id = tfe_variable_set.aws_route53.id
+  description     = "Enable AWS dynamic credentials"
+}
+
+resource "tfe_variable" "aws_run_role_arn" {
+  key             = "TFC_AWS_RUN_ROLE_ARN"
+  value           = var.aws_route53_role_arn
+  category        = "env"
+  sensitive       = false
+  variable_set_id = tfe_variable_set.aws_route53.id
+  description     = "AWS IAM role for the global workspace"
+}
+
+resource "tfe_workspace_variable_set" "global_aws_route53" {
+  variable_set_id = tfe_variable_set.aws_route53.id
   workspace_id    = tfe_workspace.this["global"].id
 }
 

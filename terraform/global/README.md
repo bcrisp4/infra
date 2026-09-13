@@ -6,6 +6,7 @@ This directory manages cross-cluster resources, primarily Tailscale configuratio
 
 - **Tailscale ACLs** - Access control policies for the tailnet
 - **Tailscale Auth Keys** - Per-cluster preauthorized keys for node registration
+- **AWS Route 53** - The `bc4.uk` public hosted zone
 
 ## Prerequisites
 
@@ -13,6 +14,9 @@ This directory manages cross-cluster resources, primarily Tailscale configuratio
 2. Set credentials in the `tailscale-credentials` variable set:
    - `TAILSCALE_API_KEY` (sensitive) - Tailscale API key
    - `TAILSCALE_TAILNET` - Pre-set to `marlin-tet.ts.net`
+3. Apply the bootstrap configuration to attach the `aws-route53-credentials` variable set.
+   - `TFC_AWS_PROVIDER_AUTH` - Set to `true`
+   - `TFC_AWS_RUN_ROLE_ARN` - AWS IAM role for the `global` workspace
 
 ## Usage
 
@@ -61,4 +65,5 @@ local {
 | `backend.tf` | Terraform Cloud backend |
 | `variables.tf` | Input variables |
 | `outputs.tf` | Exported values |
+| `route53.tf` | AWS Route 53 hosted zone |
 | `tailscale.tf` | Tailscale resources |

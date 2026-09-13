@@ -8,11 +8,15 @@ terraform {
     }
     onepassword = {
       source  = "1Password/onepassword"
-      version = "~> 3.0"  # v3 uses pure SDK, no CLI required
+      version = "~> 3.0" # v3 uses pure SDK, no CLI required
     }
     cloudflare = {
       source  = "cloudflare/cloudflare"
       version = "~> 5.0"
+    }
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 6.0"
     }
   }
 }
@@ -30,4 +34,9 @@ provider "onepassword" {
 provider "cloudflare" {
   # Uses CLOUDFLARE_API_TOKEN environment variable
   # Set in Terraform Cloud workspace variables
+}
+
+provider "aws" {
+  # Route 53 is global, but the AWS provider requires a region.
+  region = "us-east-1"
 }
