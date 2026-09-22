@@ -37,13 +37,13 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps.
 No active Kubernetes clusters. Terraform manages only cross-cluster resources (Tailscale tailnet `marlin-tet.ts.net`, Cloudflare DNS, 1Password items). pyinfra manages homelab host provisioning (currently `rpi5-4cpu-16gb-home-1`).
 
 On `rpi5-4cpu-16gb-home-1`:
-- bns (caching DNS forwarder + adblock, image `ghcr.io/bcrisp4/bns`) runs as a rootful podman quadlet via `pyinfra/tasks/bns.py`. Publishes DNS (`:53` UDP+TCP) + admin (`:9053`) bound to the LAN IP `192.168.1.2` only (`bns_listen_address`) — NOT the wildcard, NOT IPv6, NOT Tailscale. Wildcard would occupy `:53` on every podman bridge gateway and collide with aardvark-dns on the `monitoring` network (breaks Prometheus/Grafana startup). Pi itself MUST NOT use bns as its resolver (circular dep on image pull + upstream forwarding) — NM keyfile pins Pi resolver to `1.1.1.1`/`9.9.9.9`.
-- dnsmasq runs DHCP-only (`port=0`) via `pyinfra/tasks/dhcp.py`. Hands out bns (`192.168.1.2`) as DHCP option 6 to LAN clients. Range `192.168.1.11-254`, lease 24h. CR1000A built-in DHCP must stay disabled (its admin UI cannot set DHCP option 6 — only start/end IP, WINS, lease, router's own upstream forwarder — hence the standalone DHCP server).
-- Static IPv4 `192.168.1.2/24` via NM keyfile (`pyinfra/tasks/network.py`). IPv6 disabled (router IPv6 also disabled).
+- The router supplies DHCP to `eth0`. `pyinfra/tasks/network.py` manages the Netplan profile and removes the old static NetworkManager keyfile.
+- `pyinfra/tasks/remove_dnsmasq.py` stops and purges the Pi's former DHCP service and removes its old config.
+- BNS remains in the repo but has no active DNS role while the Pi uses a dynamic lease. Its installed Quadlet still binds `192.168.1.2` and currently fails. Give the Pi a DHCP reservation before you restore the role. Keep BNS off wildcard port `:53`, which conflicts with aardvark-dns on Podman networks. The Pi must not use BNS as its own resolver.
 - PCIe Gen 3.0 forced on the external connector (`pyinfra/tasks/pcie.py`): patches `config.txt` (`dtparam=pciex1`/`pciex1_gen=3`) via a surgical marked block + one-shot backup, manual reboot. Gated on `pcie_gen3_enabled`, gen configurable (`pcie_gen`, default 3). External x1 link → 8.0 GT/s; internal RP1 x4 link stays Gen 2 (not config-controlled).
 - Metrics stack (all rootful podman quadlets): Prometheus (`pyinfra/tasks/prometheus.py`, loopback-only `127.0.0.1:9090`, TSDB in plain rootfs dir `/var/lib/prometheus`, distroless uid 65532), Grafana 13 (`pyinfra/tasks/grafana.py`, `docker.io/grafana/grafana-oss`, loopback-only `127.0.0.1:3000`, sqlite+WAL state in plain rootfs dir `/var/lib/grafana`, image uid 472, Prometheus auto-provisioned as default datasource), node-exporter (`pyinfra/tasks/nodeexporter.py`, `Network=host`+`--pid=host`+host rootfs for real host metrics, binds `0.0.0.0:9100`).
 - grafana-image-renderer (`pyinfra/tasks/image_renderer.py`, `docker.io/grafana/grafana-image-renderer`): remote PNG rendering for Grafana. Own `rendering` podman network (Grafana joins it too; Prometheus does not), NO published port, reachable only by Grafana. Shared auth token generated on-host (root:0600 `EnvironmentFile`, not in git) since Grafana 13 mandates a non-default `renderer_token`.
-- `monitoring` podman network (`pyinfra/tasks/podman_network.py`, quadlet `.network`): shared bridge so Prometheus + Grafana resolve each other by ContainerName via aardvark-dns (Grafana datasource = `http://prometheus:9090`). node-exporter is NOT on it (host-net); Prometheus scrapes node-exporter via `host.containers.internal:9100` and bns via `192.168.1.2:9053` (LAN IP, since bns left the wildcard). `podman_network.py` now renders multiple networks (`monitoring` + `rendering`), each gated on its own `<name>_network_enabled`. Scrape jobs are data-driven via `prometheus_scrape_targets` in the Pi's host dict in `pyinfra/inventory.py`; group data is split into `group_data/all.py` defaults + per-role flip files.
+- `monitoring` podman network (`pyinfra/tasks/podman_network.py`, quadlet `.network`): shared bridge so Prometheus + Grafana resolve each other by ContainerName via aardvark-dns (Grafana datasource = `http://prometheus:9090`). node-exporter is NOT on it (host-net). Prometheus scrapes node-exporter via `host.containers.internal:9100`. `podman_network.py` renders multiple networks (`monitoring` + `rendering`), each gated on its own `<name>_network_enabled`. Scrape jobs are data-driven via `prometheus_scrape_targets` in the Pi's host dict in `pyinfra/inventory.py`; group data is split into `group_data/all.py` defaults + per-role flip files.
 - Tailscale services (`pyinfra/tasks/tailscale_service.py`, `tailscale serve`): `svc:prometheus` + `svc:grafana`, each HTTPS `:443` reverse-proxied to the loopback-bound container. MagicDNS `prometheus.marlin-tet.ts.net` / `grafana.marlin-tet.ts.net`. Service objects + ACL grants + auto-approval in `terraform/global/tailscale.tf`. Only exposure path for those UIs (no LAN bind).
 
 `docker/metadata-action {{version}}` strips the leading `v` from semver tags, so git tag `vX.Y.Z` publishes image tag `X.Y.Z` (not `vX.Y.Z`). Pin accordingly in host data.
@@ -56,6 +56,12 @@ The Pi defines no unqualified-search registries in `/etc/containers/registries.c
 - Do not use em dashes in generated content.
 - Keep configurations minimal.
 - Prefer explicit configuration over clever automation.
+
+## Decision log
+
+Before you propose an architecture, dependency, ownership, security, or workflow change, search `docs/decisions.md` for related decisions and revisit conditions.
+
+After the user approves a consequential decision, propose a short decision-log entry. Do not record a new project policy without human confirmation.
 
 ## Implementation Notes
 

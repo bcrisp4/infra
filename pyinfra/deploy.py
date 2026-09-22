@@ -4,10 +4,10 @@ from tasks.base import base
 from tasks.bfeed import bfeed
 from tasks.bscribe import bscribe
 from tasks.bns import bns
-from tasks.dhcp import dnsmasq
+from tasks.remove_dnsmasq import remove_dnsmasq
 from tasks.grafana import grafana
 from tasks.image_renderer import image_renderer
-from tasks.network import static_network
+from tasks.network import dhcp_network
 from tasks.nodeexporter import node_exporter
 from tasks.pcie import pcie_gen3
 from tasks.pi5_exporter import pi5_exporter
@@ -20,7 +20,8 @@ from tasks.unattended_upgrades import unattended_upgrades
 
 base()
 unattended_upgrades()
-static_network()
+remove_dnsmasq()
+dhcp_network()
 install_podman()
 pcie_gen3()
 podman_networks()
@@ -34,4 +35,3 @@ grafana()
 bfeed()
 bscribe()
 tailscale_service()
-dnsmasq()

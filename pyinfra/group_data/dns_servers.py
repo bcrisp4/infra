@@ -1,7 +1,7 @@
 """dns_servers role: bns caching DNS forwarder + adblock.
 
-Machine-specific bind address (bns_listen_address) lives in the host dict in
-inventory.py. Upstream + blocklist policy is role-wide and lives here.
+When this role is assigned, the host dict in inventory.py must define
+bns_listen_address. Upstream and blocklist policy live here.
 """
 
 bns_enabled = True

@@ -2,8 +2,8 @@
 
 Lowest-priority data source: role group_data files and the per-host dicts in
 inventory.py override anything here. Every service is disabled by default and
-role groups flip the switches. Machine facts (addresses, UUIDs, GIDs, DHCP
-ranges) do NOT belong here - they live in the host dicts in inventory.py.
+role groups flip the switches. Machine facts (network profiles, UUIDs, and
+GIDs) do NOT belong here. They live in the host dicts in inventory.py.
 """
 
 timezone = "UTC"
@@ -21,8 +21,7 @@ install_podman = True
 
 # --- service enable flags: all off; role groups / host dicts opt in --------
 bns_enabled = False
-dnsmasq_enabled = False
-static_network_enabled = False
+remove_dnsmasq_enabled = False
 pcie_gen3_enabled = False
 pi5_exporter_enabled = False
 prometheus_enabled = False
@@ -131,7 +130,7 @@ grafana_tasks_max = 4096
 # --- bfeed (feed reader; loopback app port, container-only metrics port) ----
 bfeed_image = "ghcr.io/bcrisp4/bfeed"
 # git tag vX.Y.Z publishes image tag X.Y.Z (goreleaser strips the v).
-bfeed_image_tag = "0.11.0"
+bfeed_image_tag = "0.12.0"
 bfeed_host_port = 8080
 bfeed_metrics_port = 9091
 bfeed_base_url = "https://bfeed.marlin-tet.ts.net"

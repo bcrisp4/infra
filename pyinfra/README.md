@@ -15,15 +15,17 @@ pyinfra/
 ├── group_data/
 │   ├── all.py               # project-wide defaults, every service disabled
 │   ├── dns_servers.py       # role flip file: bns
-│   ├── dhcp_servers.py      # role flip file: dnsmasq
 │   ├── monitoring_servers.py # role flip file: prometheus/grafana/renderer
 │   ├── metrics_agents.py    # role flip file: node-exporter/podman-exporter
 │   └── feed_hosts.py        # role flip file: bfeed
 ├── tasks/
 │   ├── base.py              # apt update/upgrade, packages, timezone
+│   ├── network.py           # Netplan DHCP config for eth0
 │   ├── podman.py            # install podman + Pi cmdline patch
+│   ├── remove_dnsmasq.py    # remove the former DHCP service
 │   └── unattended_upgrades.py
 ├── tests/
+│   ├── test_network.py      # Netplan DHCP config tests
 │   └── test_podman.py       # pytest unit tests for cmdline rewrite logic
 └── files/
     └── 20auto-upgrades      # static config files copied to hosts
@@ -40,7 +42,7 @@ targets). Role groups are bare-FQDN membership lists:
 ```python
 all = [("rpi5-4cpu-16gb-home-1.marlin-tet.ts.net", _pi_data)]
 
-dns_servers = [_PI]
+dns_servers = []
 monitoring_servers = [_PI]
 metrics_agents = [_PI]
 ```
@@ -110,12 +112,14 @@ uv run pyinfra inventory.py exec -- uptime
 
 ## What gets applied
 
-`deploy.py` calls every task module in dependency order; each task gates itself
-on its `<name>_enabled` host/group data, so what actually runs on a host is
-decided by its role groups and host dict. The foundational tasks:
+`deploy.py` calls every task module in dependency order. Service tasks use
+host and group flags. Network and removal tasks use host data. The foundational
+tasks:
 
 - **`tasks/base.py`** — refresh apt cache, upgrade installed packages, install `base_packages`, set timezone (idempotent via a `timedatectl show` fact check).
 - **`tasks/unattended_upgrades.py`** — install `unattended-upgrades`, drop `/etc/apt/apt.conf.d/20auto-upgrades` to enable periodic security updates.
+- **`tasks/network.py`** — manage the Netplan profile for `eth0` with DHCPv4. Remove the old static NetworkManager keyfile.
+- **`tasks/remove_dnsmasq.py`** — stop and purge `dnsmasq`, then remove its old DHCP config.
 - **`tasks/podman.py`** — install Podman (rootful) and its container runtime deps; on Raspberry Pi hosts, patch `/boot/firmware/cmdline.txt` to append `cgroup_enable=memory` (a Pi downstream-only kernel param that overrides the firmware-injected `cgroup_disable=memory`) so the memory cgroup controller is available to containers. Gated on `install_podman = True` in host/group data. Cmdline changes require a manual reboot.
 
 All operations are idempotent: a re-run on an unchanged host should report zero changes.
@@ -157,8 +161,7 @@ data dict.
    dict), e.g. `queue_servers = [_PI]`.
 2. Create `group_data/queue_servers.py` flipping that role's `<name>_enabled`
    keys (defaults belong in `group_data/all.py`).
-3. Singleton roles (DHCP, DNS on the LAN): keep membership to exactly one
-   host; nothing enforces this beyond the list you write.
+3. Keep singleton service roles to one host. Nothing enforces this rule.
 
 A host can belong to multiple roles; include it in multiple lists.
 

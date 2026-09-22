@@ -16,10 +16,14 @@ _PI_SHORT = "rpi5-4cpu-16gb-home-1"
 _pi_data = {
     "ssh_user": "ben",
     # --- machine facts ------------------------------------------------------
-    # LAN IPv4 bns publishes DNS + admin on. Bound to this address only, not
-    # the wildcard: wildcard :53 would collide with aardvark-dns on the podman
-    # bridge gateways. Matches static_network below.
-    "bns_listen_address": "192.168.1.2",
+    # The router supplies IPv4 settings to eth0 through DHCP.
+    "netplan": {
+        "interface": "eth0",
+        "connection_uuid": "75a1216a-9d1a-30cd-8aca-ace5526ec021",
+        "connection_name": "netplan-eth0",
+    },
+    # Remove the former LAN DHCP service from this host.
+    "remove_dnsmasq_enabled": True,
     # Pi 5 firmware telemetry exporter; hardware-bound, so enabled per host.
     # GID 44 = `getent group video` on Raspberry Pi OS / Debian.
     "pi5_exporter_enabled": True,
@@ -27,29 +31,6 @@ _pi_data = {
     # Force PCIe Gen 3 on the external connector (not certified; manual
     # reboot; reversible via pcie_gen = 2).
     "pcie_gen3_enabled": True,
-    # Static IPv4 via NM keyfile: this host runs the LAN DHCP server and
-    # cannot lease from itself. UUID must match the existing in-memory
-    # connection or NM creates a duplicate profile.
-    "static_network_enabled": True,
-    "static_network": {
-        "connection_id": "Wired connection 1",
-        "connection_uuid": "3c612036-b566-3434-8ac8-5d5b45b2d446",
-        "interface": "eth0",
-        "ipv4_address": "192.168.1.2/24",
-        "ipv4_gateway": "192.168.1.1",
-        "ipv4_dns": ["1.1.1.1", "9.9.9.9"],
-        # Router IPv6 disabled; disable on the host too.
-        "ipv6_method": "disabled",
-    },
-    # dnsmasq DHCP-only settings (LAN-specific; dhcp_servers role flips the
-    # gate). Range/lease match the previous CR1000A settings.
-    "dnsmasq_interface": "eth0",
-    "dnsmasq_dhcp_range_start": "192.168.1.11",
-    "dnsmasq_dhcp_range_end": "192.168.1.254",
-    "dnsmasq_dhcp_netmask": "255.255.255.0",
-    "dnsmasq_dhcp_lease": "24h",
-    "dnsmasq_gateway": "192.168.1.1",
-    "dnsmasq_dns": "192.168.1.2",
     # Tailscale Services THIS host advertises. Service objects, ACL grants,
     # auto-approval live in terraform/global/tailscale.tf.
     "tailscale_serve_services": [
@@ -61,10 +42,9 @@ _pi_data = {
     # Everything the central Prometheus scrapes (tasks/prometheus.py loops
     # over this). Enabling a service does NOT auto-add its job: add the entry
     # here. Same-host container targets use ContainerName over the monitoring
-    # bridge; node-exporter is host-net (host.containers.internal); bns binds
-    # its LAN IP. Future cloud hosts: <host>.marlin-tet.ts.net:<port>.
+    # bridge; node-exporter is host-net (host.containers.internal). Future cloud
+    # hosts: <host>.marlin-tet.ts.net:<port>.
     "prometheus_scrape_targets": [
-        {"job": "bns", "target": "192.168.1.2:9053"},
         {
             "job": "node-exporter",
             "target": "host.containers.internal:9100",
@@ -101,8 +81,8 @@ _pi_data = {
 all = [(_PI, _pi_data)]
 
 # --- roles -------------------------------------------------------------------
-dns_servers = [_PI]
-dhcp_servers = [_PI]
+# Enable BNS after the router reserves a stable address for the Pi.
+dns_servers = []
 monitoring_servers = [_PI]
 metrics_agents = [_PI]
 feed_hosts = [_PI]
@@ -114,7 +94,6 @@ scribe_hosts = [_PI]
 _known = {h[0] if isinstance(h, tuple) else h for h in all}
 _roles = {
     "dns_servers": dns_servers,
-    "dhcp_servers": dhcp_servers,
     "monitoring_servers": monitoring_servers,
     "metrics_agents": metrics_agents,
     "feed_hosts": feed_hosts,

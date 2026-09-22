@@ -121,14 +121,13 @@ def _render_quadlet(data: Mapping) -> str:
         "[Container]",
         f"Image={image}",
         "ContainerName=bns",
-        # Bind only the LAN IPv4 address (bns_listen_address), not the wildcard.
-        # bns serves LAN clients (DHCP hands it out as resolver) and nothing
-        # else: the Pi's own resolver is pinned to public DNS, and bns is not a
-        # Tailscale service. Binding the wildcard (0.0.0.0) would also occupy
-        # :53 on every podman bridge gateway, which collides with aardvark-dns
-        # (the name resolver for the user-defined `monitoring` network, see
-        # tasks/podman_network.py) and prevents Prometheus/Grafana from
-        # starting. No IPv6: it is disabled host-wide.
+        # Bind only the configured LAN IPv4 address, not the wildcard. The
+        # DHCP server must assign this address and advertise it as DNS when LAN
+        # clients need bns. The Pi must not use bns as its resolver. Bns is not
+        # a Tailscale service. A wildcard bind on 0.0.0.0 also occupies :53 on
+        # each Podman bridge gateway. That conflicts with aardvark-dns on the
+        # `monitoring` network and prevents Prometheus or Grafana from starting.
+        # The host does not use IPv6 for this service.
         #
         # Admin is published on the same LAN IP (not the bridge gateway), so
         # Prometheus scrapes it at <bns_listen_address>:<admin_port> rather than
