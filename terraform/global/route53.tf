@@ -1,3 +1,22 @@
+resource "aws_route53domains_registered_domain" "bc4_uk" {
+  domain_name        = "bc4.uk"
+  auto_renew         = true
+  admin_privacy      = false
+  billing_privacy    = false
+  registrant_privacy = false
+  tech_privacy       = false
+  transfer_lock      = true
+  tags               = {}
+
+  name_server {
+    name = "dawn.ns.cloudflare.com"
+  }
+
+  name_server {
+    name = "jim.ns.cloudflare.com"
+  }
+}
+
 resource "aws_route53_zone" "bc4_uk" {
   name          = "bc4.uk"
   comment       = "HostedZone created by Route53 Registrar"

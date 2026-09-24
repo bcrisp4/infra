@@ -1,7 +1,14 @@
+data "cloudflare_zone" "bc4_uk" {
+  filter = {
+    name = "bc4.uk"
+  }
+}
+
 locals {
   cloudflare_zones = {
     thecrisp_io    = "c6e4c52a7df970cb307f6a4164eff2f4"
     bencrisp_co_uk = "662c81f35160fc2fb078ce3e8810a48e"
+    bc4_uk         = data.cloudflare_zone.bc4_uk.id
   }
 }
 
@@ -187,6 +194,76 @@ resource "cloudflare_dns_record" "bencrisp_dkim_google" {
   name     = "google._domainkey.bencrisp.co.uk"
   type     = "TXT"
   content  = "${jsonencode("v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAp+efUItklStDC4POf3p5IlMQQLdSoBvnRzpdLdZ96GHnF/smPIsvMJjVSu+jW9kAxs0GyiY9rG/mTLiSy9Lz+lTrCX1t4frdaoDn4dedt0SluYRf4vNFe90/oTcf7FDuXnVd9/KYyHk6NM+qByiVimyovjWtpj+jue+RDjXxj+VbmPGRm2YzK0r1wGn7pTEpa")} ${jsonencode("x1yVqbvKalZuuLxjycTRoeQdP6JdzE0hFU6WTPQeBrfE6e//1AlIagczxQFWfeech01C8BGaJSh/GhfYie3UcNY1COIq09kZVzhrRvpsVZ3pnhkkNg2x40+qZKOjxlhEXS/L9bprWXJY7Txp9V0yQIDAQAB")}"
+  proxied  = false
+  tags     = []
+  ttl      = 1
+  settings = {}
+}
+
+resource "cloudflare_dns_record" "bc4_uk_mx_mx01" {
+  zone_id  = local.cloudflare_zones.bc4_uk
+  name     = "bc4.uk"
+  type     = "MX"
+  content  = "mx01.mail.icloud.com"
+  priority = 10
+  proxied  = false
+  tags     = []
+  ttl      = 1
+  settings = {}
+}
+
+resource "cloudflare_dns_record" "bc4_uk_mx_mx02" {
+  zone_id  = local.cloudflare_zones.bc4_uk
+  name     = "bc4.uk"
+  type     = "MX"
+  content  = "mx02.mail.icloud.com"
+  priority = 10
+  proxied  = false
+  tags     = []
+  ttl      = 1
+  settings = {}
+}
+
+resource "cloudflare_dns_record" "bc4_uk_apple_domain_verify" {
+  zone_id  = local.cloudflare_zones.bc4_uk
+  name     = "bc4.uk"
+  type     = "TXT"
+  content  = jsonencode("apple-domain=eeNAiCD2GYjrhtAR")
+  proxied  = false
+  tags     = []
+  ttl      = 1
+  settings = {}
+}
+
+resource "cloudflare_dns_record" "bc4_uk_spf" {
+  zone_id  = local.cloudflare_zones.bc4_uk
+  name     = "bc4.uk"
+  type     = "TXT"
+  content  = jsonencode("v=spf1 include:icloud.com ~all")
+  proxied  = false
+  tags     = []
+  ttl      = 1
+  settings = {}
+}
+
+resource "cloudflare_dns_record" "bc4_uk_dkim_apple_sig1" {
+  zone_id = local.cloudflare_zones.bc4_uk
+  name    = "sig1._domainkey.bc4.uk"
+  type    = "CNAME"
+  content = "sig1.dkim.bc4.uk.at.icloudmailadmin.com"
+  proxied = false
+  tags    = []
+  ttl     = 1
+  settings = {
+    flatten_cname = false
+  }
+}
+
+resource "cloudflare_dns_record" "bc4_uk_dmarc" {
+  zone_id  = local.cloudflare_zones.bc4_uk
+  name     = "_dmarc.bc4.uk"
+  type     = "TXT"
+  content  = jsonencode("v=DMARC1;p=quarantine;pct=100;fo=1")
   proxied  = false
   tags     = []
   ttl      = 1
