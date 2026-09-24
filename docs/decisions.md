@@ -1,3 +1,17 @@
+## 2026-09-24: Manage bsync staging resources in global Terraform
+
+**Context:** The global workspace manages the `bc4.uk` zone. bsync needs account login, D1, and a Worker custom domain.
+
+**Decision:** Global Terraform owns the Cloudflare identity provider, bsync Access policy and application, D1 database, and custom domain. It reads the existing Zero Trust organization. Wrangler owns the Worker and Durable Object class.
+
+**Rejected:** Dashboard-managed bsync Access. Wrangler-managed bsync custom domain. A second Zero Trust organization.
+
+**Why:** The global workspace already manages `bc4.uk`. One owner per resource prevents route and policy drift.
+
+**Revisit when:** bsync requires independent Terraform state or the provider cannot maintain Managed OAuth.
+
+**Links:** `terraform/global/bsync.tf`, `~/src/bsync/wrangler.jsonc`.
+
 ## 2026-09-24: Manage bc4.uk registration in Terraform
 
 **Context:** Terraform manages DNS records. AWS CLI changed the registered domain nameservers.

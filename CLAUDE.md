@@ -34,7 +34,7 @@ Infrastructure monorepo for multi-cluster Kubernetes with GitOps.
 
 ## Current State
 
-No active Kubernetes clusters. Terraform manages only cross-cluster resources (Tailscale tailnet `marlin-tet.ts.net`, Cloudflare DNS, 1Password items). pyinfra manages homelab host provisioning (currently `rpi5-4cpu-16gb-home-1`).
+No active Kubernetes clusters exist. Terraform manages cross-cluster resources and bsync staging Access, D1, and the Worker custom domain in `terraform/global/bsync.tf`. Wrangler in `~/src/bsync` owns the Worker and Durable Object class. pyinfra manages homelab host provisioning (currently `rpi5-4cpu-16gb-home-1`).
 
 On `rpi5-4cpu-16gb-home-1`:
 - The router supplies DHCP to `eth0`. `pyinfra/tasks/network.py` manages the Netplan profile and removes the old static NetworkManager keyfile.

@@ -1,14 +1,14 @@
 # Global Terraform Configuration
 
-This directory manages cross-cluster resources, primarily Tailscale configuration.
+This directory manages shared tailnet, DNS, and bsync staging resources.
 
 ## Resources Managed
 
-- **Tailscale ACLs** - Access control policies for the tailnet
-- **Tailscale Auth Keys** - Per-cluster preauthorized keys for node registration
-- **Cloudflare DNS** - Authoritative records for `thecrisp.io`, `bencrisp.co.uk`, and `bc4.uk`
-- **AWS Route 53 Domains** - `bc4.uk` registration and nameservers
-- **AWS Route 53 DNS** - The `bc4.uk` hosted zone remains for rollback during DNS propagation
+- Tailscale ACLs and per-cluster auth keys control tailnet and node access.
+- Cloudflare serves authoritative DNS records for `thecrisp.io`, `bencrisp.co.uk`, and `bc4.uk`.
+- bsync staging uses a Terraform-managed Access identity provider, policy, application, D1 database, and Worker custom domain.
+- AWS Route 53 Domains manages `bc4.uk` registration and nameservers.
+- The AWS Route 53 hosted zone remains for rollback during DNS propagation.
 
 ## Prerequisites
 
@@ -69,5 +69,6 @@ local {
 | `variables.tf` | Input variables |
 | `outputs.tf` | Exported values |
 | `cloudflare.tf` | Cloudflare zone lookup and DNS records |
+| `bsync.tf` | bsync Access, D1, and Worker custom domain. Worker code and Durable Object class stay in `~/src/bsync`. |
 | `route53.tf` | AWS Route 53 registration and hosted zone |
 | `tailscale.tf` | Tailscale resources |
