@@ -1,3 +1,19 @@
+## 2026-09-27: Store bsync tenant data in Durable Objects
+
+**Supersedes:** 2026-09-24, Manage bsync staging resources in global Terraform.
+
+**Trigger:** The approved bsync design uses SQLite-backed Durable Objects and does not require D1.
+
+**Decision:** Terraform owns Access applications, policies, DNS records, and Worker custom domains. Wrangler owns the Worker and Durable Object classes. Durable Objects store bsync tenant data in SQLite.
+
+**Rejected:** Keep D1 as bsync tenant storage.
+
+**Why:** Each tenant's Worker owns its SQLite-backed storage.
+
+**Revisit when:** The bsync design adds a separate database service.
+
+**Links:** `~/src/bsync/openspec/changes/privacy-first-sync-service/design.md`, `terraform/global/bsync.tf`.
+
 ## 2026-09-24: Manage bsync staging resources in global Terraform
 
 **Context:** The global workspace manages the `bc4.uk` zone. bsync needs account login, D1, and a Worker custom domain.
