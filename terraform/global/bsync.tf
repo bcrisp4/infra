@@ -2,6 +2,16 @@ locals {
   bsync_cloudflare_account_id = "80e7492f41a66e136f50564f095fa638"
 }
 
+resource "cloudflare_d1_database" "bsync_staging_owner_directory" {
+  account_id            = local.bsync_cloudflare_account_id
+  name                  = "bsync-staging-owner-directory"
+  primary_location_hint = "weur"
+
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
 data "cloudflare_zero_trust_organization" "bc4" {
   account_id = local.bsync_cloudflare_account_id
 }
@@ -141,4 +151,9 @@ resource "cloudflare_workers_custom_domain" "bsync_production_login" {
   zone_id    = local.cloudflare_zones.bc4_uk
   hostname   = "login.bsync.bc4.uk"
   service    = "bsync"
+}
+
+output "bsync_staging_owner_directory_id" {
+  description = "ID for the staging bsync owner directory D1 database."
+  value       = cloudflare_d1_database.bsync_staging_owner_directory.id
 }

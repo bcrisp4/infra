@@ -1,3 +1,19 @@
+## 2026-10-01: Manage the bsync owner directory D1 database in Terraform
+
+**Supersedes:** 2026-09-27, Store bsync tenant data in Durable Objects, for D1 only. The revisit condition is true because the bsync design adds a D1 owner directory.
+
+**Context:** bsync maps approved Access issuer and subject values to tenant IDs in D1. D1 stores no tenant data. Durable Objects keep tenant data in SQLite.
+
+**Decision:** Global Terraform owns the staging owner directory D1 database, with `prevent_destroy` and `primary_location_hint = "weur"`. Production D1 comes later in a separate change. Wrangler owns the D1 binding, schema migrations, and owner rows. Terraform owns no table or row.
+
+**Rejected:** Create the database with `wrangler d1 create`. Use `jurisdiction = "eu"`, because the directory needs placement near the owner, not a residency guarantee.
+
+**Why:** The directory is the owner allowlist, so it is a security boundary. Terraform plans show drift and require review. `prevent_destroy` blocks accidental deletion of every owner mapping. The location hint places the primary near the owner in Europe.
+
+**Revisit when:** bsync needs EU data residency, bsync needs Worker and database lifecycles in one tool, or the Cloudflare provider cannot manage D1.
+
+**Links:** `terraform/global/bsync.tf`, `~/src/bsync/worker/wrangler.staging.jsonc`, `~/src/bsync/docs/decisions.md` (2026-09-29, Use D1 for manually approved owner routing).
+
 ## 2026-09-27: Store bsync tenant data in Durable Objects
 
 **Supersedes:** 2026-09-24, Manage bsync staging resources in global Terraform.
