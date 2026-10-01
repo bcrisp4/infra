@@ -61,7 +61,12 @@ resource "cloudflare_zero_trust_access_application" "bsync_staging" {
       enabled                = true
       allow_any_on_localhost = false
       allow_any_on_loopback  = false
-      allowed_uris           = ["https://login.bsync-staging.bc4.uk/oauth/callback"]
+      # The custom-scheme URI is temporary. Remove it after Apple Developer Program enrollment
+      # restores the Associated Domains HTTPS callback for the native probe and Rill.
+      allowed_uris = [
+        "https://login.bsync-staging.bc4.uk/oauth/callback",
+        "io.thecrisp.bsync.oauthprobe:/oauth/callback",
+      ]
     }
     grant = {
       access_token_lifetime = "15m"

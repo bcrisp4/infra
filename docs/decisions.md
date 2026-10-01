@@ -1,3 +1,17 @@
+## 2026-10-01: Allow a temporary custom-scheme redirect for the staging bsync probe
+
+**Context:** A free Apple Personal Team cannot sign the Associated Domains capability. The native probe needs that capability for the HTTPS callback `https://login.bsync-staging.bc4.uk/oauth/callback`. Apple Developer Program enrollment is in progress.
+
+**Decision:** Add `io.thecrisp.bsync.oauthprobe:/oauth/callback` to the staging bsync Access application `allowed_uris`. Keep the HTTPS callback. Do not change the production application.
+
+**Rejected:** An HTTPS relay route in the Worker that redirects to the custom scheme. Loopback redirects with `allow_any_on_loopback`.
+
+**Why:** Managed OAuth accepts an exact custom-scheme URI. The probe keeps S256 PKCE and state checks, so an intercepted code is not usable without the verifier. The change touches only staging.
+
+**Revisit when:** Apple Developer Program enrollment completes. Then remove the custom-scheme URI and restore the HTTPS callback in the probe and Rill.
+
+**Links:** `terraform/global/bsync.tf`, `~/src/bsync/docs/oauth-probe.md`, `~/src/bsync/openspec/changes/privacy-first-sync-service/tasks.md` (1.11).
+
 ## 2026-10-01: Manage the bsync owner directory D1 database in Terraform
 
 **Supersedes:** 2026-09-27, Store bsync tenant data in Durable Objects, for D1 only. The revisit condition is true because the bsync design adds a D1 owner directory.
