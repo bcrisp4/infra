@@ -19,3 +19,4 @@ kubeconfig*
 talosconfig*
 *.tfplan
 tfplan
+terraform/global/.cloudflare/
